@@ -27,9 +27,10 @@
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
 #include <vtkNew.h>
-#include <vtkGenericDataObjectReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkStructuredGridGeometryFilter.h>
+#include <vtkStructuredGridReader.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
@@ -243,22 +244,13 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
   if(this->FileName)
     {
-    vtkNew<vtkGenericDataObjectReader> reader;
+    vtkNew<vtkStructuredGridReader> reader;
     reader->SetFileName(this->FileName);
-    reader->Update();
-    if(reader->IsFilePolyData())
-      {
-      reader->GetPolyDataOutput()->GetBounds(this->DataBounds);
-      mapper->SetInputData(reader->GetPolyDataOutput());
-      }
-    else
-      {
-      std::cerr << "File " << this->FileName << " does not contain a vtkPolyData" << std::endl;
-      vtkNew<vtkCubeSource> cube;
-      cube->Update();
-      cube->GetOutput()->GetBounds(this->DataBounds);
-      mapper->SetInputData(cube->GetOutput());
-      }
+    vtkNew<vtkStructuredGridGeometryFilter> geometryFilter;
+    geometryFilter->SetInputConnection(reader->GetOutputPort());
+    geometryFilter->Update();
+    geometryFilter->GetOutput()->GetBounds(this->DataBounds);
+    mapper->SetInputData(geometryFilter->GetOutput());
     }
   else
     {
