@@ -11,7 +11,7 @@ void printUsage(void)
   std::cout << "\nUSAGE:\n\t./exampleVTKReader [-f <string>] [-h]" << std::endl;
   std::cout << "\nWhere:" << std::endl;
   std::cout << "\t-f <string>, -fileName <string>" << std::endl;
-  std::cout << "\tName of OBJ file to load using VTK.\n" << std::endl;
+  std::cout << "\tName of VTK file to load using VTK.\n" << std::endl;
   std::cout << "\t-h, -help" << std::endl;
   std::cout << "\tDisplay this usage information and exit." << std::endl;
   std::cout << "\nAdditionally, all the commandline switches the VRUI " <<

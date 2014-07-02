@@ -86,8 +86,8 @@ private:
   ClippingPlane * ClippingPlanes;
   int NumberOfClippingPlanes;
 
-  /* Constructors and destructors: */
 public:
+  /* Constructors and destructors: */
   exampleVTKReader(int& argc,char**& argv);
   virtual ~exampleVTKReader(void);
 

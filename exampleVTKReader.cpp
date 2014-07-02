@@ -28,7 +28,7 @@
 #include <vtkCubeSource.h>
 #include <vtkLight.h>
 #include <vtkNew.h>
-#include <vtkOBJReader.h>
+#include <vtkGenericDataObjectReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 
@@ -249,11 +249,22 @@ void exampleVTKReader::initContext(GLContextData& contextData) const
 
   if(this->FileName)
     {
-    vtkNew<vtkOBJReader> reader;
+    vtkNew<vtkGenericDataObjectReader> reader;
     reader->SetFileName(this->FileName);
     reader->Update();
-    reader->GetOutput()->GetBounds(this->DataBounds);
-    mapper->SetInputData(reader->GetOutput());
+    if(reader->IsFilePolyData())
+      {
+      reader->GetPolyDataOutput()->GetBounds(this->DataBounds);
+      mapper->SetInputData(reader->GetPolyDataOutput());
+      }
+    else
+      {
+      std::cerr << "File " << this->FileName << " does not contain a vtkPolyData" << std::endl;
+      vtkNew<vtkCubeSource> cube;
+      cube->Update();
+      cube->GetOutput()->GetBounds(this->DataBounds);
+      mapper->SetInputData(cube->GetOutput());
+      }
     }
   else
     {
