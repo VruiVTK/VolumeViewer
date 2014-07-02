@@ -26,7 +26,6 @@ class vtkActor;
 class BaseLocator;
 class ClippingPlane;
 class ExternalVTKWidget;
-class vtkLight;
 
 class ExampleVTKReader:public Vrui::Application,public GLObject
 {
@@ -40,7 +39,6 @@ private:
     /* VTK components */
     vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
     vtkSmartPointer<vtkActor> actor;
-    vtkSmartPointer<vtkLight> flashlight;
 
     /* Constructor and destructor*/
     DataItem(void);

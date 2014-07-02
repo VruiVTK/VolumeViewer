@@ -26,7 +26,6 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
-#include <vtkLight.h>
 #include <vtkNew.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkPolyDataMapper.h>
@@ -45,11 +44,6 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
   this->actor = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddActor(this->actor);
-  this->flashlight = vtkSmartPointer<vtkLight>::New();
-  this->flashlight->SwitchOff();
-  this->flashlight->SetLightTypeToHeadlight();
-  this->flashlight->SetColor(0.0, 1.0, 1.0);
-  this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
 }
 
 //----------------------------------------------------------------------------
@@ -299,22 +293,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     GL_LIGHTING_BIT|GL_POLYGON_BIT);
   /* Get context data item */
   DataItem* dataItem = contextData.retrieveDataItem<DataItem>(this);
-
-  Vrui::ToolManager* toolManager = Vrui::getToolManager();
-  std::vector<Vrui::Tool*>::const_iterator toolListIter =
-    toolManager->beginTools();
-  for(; toolListIter != toolManager->endTools(); ++toolListIter)
-    {
-    if(std::string((*toolListIter)->getName()).compare("Flashlight") == 0)
-      {
-      dataItem->flashlight->SwitchOn();
-      break;
-      }
-    }
-  if(toolListIter == toolManager->endTools())
-    {
-    dataItem->flashlight->SwitchOff();
-    }
 
   /* Set actor opacity */
   dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
