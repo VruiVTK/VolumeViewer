@@ -2,7 +2,7 @@
 #define CLIPPINGPLANELOCATOR_H_
 
 #include "BaseLocator.h"
-#include "exampleVTKReader.h"
+#include "ExampleVTKReader.h"
 
 /* Vrui includes */
 #include <Vrui/LocatorTool.h>
@@ -13,7 +13,7 @@ class ClippingPlane;
 class ClippingPlaneLocator : public BaseLocator {
 public:
 	ClippingPlaneLocator(Vrui::LocatorTool* locatorTool,
-			exampleVTKReader * exampleVTKReader);
+			ExampleVTKReader * ExampleVTKReader);
 	~ClippingPlaneLocator(void);
 	virtual void buttonPressCallback(
 			Vrui::LocatorTool::ButtonPressCallbackData* callbackData);

@@ -28,7 +28,7 @@ class ClippingPlane;
 class ExternalVTKWidget;
 class vtkLight;
 
-class exampleVTKReader:public Vrui::Application,public GLObject
+class ExampleVTKReader:public Vrui::Application,public GLObject
 {
 /* Embedded classes: */
   typedef std::vector<BaseLocator*> BaseLocatorList;
@@ -88,8 +88,8 @@ private:
 
 public:
   /* Constructors and destructors: */
-  exampleVTKReader(int& argc,char**& argv);
-  virtual ~exampleVTKReader(void);
+  ExampleVTKReader(int& argc,char**& argv);
+  virtual ~ExampleVTKReader(void);
 
   /* Methods to set/get the filename to read */
   void setFileName(const char* name);

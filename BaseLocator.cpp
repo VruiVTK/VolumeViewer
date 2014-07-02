@@ -1,15 +1,15 @@
 #include <Vrui/LocatorTool.h>
 
 #include "BaseLocator.h"
-#include "exampleVTKReader.h"
+#include "ExampleVTKReader.h"
 
 /*
  * BaseLocator
  *
  * parameter _locatorTool - Vrui::LocatorTool*
- * parameter _application - exampleVTKReader*
+ * parameter _application - ExampleVTKReader*
  */
-BaseLocator::BaseLocator(Vrui::LocatorTool* _locatorTool, exampleVTKReader* _application) :
+BaseLocator::BaseLocator(Vrui::LocatorTool* _locatorTool, ExampleVTKReader* _application) :
 	Vrui::LocatorToolAdapter(_locatorTool) {
 	application = _application;
 } // end BaseLocator()

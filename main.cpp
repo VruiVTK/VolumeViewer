@@ -2,20 +2,20 @@
 #include <iostream>
 #include <string>
 
-// exampleVTKReader includes
-#include "exampleVTKReader.h"
+// ExampleVTKReader includes
+#include "ExampleVTKReader.h"
 
 void printUsage(void)
 {
-  std::cout << "\nexampleVTKReader - Render VTK objects in the VRUI context" << std::endl;
-  std::cout << "\nUSAGE:\n\t./exampleVTKReader [-f <string>] [-h]" << std::endl;
+  std::cout << "\nExampleVTKReader - Render VTK objects in the VRUI context" << std::endl;
+  std::cout << "\nUSAGE:\n\t./ExampleVTKReader [-f <string>] [-h]" << std::endl;
   std::cout << "\nWhere:" << std::endl;
   std::cout << "\t-f <string>, -fileName <string>" << std::endl;
   std::cout << "\tName of VTK file to load using VTK.\n" << std::endl;
   std::cout << "\t-h, -help" << std::endl;
   std::cout << "\tDisplay this usage information and exit." << std::endl;
   std::cout << "\nAdditionally, all the commandline switches the VRUI " <<
-    "accepts can be passed to exampleVTKReader.\nFor example, -rootSection," <<
+    "accepts can be passed to ExampleVTKReader.\nFor example, -rootSection," <<
     " -vruiVerbose, -vruiHelp, etc.\n" << std::endl;
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         }
       }
 
-    exampleVTKReader application(argc, argv);
+    ExampleVTKReader application(argc, argv);
     if(!name.empty())
       {
       application.setFileName(name.c_str());

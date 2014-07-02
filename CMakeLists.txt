@@ -4,7 +4,7 @@ IF(POLICY CMP0020)
   CMAKE_POLICY(SET CMP0020 NEW)
 ENDIF()
 
-PROJECT(exampleVTKReader)
+PROJECT(ExampleVTKReader)
 
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -34,8 +34,8 @@ SET(${PROJECT_NAME}_SRCS
   ClippingPlaneLocator.cpp
   ClippingPlaneLocator.h
   main.cpp
-  exampleVTKReader.cpp
-  exampleVTKReader.h
+  ExampleVTKReader.cpp
+  ExampleVTKReader.h
   )
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS})

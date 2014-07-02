@@ -32,14 +32,14 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 
-// exampleVTKReader includes
+// ExampleVTKReader includes
 #include "BaseLocator.h"
 #include "ClippingPlane.h"
 #include "ClippingPlaneLocator.h"
-#include "exampleVTKReader.h"
+#include "ExampleVTKReader.h"
 
 //----------------------------------------------------------------------------
-exampleVTKReader::DataItem::DataItem(void)
+ExampleVTKReader::DataItem::DataItem(void)
 {
   /* Initialize VTK renderwindow and renderer */
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
@@ -53,12 +53,12 @@ exampleVTKReader::DataItem::DataItem(void)
 }
 
 //----------------------------------------------------------------------------
-exampleVTKReader::DataItem::~DataItem(void)
+ExampleVTKReader::DataItem::~DataItem(void)
 {
 }
 
 //----------------------------------------------------------------------------
-exampleVTKReader::exampleVTKReader(int& argc,char**& argv)
+ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   :Vrui::Application(argc,argv),
   FileName(0),
   mainMenu(NULL),
@@ -88,7 +88,7 @@ exampleVTKReader::exampleVTKReader(int& argc,char**& argv)
 }
 
 //----------------------------------------------------------------------------
-exampleVTKReader::~exampleVTKReader(void)
+ExampleVTKReader::~ExampleVTKReader(void)
 {
   if(this->DataBounds)
     {
@@ -97,7 +97,7 @@ exampleVTKReader::~exampleVTKReader(void)
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::setFileName(const char* name)
+void ExampleVTKReader::setFileName(const char* name)
 {
   if(this->FileName && name && (!strcmp(this->FileName, name)))
     {
@@ -112,13 +112,13 @@ void exampleVTKReader::setFileName(const char* name)
 }
 
 //----------------------------------------------------------------------------
-const char* exampleVTKReader::getFileName(void)
+const char* ExampleVTKReader::getFileName(void)
 {
   return this->FileName;
 }
 
 //----------------------------------------------------------------------------
-GLMotif::PopupMenu* exampleVTKReader::createMainMenu(void)
+GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
 {
   GLMotif::PopupMenu* mainMenuPopup = new GLMotif::PopupMenu("MainMenuPopup",Vrui::getWidgetManager());
   mainMenuPopup->setTitle("Main Menu");
@@ -133,19 +133,19 @@ GLMotif::PopupMenu* exampleVTKReader::createMainMenu(void)
   analysisToolsCascade->setPopup(createAnalysisToolsMenu());
 
   GLMotif::Button* centerDisplayButton = new GLMotif::Button("CenterDisplayButton",mainMenu,"Center Display");
-  centerDisplayButton->getSelectCallbacks().add(this,&exampleVTKReader::centerDisplayCallback);
+  centerDisplayButton->getSelectCallbacks().add(this,&ExampleVTKReader::centerDisplayCallback);
 
   GLMotif::ToggleButton * showRenderingDialog = new GLMotif::ToggleButton("ShowRenderingDialog", mainMenu,
     "Rendering");
   showRenderingDialog->setToggle(false);
-  showRenderingDialog->getValueChangedCallbacks().add(this, &exampleVTKReader::showRenderingDialogCallback);
+  showRenderingDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showRenderingDialogCallback);
 
   mainMenu->manageChild();
   return mainMenuPopup;
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup* exampleVTKReader::createRepresentationMenu(void)
+GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
@@ -155,11 +155,11 @@ GLMotif::Popup* exampleVTKReader::createRepresentationMenu(void)
   GLMotif::RadioBox* representation_RadioBox = new GLMotif::RadioBox("Representation RadioBox",representationMenu,true);
 
   GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton("ShowSurface",representation_RadioBox,"Surface");
-  showSurface->getValueChangedCallbacks().add(this,&exampleVTKReader::changeRepresentationCallback);
+  showSurface->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
   GLMotif::ToggleButton* showWireframe=new GLMotif::ToggleButton("ShowWireframe",representation_RadioBox,"Wireframe");
-  showWireframe->getValueChangedCallbacks().add(this,&exampleVTKReader::changeRepresentationCallback);
+  showWireframe->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
   GLMotif::ToggleButton* showPoints=new GLMotif::ToggleButton("ShowPoints",representation_RadioBox,"Points");
-  showPoints->getValueChangedCallbacks().add(this,&exampleVTKReader::changeRepresentationCallback);
+  showPoints->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
 
   representation_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   representation_RadioBox->setSelectedToggle(showSurface);
@@ -169,7 +169,7 @@ GLMotif::Popup* exampleVTKReader::createRepresentationMenu(void)
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup * exampleVTKReader::createAnalysisToolsMenu(void)
+GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
@@ -179,9 +179,9 @@ GLMotif::Popup * exampleVTKReader::createAnalysisToolsMenu(void)
   GLMotif::RadioBox * analysisTools_RadioBox = new GLMotif::RadioBox("analysisTools", analysisToolsMenu, true);
 
   GLMotif::ToggleButton* showClippingPlane=new GLMotif::ToggleButton("ClippingPlane",analysisTools_RadioBox,"Clipping Plane");
-  showClippingPlane->getValueChangedCallbacks().add(this,&exampleVTKReader::changeAnalysisToolsCallback);
+  showClippingPlane->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
   GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton("Other",analysisTools_RadioBox,"Other");
-  showOther->getValueChangedCallbacks().add(this,&exampleVTKReader::changeAnalysisToolsCallback);
+  showOther->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
 
   analysisTools_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   analysisTools_RadioBox->setSelectedToggle(showClippingPlane);
@@ -191,7 +191,7 @@ GLMotif::Popup * exampleVTKReader::createAnalysisToolsMenu(void)
 }
 
 //----------------------------------------------------------------------------
-GLMotif::PopupWindow* exampleVTKReader::createRenderingDialog(void) {
+GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void) {
   const GLMotif::StyleSheet& ss = *Vrui::getWidgetManager()->getStyleSheet();
   GLMotif::PopupWindow * dialogPopup = new GLMotif::PopupWindow("RenderingDialogPopup", Vrui::getWidgetManager(),
     "Rendering Dialog");
@@ -203,7 +203,7 @@ GLMotif::PopupWindow* exampleVTKReader::createRenderingDialog(void) {
     ss.fontHeight*10.0f);
   opacitySlider->setValue(Opacity);
   opacitySlider->setValueRange(0.0, 1.0, 0.1);
-  opacitySlider->getValueChangedCallbacks().add(this, &exampleVTKReader::opacitySliderCallback);
+  opacitySlider->getValueChangedCallbacks().add(this, &ExampleVTKReader::opacitySliderCallback);
   opacityValue = new GLMotif::TextField("OpacityValue", dialog, 6);
   opacityValue->setFieldWidth(6);
   opacityValue->setPrecision(3);
@@ -214,7 +214,7 @@ GLMotif::PopupWindow* exampleVTKReader::createRenderingDialog(void) {
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::frame(void)
+void ExampleVTKReader::frame(void)
 {
   if(this->FirstFrame)
     {
@@ -238,7 +238,7 @@ void exampleVTKReader::frame(void)
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::initContext(GLContextData& contextData) const
+void ExampleVTKReader::initContext(GLContextData& contextData) const
 {
   /* Create a new context data item */
   DataItem* dataItem = new DataItem();
@@ -276,7 +276,7 @@ void exampleVTKReader::initContext(GLContextData& contextData) const
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::display(GLContextData& contextData) const
+void ExampleVTKReader::display(GLContextData& contextData) const
 {
     int numberOfSupportedClippingPlanes;
     glGetIntegerv(GL_MAX_CLIP_PLANES, &numberOfSupportedClippingPlanes);
@@ -336,7 +336,7 @@ void exampleVTKReader::display(GLContextData& contextData) const
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
+void ExampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
 {
   if(!this->DataBounds)
     {
@@ -347,7 +347,7 @@ void exampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::opacitySliderCallback(
+void ExampleVTKReader::opacitySliderCallback(
   GLMotif::Slider::ValueChangedCallbackData* callBackData)
 {
   this->Opacity = static_cast<double>(callBackData->value);
@@ -355,7 +355,7 @@ void exampleVTKReader::opacitySliderCallback(
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
     /* Adjust representation state based on which toggle button changed state: */
     if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
@@ -372,7 +372,7 @@ void exampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::Value
     }
 }
 //----------------------------------------------------------------------------
-void exampleVTKReader::changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
     /* Set the new analysis tool: */
     if (strcmp(callBackData->toggle->getName(), "ClippingPlane") == 0)
@@ -386,7 +386,7 @@ void exampleVTKReader::changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueC
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
     /* open/close rendering dialog based on which toggle button changed state: */
   if (strcmp(callBackData->toggle->getName(), "ShowRenderingDialog") == 0) {
@@ -401,19 +401,19 @@ void exampleVTKReader::showRenderingDialogCallback(GLMotif::ToggleButton::ValueC
 }
 
 //----------------------------------------------------------------------------
-ClippingPlane * exampleVTKReader::getClippingPlanes(void)
+ClippingPlane * ExampleVTKReader::getClippingPlanes(void)
 {
   return this->ClippingPlanes;
 }
 
 //----------------------------------------------------------------------------
-int exampleVTKReader::getNumberOfClippingPlanes(void)
+int ExampleVTKReader::getNumberOfClippingPlanes(void)
 {
     return this->NumberOfClippingPlanes;
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData * callbackData) {
+void ExampleVTKReader::toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData * callbackData) {
     /* Check if the new tool is a locator tool: */
     Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (callbackData->tool);
     if (locatorTool != 0) {
@@ -429,7 +429,7 @@ void exampleVTKReader::toolCreationCallback(Vrui::ToolManager::ToolCreationCallb
 }
 
 //----------------------------------------------------------------------------
-void exampleVTKReader::toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData * callbackData) {
+void ExampleVTKReader::toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData * callbackData) {
     /* Check if the to-be-destroyed tool is a locator tool: */
     Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (callbackData->tool);
     if (locatorTool != 0) {

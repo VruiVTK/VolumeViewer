@@ -9,20 +9,20 @@
 #include "BaseLocator.h"
 #include "ClippingPlane.h"
 #include "ClippingPlaneLocator.h"
-#include "exampleVTKReader.h"
+#include "ExampleVTKReader.h"
 
 /*
  * ClippingPlaneLocator - Constructor for ClippingPlaneLocator class.
  *
  * parameter locatorTool - Vrui::LocatorTool *
- * parameter exampleVTKReader - exampleVTKReader *
+ * parameter ExampleVTKReader - ExampleVTKReader *
  */
 ClippingPlaneLocator::ClippingPlaneLocator(Vrui::LocatorTool * locatorTool,
-		exampleVTKReader* exampleVTKReader) :
-	BaseLocator(locatorTool, exampleVTKReader), clippingPlane(0) {
+		ExampleVTKReader* ExampleVTKReader) :
+	BaseLocator(locatorTool, ExampleVTKReader), clippingPlane(0) {
 	/* Find a clipping plane index for this locator: */
-	ClippingPlane * clippingPlanes = exampleVTKReader->getClippingPlanes();
-	for (int i=0; i<exampleVTKReader->getNumberOfClippingPlanes(); ++i)
+	ClippingPlane * clippingPlanes = ExampleVTKReader->getClippingPlanes();
+	for (int i=0; i<ExampleVTKReader->getNumberOfClippingPlanes(); ++i)
 		if (!clippingPlanes[i].isAllocated()) {
 			clippingPlane=&clippingPlanes[i];
 			break;
