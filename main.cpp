@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
   try
     {
     std::string name;
+    bool verbose = false;
     if(argc > 1)
       {
       /* Parse the command-line arguments */
@@ -47,6 +48,10 @@ int main(int argc, char* argv[])
           printUsage();
           return 0;
           }
+        if(strcmp(argv[i],"-vruiVerbose")==0)
+          {
+          verbose = true;
+          }
         }
       }
 
@@ -54,6 +59,7 @@ int main(int argc, char* argv[])
     if(!name.empty())
       {
       application.setFileName(name.c_str());
+      application.setVerbose(verbose);
       }
     application.run();
     return 0;

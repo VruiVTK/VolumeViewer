@@ -26,11 +26,17 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
+#include <vtkDataSetMapper.h>
+#include <vtkGenericDataObjectReader.h>
+#include <vtkImageDataGeometryFilter.h>
 #include <vtkNew.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkStructuredGridGeometryFilter.h>
-#include <vtkStructuredGridReader.h>
+#include <vtkStructuredGrid.h>
+#include <vtkStructuredPoints.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkRectilinearGrid.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
@@ -64,7 +70,8 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   FirstFrame(true),
   analysisTool(0),
   ClippingPlanes(NULL),
-  NumberOfClippingPlanes(6)
+  NumberOfClippingPlanes(6),
+  Verbose(false)
 {
   /* Create the user interface: */
   renderingDialog = createRenderingDialog();
@@ -110,6 +117,18 @@ void ExampleVTKReader::setFileName(const char* name)
 const char* ExampleVTKReader::getFileName(void)
 {
   return this->FileName;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setVerbose(bool verbose)
+{
+  this->Verbose = verbose;
+}
+
+//----------------------------------------------------------------------------
+bool ExampleVTKReader::getVerbose(void)
+{
+  return this->Verbose;
 }
 
 //----------------------------------------------------------------------------
@@ -239,21 +258,82 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   DataItem* dataItem = new DataItem();
   contextData.addDataItem(this, dataItem);
 
-  vtkNew<vtkPolyDataMapper> mapper;
-  dataItem->actor->SetMapper(mapper.GetPointer());
-
   if(this->FileName)
     {
-    vtkNew<vtkStructuredGridReader> reader;
+    vtkNew<vtkGenericDataObjectReader> reader;
     reader->SetFileName(this->FileName);
-    vtkNew<vtkStructuredGridGeometryFilter> geometryFilter;
-    geometryFilter->SetInputConnection(reader->GetOutputPort());
-    geometryFilter->Update();
-    geometryFilter->GetOutput()->GetBounds(this->DataBounds);
-    mapper->SetInputData(geometryFilter->GetOutput());
+    reader->Update();
+    if(reader->IsFilePolyData())
+      {
+      if(this->Verbose)
+        {
+        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
+          " is of type vtkPolyData" << std::endl;
+        }
+      vtkNew<vtkPolyDataMapper> mapper;
+      dataItem->actor->SetMapper(mapper.GetPointer());
+      mapper->SetInputData(reader->GetPolyDataOutput());
+      reader->GetPolyDataOutput()->GetBounds(this->DataBounds);
+      }
+    else if(reader->IsFileStructuredGrid())
+      {
+      if(this->Verbose)
+        {
+        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
+          " is of type vtkStructuredGrid" << std::endl;
+        }
+      vtkNew<vtkPolyDataMapper> mapper;
+      dataItem->actor->SetMapper(mapper.GetPointer());
+      vtkNew<vtkStructuredGridGeometryFilter> geometryFilter;
+      geometryFilter->SetInputData(reader->GetStructuredGridOutput());
+      geometryFilter->Update();
+      geometryFilter->GetOutput()->GetBounds(this->DataBounds);
+      mapper->SetInputData(geometryFilter->GetOutput());
+      }
+    else if(reader->IsFileStructuredPoints())
+      {
+      if(this->Verbose)
+        {
+        std::cout << std::endl <<  "ExampleVTKReader: File " << this->FileName <<
+          " is of type vtkStructuredPoints" << std::endl;
+        }
+      vtkNew<vtkPolyDataMapper> mapper;
+      dataItem->actor->SetMapper(mapper.GetPointer());
+      vtkNew<vtkImageDataGeometryFilter> geometryFilter;
+      geometryFilter->SetInputData(reader->GetStructuredPointsOutput());
+      geometryFilter->Update();
+      geometryFilter->GetOutput()->GetBounds(this->DataBounds);
+      mapper->SetInputData(geometryFilter->GetOutput());
+      }
+    else if(reader->IsFileUnstructuredGrid())
+      {
+      if(this->Verbose)
+        {
+        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
+          " is of type vtkUnstructuredGrid" << std::endl;
+        }
+      vtkNew<vtkDataSetMapper> mapper;
+      dataItem->actor->SetMapper(mapper.GetPointer());
+      mapper->SetInputData(reader->GetUnstructuredGridOutput());
+      reader->GetUnstructuredGridOutput()->GetBounds(this->DataBounds);
+      }
+    else if(reader->IsFileRectilinearGrid())
+      {
+      if(this->Verbose)
+        {
+        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
+          " is of type vtkRectilinearGrid" << std::endl;
+        }
+      vtkNew<vtkDataSetMapper> mapper;
+      dataItem->actor->SetMapper(mapper.GetPointer());
+      mapper->SetInputData(reader->GetRectilinearGridOutput());
+      reader->GetRectilinearGridOutput()->GetBounds(this->DataBounds);
+      }
     }
   else
     {
+    vtkNew<vtkPolyDataMapper> mapper;
+    dataItem->actor->SetMapper(mapper.GetPointer());
     vtkNew<vtkCubeSource> cube;
     cube->Update();
     cube->GetOutput()->GetBounds(this->DataBounds);
@@ -264,21 +344,24 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 //----------------------------------------------------------------------------
 void ExampleVTKReader::display(GLContextData& contextData) const
 {
-    int numberOfSupportedClippingPlanes;
-    glGetIntegerv(GL_MAX_CLIP_PLANES, &numberOfSupportedClippingPlanes);
-    int clippingPlaneIndex = 0;
-    for (int i = 0; i < NumberOfClippingPlanes && clippingPlaneIndex < numberOfSupportedClippingPlanes; ++i) {
-        if (ClippingPlanes[i].isActive()) {
-            /* Enable the clipping plane: */
-            glEnable(GL_CLIP_PLANE0 + clippingPlaneIndex);
-            GLdouble clippingPlane[4];
-            for (int j = 0; j < 3; ++j)
-                clippingPlane[j] = ClippingPlanes[i].getPlane().getNormal()[j];
-            clippingPlane[3] = -ClippingPlanes[i].getPlane().getOffset();
-            glClipPlane(GL_CLIP_PLANE0 + clippingPlaneIndex, clippingPlane);
-            /* Go to the next clipping plane: */
-            ++clippingPlaneIndex;
-        }
+  int numberOfSupportedClippingPlanes;
+  glGetIntegerv(GL_MAX_CLIP_PLANES, &numberOfSupportedClippingPlanes);
+  int clippingPlaneIndex = 0;
+  for (int i = 0; i < NumberOfClippingPlanes &&
+    clippingPlaneIndex < numberOfSupportedClippingPlanes; ++i)
+    {
+    if (ClippingPlanes[i].isActive())
+      {
+      /* Enable the clipping plane: */
+      glEnable(GL_CLIP_PLANE0 + clippingPlaneIndex);
+      GLdouble clippingPlane[4];
+      for (int j = 0; j < 3; ++j)
+          clippingPlane[j] = ClippingPlanes[i].getPlane().getNormal()[j];
+      clippingPlane[3] = -ClippingPlanes[i].getPlane().getOffset();
+      glClipPlane(GL_CLIP_PLANE0 + clippingPlaneIndex, clippingPlane);
+      /* Go to the next clipping plane: */
+      ++clippingPlaneIndex;
+      }
     }
   /* Save OpenGL state: */
   glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_ENABLE_BIT|
@@ -294,14 +377,17 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   glPopAttrib();
 
-      clippingPlaneIndex = 0;
-    for (int i = 0; i < NumberOfClippingPlanes && clippingPlaneIndex < numberOfSupportedClippingPlanes; ++i) {
-        if (ClippingPlanes[i].isActive()) {
-            /* Disable the clipping plane: */
-            glDisable(GL_CLIP_PLANE0 + clippingPlaneIndex);
-            /* Go to the next clipping plane: */
-            ++clippingPlaneIndex;
-        }
+  clippingPlaneIndex = 0;
+  for (int i = 0; i < NumberOfClippingPlanes &&
+    clippingPlaneIndex < numberOfSupportedClippingPlanes; ++i)
+    {
+    if (ClippingPlanes[i].isActive())
+      {
+      /* Disable the clipping plane: */
+      glDisable(GL_CLIP_PLANE0 + clippingPlaneIndex);
+      /* Go to the next clipping plane: */
+      ++clippingPlaneIndex;
+      }
     }
 }
 

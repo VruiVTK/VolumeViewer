@@ -84,6 +84,9 @@ private:
   ClippingPlane * ClippingPlanes;
   int NumberOfClippingPlanes;
 
+  /* Verbose */
+  bool Verbose;
+
 public:
   /* Constructors and destructors: */
   ExampleVTKReader(int& argc,char**& argv);
@@ -96,6 +99,10 @@ public:
   /* Clipping Planes */
   ClippingPlane * getClippingPlanes(void);
   int getNumberOfClippingPlanes(void);
+
+  /* Methods to set/get verbosity */
+  void setVerbose(bool);
+  bool getVerbose(void);
 
   /* Methods to manage render context */
   virtual void initContext(GLContextData& contextData) const;
