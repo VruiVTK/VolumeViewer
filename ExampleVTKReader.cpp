@@ -27,6 +27,7 @@
 #include <vtkActor.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSetMapper.h>
+#include <vtkExtractVOI.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkImageDataGeometryFilter.h>
 #include <vtkLight.h>
@@ -90,6 +91,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   mainMenu=createMainMenu();
   Vrui::setMainMenu(mainMenu);
 
+  this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
   this->FlashlightSwitch = new int[1];
   this->FlashlightSwitch[0] = 0;
@@ -327,10 +329,16 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         std::cout << std::endl <<  "ExampleVTKReader: File " << this->FileName <<
           " is of type vtkStructuredPoints" << std::endl;
         }
+      reader->GetStructuredPointsOutput()->GetDimensions(this->DataDimensions);
+      vtkNew<vtkExtractVOI> extractVOI;
+      extractVOI->SetVOI(0, this->DataDimensions[0], 0, this->DataDimensions[1], 0, this->DataDimensions[1]);
+      extractVOI->SetSampleRate(1, 1, 1);
+      extractVOI->SetInputData(reader->GetStructuredPointsOutput());
+      extractVOI->ReleaseDataFlagOff();
       vtkNew<vtkPolyDataMapper> mapper;
       dataItem->actor->SetMapper(mapper.GetPointer());
       vtkNew<vtkImageDataGeometryFilter> geometryFilter;
-      geometryFilter->SetInputData(reader->GetStructuredPointsOutput());
+      geometryFilter->SetInputConnection(extractVOI->GetOutputPort());
       geometryFilter->Update();
       geometryFilter->GetOutput()->GetBounds(this->DataBounds);
       mapper->SetInputData(geometryFilter->GetOutput());

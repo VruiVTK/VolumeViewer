@@ -65,6 +65,9 @@ private:
   /* Representation Type */
   int RepresentationType;
 
+  /* dimensions */
+  int* DataDimensions;
+
   /* bounds */
   double* DataBounds;
 
