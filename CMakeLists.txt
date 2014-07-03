@@ -33,9 +33,11 @@ SET(${PROJECT_NAME}_SRCS
   ClippingPlane.h
   ClippingPlaneLocator.cpp
   ClippingPlaneLocator.h
-  main.cpp
   ExampleVTKReader.cpp
   ExampleVTKReader.h
+  FlashlightLocator.cpp
+  FlashlightLocator.h
+  main.cpp
   )
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS})

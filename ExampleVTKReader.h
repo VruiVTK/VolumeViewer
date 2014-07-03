@@ -22,10 +22,11 @@ namespace GLMotif
   class PopupMenu;
 }
 
-class vtkActor;
 class BaseLocator;
 class ClippingPlane;
 class ExternalVTKWidget;
+class vtkActor;
+class vtkLight;
 
 class ExampleVTKReader:public Vrui::Application,public GLObject
 {
@@ -39,6 +40,7 @@ private:
     /* VTK components */
     vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
     vtkSmartPointer<vtkActor> actor;
+    vtkSmartPointer<vtkLight> flashlight;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -87,6 +89,11 @@ private:
   /* Verbose */
   bool Verbose;
 
+  /* Flashlight position and direction */
+  int * FlashlightSwitch;
+  double * FlashlightPosition;
+  double * FlashlightDirection;
+
 public:
   /* Constructors and destructors: */
   ExampleVTKReader(int& argc,char**& argv);
@@ -103,6 +110,11 @@ public:
   /* Methods to set/get verbosity */
   void setVerbose(bool);
   bool getVerbose(void);
+
+  /* Get Flashlight position and direction */
+  int * getFlashlightSwitch(void);
+  double * getFlashlightPosition(void);
+  double * getFlashlightDirection(void);
 
   /* Methods to manage render context */
   virtual void initContext(GLContextData& contextData) const;

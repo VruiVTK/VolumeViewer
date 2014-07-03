@@ -29,6 +29,7 @@
 #include <vtkDataSetMapper.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkImageDataGeometryFilter.h>
+#include <vtkLight.h>
 #include <vtkNew.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -43,6 +44,7 @@
 #include "ClippingPlane.h"
 #include "ClippingPlaneLocator.h"
 #include "ExampleVTKReader.h"
+#include "FlashlightLocator.h"
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::DataItem::DataItem(void)
@@ -51,6 +53,13 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
   this->actor = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddActor(this->actor);
+  this->flashlight = vtkSmartPointer<vtkLight>::New();
+  this->flashlight->SwitchOff();
+  this->flashlight->SetLightTypeToHeadlight();
+  this->flashlight->SetColor(0.0, 1.0, 1.0);
+  this->flashlight->SetConeAngle(15);
+  this->flashlight->SetPositional(true);
+  this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
 }
 
 //----------------------------------------------------------------------------
@@ -61,16 +70,19 @@ ExampleVTKReader::DataItem::~DataItem(void)
 //----------------------------------------------------------------------------
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   :Vrui::Application(argc,argv),
-  FileName(0),
-  mainMenu(NULL),
-  renderingDialog(NULL),
-  Opacity(1.0),
-  opacityValue(NULL),
-  RepresentationType(2),
-  FirstFrame(true),
   analysisTool(0),
   ClippingPlanes(NULL),
+  FileName(0),
+  FirstFrame(true),
+  FlashlightDirection(0),
+  FlashlightPosition(0),
+  FlashlightSwitch(0),
+  mainMenu(NULL),
   NumberOfClippingPlanes(6),
+  Opacity(1.0),
+  opacityValue(NULL),
+  renderingDialog(NULL),
+  RepresentationType(2),
   Verbose(false)
 {
   /* Create the user interface: */
@@ -79,6 +91,10 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   Vrui::setMainMenu(mainMenu);
 
   this->DataBounds = new double[6];
+  this->FlashlightSwitch = new int[1];
+  this->FlashlightSwitch[0] = 0;
+  this->FlashlightPosition = new double[3];
+  this->FlashlightDirection = new double[3];
 
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
@@ -95,6 +111,18 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->DataBounds)
     {
     delete[] this->DataBounds;
+    }
+  if(this->FlashlightSwitch)
+    {
+    delete[] this->FlashlightSwitch;
+    }
+  if(this->FlashlightPosition)
+    {
+    delete[] this->FlashlightPosition;
+    }
+  if(this->FlashlightDirection)
+    {
+    delete[] this->FlashlightDirection;
     }
 }
 
@@ -194,6 +222,8 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
 
   GLMotif::ToggleButton* showClippingPlane=new GLMotif::ToggleButton("ClippingPlane",analysisTools_RadioBox,"Clipping Plane");
   showClippingPlane->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
+  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton("Flashlight",analysisTools_RadioBox,"Flashlight");
+  showFlashlight->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
   GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton("Other",analysisTools_RadioBox,"Other");
   showOther->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
 
@@ -369,6 +399,17 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   /* Get context data item */
   DataItem* dataItem = contextData.retrieveDataItem<DataItem>(this);
 
+  if(this->FlashlightSwitch[0])
+    {
+    dataItem->flashlight->SetPosition(this->FlashlightPosition);
+    dataItem->flashlight->SetFocalPoint(this->FlashlightDirection);
+    dataItem->flashlight->SwitchOn();
+    }
+  else
+    {
+    dataItem->flashlight->SwitchOff();
+    }
+
   /* Set actor opacity */
   dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
   dataItem->actor->GetProperty()->SetRepresentation(this->RepresentationType);
@@ -435,9 +476,13 @@ void ExampleVTKReader::changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueC
     {
       this->analysisTool = 0;
     }
-    else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
+    else if (strcmp(callBackData->toggle->getName(), "Flashlight") == 0)
     {
       this->analysisTool = 1;
+    }
+    else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
+    {
+      this->analysisTool = 2;
     }
 }
 
@@ -478,6 +523,10 @@ void ExampleVTKReader::toolCreationCallback(Vrui::ToolManager::ToolCreationCallb
             /* Create a clipping plane locator object and associate it with the new tool: */
             newLocator = new ClippingPlaneLocator(locatorTool, this);
         }
+        else if (analysisTool == 1) {
+          /* Create a flashlight locator object and associate it with the new tool: */
+          newLocator = new FlashlightLocator(locatorTool, this);
+        }
 
         /* Add new locator to list: */
         baseLocators.push_back(newLocator);
@@ -500,4 +549,22 @@ void ExampleVTKReader::toolDestructionCallback(Vrui::ToolManager::ToolDestructio
             }
         }
     }
+}
+
+//----------------------------------------------------------------------------
+int * ExampleVTKReader::getFlashlightSwitch(void)
+{
+  return this->FlashlightSwitch;
+}
+
+//----------------------------------------------------------------------------
+double * ExampleVTKReader::getFlashlightPosition(void)
+{
+  return this->FlashlightPosition;
+}
+
+//----------------------------------------------------------------------------
+double * ExampleVTKReader::getFlashlightDirection(void)
+{
+  return this->FlashlightDirection;
 }
