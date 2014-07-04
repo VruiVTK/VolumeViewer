@@ -25,20 +25,21 @@
 // VTK includes
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
-#include <vtkCubeSource.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkDataSetMapper.h>
-#include <vtkExtractVOI.h>
-#include <vtkGenericDataObjectReader.h>
+#include <vtkDataSetSurfaceFilter.h>
+#include <vtkImageData.h>
 #include <vtkImageDataGeometryFilter.h>
 #include <vtkLight.h>
 #include <vtkNew.h>
+#include <vtkOutlineFilter.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkStructuredGridGeometryFilter.h>
-#include <vtkStructuredGrid.h>
-#include <vtkStructuredPoints.h>
-#include <vtkUnstructuredGrid.h>
-#include <vtkRectilinearGrid.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkXMLImageDataReader.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
@@ -54,12 +55,14 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
   this->actor = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddActor(this->actor);
+  this->actorOutline = vtkSmartPointer<vtkActor>::New();
+  this->externalVTKWidget->GetRenderer()->AddActor(this->actorOutline);
+  this->actorVolume = vtkSmartPointer<vtkVolume>::New();
+  this->externalVTKWidget->GetRenderer()->AddVolume(actorVolume);
+  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  this->propertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
   this->flashlight = vtkSmartPointer<vtkLight>::New();
-  this->flashlight->SwitchOff();
-  this->flashlight->SetLightTypeToHeadlight();
-  this->flashlight->SetColor(0.0, 1.0, 1.0);
-  this->flashlight->SetConeAngle(15);
-  this->flashlight->SetPositional(true);
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
 }
 
@@ -82,9 +85,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   NumberOfClippingPlanes(6),
   Opacity(1.0),
   opacityValue(NULL),
+  Outline(true),
   renderingDialog(NULL),
   RepresentationType(2),
-  Verbose(false)
+  Verbose(false),
+  Volume(false)
 {
   /* Create the user interface: */
   renderingDialog = createRenderingDialog();
@@ -93,6 +98,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 
   this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
+  this->DataOrigin = new double[6];
+  this->DataExtent = new int[6];
+  this->DataSpacing = new double[3];
+  this->DataScalarRange = new double[2];
+
   this->FlashlightSwitch = new int[1];
   this->FlashlightSwitch[0] = 0;
   this->FlashlightPosition = new double[3];
@@ -110,9 +120,29 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 //----------------------------------------------------------------------------
 ExampleVTKReader::~ExampleVTKReader(void)
 {
+  if(this->DataDimensions)
+    {
+    delete[] this->DataDimensions;
+    }
   if(this->DataBounds)
     {
     delete[] this->DataBounds;
+    }
+  if(this->DataOrigin)
+    {
+    delete[] this->DataOrigin;
+    }
+  if(this->DataExtent)
+    {
+    delete[] this->DataExtent;
+    }
+  if(this->DataSpacing)
+    {
+    delete[] this->DataSpacing;
+    }
+  if(this->DataScalarRange)
+    {
+    delete[] this->DataScalarRange;
     }
   if(this->FlashlightSwitch)
     {
@@ -196,16 +226,22 @@ GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
   GLMotif::Popup* representationMenuPopup = new GLMotif::Popup("representationMenuPopup", Vrui::getWidgetManager());
   GLMotif::SubMenu* representationMenu = new GLMotif::SubMenu("representationMenu", representationMenuPopup, false);
 
+  GLMotif::ToggleButton* showOutline=new GLMotif::ToggleButton("ShowOutline",representationMenu,"Outline");
+  showOutline->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  showOutline->setToggle(true);
+
   GLMotif::RadioBox* representation_RadioBox = new GLMotif::RadioBox("Representation RadioBox",representationMenu,true);
 
-  GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton("ShowSurface",representation_RadioBox,"Surface");
-  showSurface->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showWireframe=new GLMotif::ToggleButton("ShowWireframe",representation_RadioBox,"Wireframe");
-  showWireframe->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
   GLMotif::ToggleButton* showPoints=new GLMotif::ToggleButton("ShowPoints",representation_RadioBox,"Points");
   showPoints->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showWireframe=new GLMotif::ToggleButton("ShowWireframe",representation_RadioBox,"Wireframe");
+  showWireframe->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton("ShowSurface",representation_RadioBox,"Surface");
+  showSurface->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showVolume=new GLMotif::ToggleButton("ShowVolume",representation_RadioBox,"Volume");
+  showVolume->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
 
-  representation_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
+  representation_RadioBox->setSelectionMode(GLMotif::RadioBox::ATMOST_ONE);
   representation_RadioBox->setSelectedToggle(showSurface);
 
   representationMenu->manageChild();
@@ -290,93 +326,49 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   DataItem* dataItem = new DataItem();
   contextData.addDataItem(this, dataItem);
 
-  if(this->FileName)
-    {
-    vtkNew<vtkGenericDataObjectReader> reader;
-    reader->SetFileName(this->FileName);
-    reader->Update();
-    if(reader->IsFilePolyData())
-      {
-      if(this->Verbose)
-        {
-        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
-          " is of type vtkPolyData" << std::endl;
-        }
-      vtkNew<vtkPolyDataMapper> mapper;
-      dataItem->actor->SetMapper(mapper.GetPointer());
-      mapper->SetInputData(reader->GetPolyDataOutput());
-      reader->GetPolyDataOutput()->GetBounds(this->DataBounds);
-      }
-    else if(reader->IsFileStructuredGrid())
-      {
-      if(this->Verbose)
-        {
-        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
-          " is of type vtkStructuredGrid" << std::endl;
-        }
-      vtkNew<vtkPolyDataMapper> mapper;
-      dataItem->actor->SetMapper(mapper.GetPointer());
-      vtkNew<vtkStructuredGridGeometryFilter> geometryFilter;
-      geometryFilter->SetInputData(reader->GetStructuredGridOutput());
-      geometryFilter->Update();
-      geometryFilter->GetOutput()->GetBounds(this->DataBounds);
-      mapper->SetInputData(geometryFilter->GetOutput());
-      }
-    else if(reader->IsFileStructuredPoints())
-      {
-      if(this->Verbose)
-        {
-        std::cout << std::endl <<  "ExampleVTKReader: File " << this->FileName <<
-          " is of type vtkStructuredPoints" << std::endl;
-        }
-      reader->GetStructuredPointsOutput()->GetDimensions(this->DataDimensions);
-      vtkNew<vtkExtractVOI> extractVOI;
-      extractVOI->SetVOI(0, this->DataDimensions[0], 0, this->DataDimensions[1], 0, this->DataDimensions[1]);
-      extractVOI->SetSampleRate(1, 1, 1);
-      extractVOI->SetInputData(reader->GetStructuredPointsOutput());
-      extractVOI->ReleaseDataFlagOff();
-      vtkNew<vtkPolyDataMapper> mapper;
-      dataItem->actor->SetMapper(mapper.GetPointer());
-      vtkNew<vtkImageDataGeometryFilter> geometryFilter;
-      geometryFilter->SetInputConnection(extractVOI->GetOutputPort());
-      geometryFilter->Update();
-      geometryFilter->GetOutput()->GetBounds(this->DataBounds);
-      mapper->SetInputData(geometryFilter->GetOutput());
-      }
-    else if(reader->IsFileUnstructuredGrid())
-      {
-      if(this->Verbose)
-        {
-        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
-          " is of type vtkUnstructuredGrid" << std::endl;
-        }
-      vtkNew<vtkDataSetMapper> mapper;
-      dataItem->actor->SetMapper(mapper.GetPointer());
-      mapper->SetInputData(reader->GetUnstructuredGridOutput());
-      reader->GetUnstructuredGridOutput()->GetBounds(this->DataBounds);
-      }
-    else if(reader->IsFileRectilinearGrid())
-      {
-      if(this->Verbose)
-        {
-        std::cout << std::endl << "ExampleVTKReader: File " << this->FileName <<
-          " is of type vtkRectilinearGrid" << std::endl;
-        }
-      vtkNew<vtkDataSetMapper> mapper;
-      dataItem->actor->SetMapper(mapper.GetPointer());
-      mapper->SetInputData(reader->GetRectilinearGridOutput());
-      reader->GetRectilinearGridOutput()->GetBounds(this->DataBounds);
-      }
-    }
-  else
-    {
-    vtkNew<vtkPolyDataMapper> mapper;
-    dataItem->actor->SetMapper(mapper.GetPointer());
-    vtkNew<vtkCubeSource> cube;
-    cube->Update();
-    cube->GetOutput()->GetBounds(this->DataBounds);
-    mapper->SetInputData(cube->GetOutput());
-    }
+  vtkNew<vtkXMLImageDataReader> reader;
+  reader->SetFileName(this->FileName);
+  reader->Update();
+  vtkNew<vtkDataSetMapper> mapper;
+  dataItem->actor->SetMapper(mapper.GetPointer());
+  mapper->SetInputConnection(reader->GetOutputPort());
+  reader->GetOutput()->GetDimensions(this->DataDimensions);
+  reader->GetOutput()->GetBounds(this->DataBounds);
+  reader->GetOutput()->GetOrigin(this->DataOrigin);
+  reader->GetOutput()->GetExtent(this->DataExtent);
+  reader->GetOutput()->GetSpacing(this->DataSpacing);
+  reader->GetOutput()->GetScalarRange(this->DataScalarRange);
+
+  vtkNew<vtkOutlineFilter> dataOutline;
+  dataOutline->SetInputConnection(reader->GetOutputPort());
+  vtkNew<vtkPolyDataMapper> mapperOutline;
+  mapperOutline->SetInputConnection(dataOutline->GetOutputPort());
+  dataItem->actorOutline->SetMapper(mapperOutline.GetPointer());
+  dataItem->actorOutline->GetProperty()->SetColor(1,1,1);
+
+  vtkSmartVolumeMapper* mapperVolume = vtkSmartVolumeMapper::New();
+  mapperVolume->SetInputConnection(reader->GetOutputPort());
+  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[0], 0.0, 0.0, 0.0);
+  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[1], 1.0, 1.0, 1.0);
+  dataItem->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
+  dataItem->opacityFunction->AddPoint(this->DataScalarRange[1], 1.0);
+  dataItem->propertyVolume->ShadeOn();
+  dataItem->propertyVolume->SetAmbient(0.1);
+  dataItem->propertyVolume->SetDiffuse(0.9);
+  dataItem->propertyVolume->SetSpecular(0.2);
+  dataItem->propertyVolume->SetSpecularPower(10.0);
+  dataItem->propertyVolume->SetScalarOpacityUnitDistance(0.8919);
+  dataItem->propertyVolume->SetColor(dataItem->colorFunction);
+  dataItem->propertyVolume->SetScalarOpacity(dataItem->opacityFunction);
+  dataItem->propertyVolume->SetInterpolationTypeToLinear();
+  dataItem->actorVolume->SetProperty(dataItem->propertyVolume);
+  dataItem->actorVolume->SetMapper(mapperVolume);
+
+  dataItem->flashlight->SwitchOff();
+  dataItem->flashlight->SetLightTypeToHeadlight();
+  dataItem->flashlight->SetColor(0.0, 1.0, 1.0);
+  dataItem->flashlight->SetConeAngle(15);
+  dataItem->flashlight->SetPositional(true);
 }
 
 //----------------------------------------------------------------------------
@@ -418,9 +410,34 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     dataItem->flashlight->SwitchOff();
     }
 
-  /* Set actor opacity */
-  dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
-  dataItem->actor->GetProperty()->SetRepresentation(this->RepresentationType);
+  if (this->Outline)
+    {
+    dataItem->actorOutline->VisibilityOn();
+    }
+  else
+    {
+    dataItem->actorOutline->VisibilityOff();
+    }
+  if (this->Volume)
+    {
+    dataItem->actorVolume->VisibilityOn();
+    dataItem->actor->VisibilityOff();
+    }
+  else
+    {
+    dataItem->actorVolume->VisibilityOff();
+    if (this->RepresentationType != -1)
+      {
+      dataItem->actor->VisibilityOn();
+      dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
+      dataItem->actor->GetProperty()->SetRepresentation(this->RepresentationType);
+      }
+    else
+      {
+      dataItem->actor->VisibilityOff();
+      }
+    }
+
   /* Render the scene */
   dataItem->externalVTKWidget->GetRenderWindow()->Render();
 
@@ -466,14 +483,29 @@ void ExampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::Value
     if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
     {
       this->RepresentationType = 2;
+      this->Volume = false;
     }
     else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
     {
       this->RepresentationType = 1;
+      this->Volume = false;
     }
     else if (strcmp(callBackData->toggle->getName(), "ShowPoints") == 0)
     {
       this->RepresentationType = 0;
+      this->Volume = false;
+    }
+    else if (strcmp(callBackData->toggle->getName(), "ShowVolume") == 0)
+    {
+      this->Volume = callBackData->set;
+      if (this->Volume)
+        {
+        this->RepresentationType = -1;
+        }
+    }
+    else if (strcmp(callBackData->toggle->getName(), "ShowOutline") == 0)
+    {
+      this->Outline = callBackData->set;
     }
 }
 //----------------------------------------------------------------------------

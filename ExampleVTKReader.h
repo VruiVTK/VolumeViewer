@@ -26,6 +26,10 @@ class BaseLocator;
 class ClippingPlane;
 class ExternalVTKWidget;
 class vtkActor;
+class vtkVolume;
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+class vtkVolumeProperty;
 class vtkLight;
 
 class ExampleVTKReader:public Vrui::Application,public GLObject
@@ -40,7 +44,12 @@ private:
     /* VTK components */
     vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
     vtkSmartPointer<vtkActor> actor;
+    vtkSmartPointer<vtkActor> actorOutline;
     vtkSmartPointer<vtkLight> flashlight;
+    vtkSmartPointer<vtkVolume> actorVolume;
+    vtkSmartPointer<vtkColorTransferFunction> colorFunction;
+    vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
+    vtkSmartPointer<vtkVolumeProperty> propertyVolume;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -65,11 +74,15 @@ private:
   /* Representation Type */
   int RepresentationType;
 
-  /* dimensions */
   int* DataDimensions;
-
-  /* bounds */
   double* DataBounds;
+  double* DataOrigin;
+  int* DataExtent;
+  double* DataSpacing;
+  double* DataScalarRange;
+
+  bool Outline;
+  bool Volume;
 
   /* First Frame */
   bool FirstFrame;
