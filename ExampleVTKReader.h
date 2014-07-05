@@ -77,7 +77,6 @@ private:
   int* DataDimensions;
   double* DataBounds;
   double* DataOrigin;
-  int* DataExtent;
   double* DataSpacing;
   double* DataScalarRange;
 

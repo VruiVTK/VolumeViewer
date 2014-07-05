@@ -99,7 +99,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
   this->DataOrigin = new double[6];
-  this->DataExtent = new int[6];
   this->DataSpacing = new double[3];
   this->DataScalarRange = new double[2];
 
@@ -131,10 +130,6 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->DataOrigin)
     {
     delete[] this->DataOrigin;
-    }
-  if(this->DataExtent)
-    {
-    delete[] this->DataExtent;
     }
   if(this->DataSpacing)
     {
@@ -238,6 +233,8 @@ GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
   showWireframe->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
   GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton("ShowSurface",representation_RadioBox,"Surface");
   showSurface->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showSurfaceWEdges=new GLMotif::ToggleButton("ShowSurfaceWEdges",representation_RadioBox,"Surface With Edges");
+  showSurfaceWEdges->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
   GLMotif::ToggleButton* showVolume=new GLMotif::ToggleButton("ShowVolume",representation_RadioBox,"Volume");
   showVolume->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
 
@@ -326,28 +323,67 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   DataItem* dataItem = new DataItem();
   contextData.addDataItem(this, dataItem);
 
-  vtkNew<vtkXMLImageDataReader> reader;
-  reader->SetFileName(this->FileName);
-  reader->Update();
   vtkNew<vtkDataSetMapper> mapper;
   dataItem->actor->SetMapper(mapper.GetPointer());
-  mapper->SetInputConnection(reader->GetOutputPort());
-  reader->GetOutput()->GetDimensions(this->DataDimensions);
-  reader->GetOutput()->GetBounds(this->DataBounds);
-  reader->GetOutput()->GetOrigin(this->DataOrigin);
-  reader->GetOutput()->GetExtent(this->DataExtent);
-  reader->GetOutput()->GetSpacing(this->DataSpacing);
-  reader->GetOutput()->GetScalarRange(this->DataScalarRange);
-
   vtkNew<vtkOutlineFilter> dataOutline;
-  dataOutline->SetInputConnection(reader->GetOutputPort());
   vtkNew<vtkPolyDataMapper> mapperOutline;
+
   mapperOutline->SetInputConnection(dataOutline->GetOutputPort());
   dataItem->actorOutline->SetMapper(mapperOutline.GetPointer());
   dataItem->actorOutline->GetProperty()->SetColor(1,1,1);
 
   vtkSmartVolumeMapper* mapperVolume = vtkSmartVolumeMapper::New();
-  mapperVolume->SetInputConnection(reader->GetOutputPort());
+
+  if(this->FileName)
+    {
+    vtkNew<vtkXMLImageDataReader> reader;
+    reader->SetFileName(this->FileName);
+    reader->Update();
+
+    mapper->SetInputConnection(reader->GetOutputPort());
+    reader->GetOutput()->GetDimensions(this->DataDimensions);
+    reader->GetOutput()->GetBounds(this->DataBounds);
+    reader->GetOutput()->GetOrigin(this->DataOrigin);
+    reader->GetOutput()->GetSpacing(this->DataSpacing);
+    reader->GetOutput()->GetScalarRange(this->DataScalarRange);
+    dataOutline->SetInputConnection(reader->GetOutputPort());
+    mapperVolume->SetInputConnection(reader->GetOutputPort());
+    }
+  else
+    {
+    vtkNew<vtkImageData> imageData;
+    this->DataDimensions[0] = 3;
+    this->DataDimensions[1] = 3;
+    this->DataDimensions[2] = 3;
+    this->DataOrigin[0] = -1;
+    this->DataOrigin[1] = -1;
+    this->DataOrigin[2] = -1;
+    this->DataSpacing[0] = 1;
+    this->DataSpacing[1] = 1;
+    this->DataSpacing[2] = 1;
+    imageData->SetDimensions(this->DataDimensions);
+    imageData->SetOrigin(this->DataOrigin);
+    imageData->SetSpacing(this->DataSpacing);
+    imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    for (int i = 0; i < this->DataDimensions[0]; ++i)
+      {
+      for (int j = 0; j < this->DataDimensions[1]; ++j)
+        {
+        for (int k = 0; k < this->DataDimensions[2]; ++k)
+          {
+          unsigned char * pixel = static_cast<unsigned char *>(
+            imageData->GetScalarPointer(i,j,k));
+          pixel[0] = 255.0;
+          }
+        }
+      }
+    imageData->GetBounds(this->DataBounds);
+    imageData->GetScalarRange(this->DataScalarRange);
+    mapper->SetInputData(imageData.GetPointer());
+    dataOutline->SetInputData(imageData.GetPointer());
+    mapperVolume->SetInputData(imageData.GetPointer());
+    }
+
   dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[0], 0.0, 0.0, 0.0);
   dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[1], 1.0, 1.0, 1.0);
   dataItem->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
@@ -426,11 +462,21 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   else
     {
     dataItem->actorVolume->VisibilityOff();
+    dataItem->actor->GetProperty()->EdgeVisibilityOff();
     if (this->RepresentationType != -1)
       {
       dataItem->actor->VisibilityOn();
       dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
-      dataItem->actor->GetProperty()->SetRepresentation(this->RepresentationType);
+      if (this->RepresentationType < 3)
+        {
+        dataItem->actor->GetProperty()->SetRepresentation(
+          this->RepresentationType);
+        }
+      else if (this->RepresentationType == 3)
+        {
+        dataItem->actor->GetProperty()->SetRepresentationToSurface();
+        dataItem->actor->GetProperty()->EdgeVisibilityOn();
+        }
       }
     else
       {
@@ -483,6 +529,11 @@ void ExampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::Value
     if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
     {
       this->RepresentationType = 2;
+      this->Volume = false;
+    }
+    else if (strcmp(callBackData->toggle->getName(), "ShowSurfaceWEdges") == 0)
+    {
+      this->RepresentationType = 3;
       this->Volume = false;
     }
     else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
