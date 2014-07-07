@@ -332,7 +332,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->actorOutline->SetMapper(mapperOutline.GetPointer());
   dataItem->actorOutline->GetProperty()->SetColor(1,1,1);
 
-  vtkSmartVolumeMapper* mapperVolume = vtkSmartVolumeMapper::New();
+  vtkNew<vtkSmartVolumeMapper> mapperVolume;
 
   if(this->FileName)
     {
@@ -398,7 +398,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->propertyVolume->SetScalarOpacity(dataItem->opacityFunction);
   dataItem->propertyVolume->SetInterpolationTypeToLinear();
   dataItem->actorVolume->SetProperty(dataItem->propertyVolume);
-  dataItem->actorVolume->SetMapper(mapperVolume);
+  dataItem->actorVolume->SetMapper(mapperVolume.GetPointer());
 
   dataItem->flashlight->SwitchOff();
   dataItem->flashlight->SetLightTypeToHeadlight();
