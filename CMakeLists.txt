@@ -23,6 +23,11 @@ ADD_DEFINITIONS(${VRUI_CFLAGS})
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+INCLUDE(InstallRequiredSystemLibraries)
+
 SET(${PROJECT_NAME}_SRCS
   BaseLocator.cpp
   BaseLocator.h
