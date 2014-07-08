@@ -7,6 +7,7 @@
 // Vrui includes
 #include <GL/GLObject.h>
 #include <GLMotif/PopupWindow.h>
+#include <GLMotif/RadioBox.h>
 #include <GLMotif/Slider.h>
 #include <GLMotif/TextField.h>
 #include <GLMotif/ToggleButton.h>
@@ -25,12 +26,18 @@ namespace GLMotif
 class BaseLocator;
 class ClippingPlane;
 class ExternalVTKWidget;
+class Slices;
+class TransferFunction1D;
 class vtkActor;
-class vtkVolume;
 class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
-class vtkVolumeProperty;
+class vtkCutter;
 class vtkLight;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkPlane;
+class vtkPolyDataMapper;
+class vtkVolume;
+class vtkVolumeProperty;
 
 class ExampleVTKReader:public Vrui::Application,public GLObject
 {
@@ -47,9 +54,16 @@ private:
     vtkSmartPointer<vtkActor> actorOutline;
     vtkSmartPointer<vtkLight> flashlight;
     vtkSmartPointer<vtkVolume> actorVolume;
-    vtkSmartPointer<vtkColorTransferFunction> colorFunction;
-    vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
     vtkSmartPointer<vtkVolumeProperty> propertyVolume;
+    vtkSmartPointer<vtkCutter> xCutter;
+    vtkSmartPointer<vtkPolyDataMapper> xCutterMapper;
+    vtkSmartPointer<vtkActor> actorXCutter;
+    vtkSmartPointer<vtkCutter> yCutter;
+    vtkSmartPointer<vtkPolyDataMapper> yCutterMapper;
+    vtkSmartPointer<vtkActor> actorYCutter;
+    vtkSmartPointer<vtkCutter> zCutter;
+    vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
+    vtkSmartPointer<vtkActor> actorZCutter;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -61,6 +75,8 @@ private:
   GLMotif::PopupMenu* createMainMenu(void);
   GLMotif::Popup* createRepresentationMenu(void);
   GLMotif::Popup* createAnalysisToolsMenu(void);
+  GLMotif::Popup*  createColorMapSubMenu(void);
+  GLMotif::Popup*  createAlphaSubMenu(void);
   GLMotif::PopupWindow* renderingDialog;
   GLMotif::PopupWindow* createRenderingDialog(void);
   GLMotif::TextField* opacityValue;
@@ -74,14 +90,44 @@ private:
   /* Representation Type */
   int RepresentationType;
 
+  vtkSmartPointer<vtkLookupTable> modelLUT;
+
   int* DataDimensions;
   double* DataBounds;
   double* DataOrigin;
   double* DataSpacing;
   double* DataScalarRange;
 
+  double xCenter;
+  double yCenter;
+  double zCenter;
+  double xOrigin;
+  double yOrigin;
+  double zOrigin;
+
+  vtkSmartPointer<vtkPlane> xPlane;
+  vtkSmartPointer<vtkPlane> yPlane;
+  vtkSmartPointer<vtkPlane> zPlane;
+
+  int xSlice;
+  int ySlice;
+  int zSlice;
+
   bool Outline;
   bool Volume;
+
+  double* VolumeColormap;
+  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
+  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
+  TransferFunction1D* transferFunctionDialog;
+
+  bool XSlice;
+  bool YSlice;
+  bool ZSlice;
+
+  double* SliceColormap;
+  vtkSmartPointer<vtkLookupTable> sliceLUT;
+  Slices* slicesDialog;
 
   /* First Frame */
   bool FirstFrame;
@@ -131,6 +177,8 @@ public:
   double * getFlashlightPosition(void);
   double * getFlashlightDirection(void);
 
+  void initialize(void);
+
   /* Methods to manage render context */
   virtual void initContext(GLContextData& contextData) const;
   virtual void display(GLContextData& contextData) const;
@@ -140,11 +188,35 @@ public:
   void centerDisplayCallback(Misc::CallbackData* cbData);
   void opacitySliderCallback(GLMotif::Slider::ValueChangedCallbackData* cbData);
   void changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void showSlicesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void changeColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
+  void changeAlphaCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
 
   virtual void toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData* cbData);
   virtual void toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData* cbData);
+
+  void setSliceColorMapChanged(bool SliceColorMapChanged);
+  void updateSliceColorMap(double* SliceColormap);
+
+  void alphaChangedCallback(Misc::CallbackData* callBackData);
+  void volumeColorMapChangedCallback(Misc::CallbackData* callBackData);
+  void updateAlpha(void);
+  void updateVolumeColorMap(void);
+  void updateModelColorMap(void);
+
+  void setXSlice(int xSlice);
+  void setYSlice(int ySlice);
+  void setZSlice(int zSlice);
+  void showXSlice(bool XSlice);
+  void showYSlice(bool YSlice);
+  void showZSlice(bool ZSlice);
+
+  int getWidth(void);
+  int getLength(void);
+  int getHeight(void);
 };
 
 #endif //_EXAMPLEVTKREADER_H
