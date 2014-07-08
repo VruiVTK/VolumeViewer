@@ -132,6 +132,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 
   this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
+  this->DataExtent = new int[6];
   this->DataOrigin = new double[6];
   this->DataSpacing = new double[3];
   this->DataScalarRange = new double[2];
@@ -184,6 +185,10 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->DataBounds)
     {
     delete[] this->DataBounds;
+    }
+  if(this->DataExtent)
+    {
+    delete[] this->DataExtent;
     }
   if(this->DataOrigin)
     {
