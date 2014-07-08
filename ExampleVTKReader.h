@@ -94,6 +94,7 @@ private:
 
   int* DataDimensions;
   double* DataBounds;
+  int* DataExtent;
   double* DataOrigin;
   double* DataSpacing;
   double* DataScalarRange;
