@@ -69,16 +69,16 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->actorVolume = vtkSmartPointer<vtkVolume>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorVolume);
   this->propertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
-  this->xCutter = vtkCutter::New();
-  this->xCutterMapper = vtkPolyDataMapper::New();
+  this->xCutter = vtkSmartPointer<vtkCutter>::New();
+  this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorXCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorXCutter);
-  this->yCutter = vtkCutter::New();
-  this->yCutterMapper = vtkPolyDataMapper::New();
+  this->yCutter = vtkSmartPointer<vtkCutter>::New();
+  this->yCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorYCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorYCutter);
-  this->zCutter = vtkCutter::New();
-  this->zCutterMapper = vtkPolyDataMapper::New();
+  this->zCutter = vtkSmartPointer<vtkCutter>::New();
+  this->zCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorZCutter);
 
@@ -526,18 +526,18 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     imageData->SetOrigin(this->DataOrigin);
     imageData->SetSpacing(this->DataSpacing);
     imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-    for (int i = 0; i < this->DataDimensions[0]; ++i)
-      {
-      for (int j = 0; j < this->DataDimensions[1]; ++j)
-        {
-        for (int k = 0; k < this->DataDimensions[2]; ++k)
-          {
-          unsigned char * pixel = static_cast<unsigned char *>(
-            imageData->GetScalarPointer(i,j,k));
-          pixel[0] = 255.0;
-          }
-        }
-      }
+//    for (int i = 0; i < this->DataDimensions[0]; ++i)
+//      {
+//      for (int j = 0; j < this->DataDimensions[1]; ++j)
+//        {
+//        for (int k = 0; k < this->DataDimensions[2]; ++k)
+//          {
+//          unsigned char * pixel = static_cast<unsigned char *>(
+//            imageData->GetScalarPointer(i,j,k));
+//          pixel[0] = 255.0;
+//          }
+//        }
+//      }
     imageData->GetBounds(this->DataBounds);
     imageData->GetScalarRange(this->DataScalarRange);
     imageData->GetExtent(this->DataExtent);
