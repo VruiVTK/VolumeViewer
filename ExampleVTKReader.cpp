@@ -261,42 +261,55 @@ bool ExampleVTKReader::getVerbose(void)
 //----------------------------------------------------------------------------
 GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
 {
-  GLMotif::PopupMenu* mainMenuPopup = new GLMotif::PopupMenu("MainMenuPopup",Vrui::getWidgetManager());
+  GLMotif::PopupMenu* mainMenuPopup = new GLMotif::PopupMenu(
+    "MainMenuPopup",Vrui::getWidgetManager());
   mainMenuPopup->setTitle("Main Menu");
-  GLMotif::Menu* mainMenu = new GLMotif::Menu("MainMenu",mainMenuPopup,false);
+  GLMotif::Menu* mainMenu = new GLMotif::Menu(
+    "MainMenu",mainMenuPopup,false);
 
-  GLMotif::CascadeButton* representationCascade = new GLMotif::CascadeButton("RepresentationCascade", mainMenu,
+  GLMotif::CascadeButton* representationCascade =
+    new GLMotif::CascadeButton("RepresentationCascade", mainMenu,
     "Representation");
   representationCascade->setPopup(createRepresentationMenu());
 
-  GLMotif::CascadeButton* analysisToolsCascade = new GLMotif::CascadeButton("AnalysisToolsCascade", mainMenu,
-    "Analysis Tools");
+  GLMotif::CascadeButton* analysisToolsCascade =
+    new GLMotif::CascadeButton("AnalysisToolsCascade", mainMenu,
+      "Analysis Tools");
   analysisToolsCascade->setPopup(createAnalysisToolsMenu());
 
-  GLMotif::CascadeButton * colorMapSubCascade = new GLMotif::CascadeButton("ColorMapSubCascade", mainMenu, "Color Map");
+  GLMotif::CascadeButton * colorMapSubCascade =
+    new GLMotif::CascadeButton("ColorMapSubCascade", mainMenu, "Color Map");
   colorMapSubCascade->setPopup(createColorMapSubMenu());
 
-  GLMotif::CascadeButton * alphaSubCascade = new GLMotif::CascadeButton("AlphaSubCascade", mainMenu, "Opacity Ramp");
+  GLMotif::CascadeButton * alphaSubCascade =
+    new GLMotif::CascadeButton("AlphaSubCascade", mainMenu, "Opacity Ramp");
   alphaSubCascade->setPopup(createAlphaSubMenu());
 
 
-  GLMotif::Button* centerDisplayButton = new GLMotif::Button("CenterDisplayButton",mainMenu,"Center Display");
-  centerDisplayButton->getSelectCallbacks().add(this,&ExampleVTKReader::centerDisplayCallback);
+  GLMotif::Button* centerDisplayButton = new GLMotif::Button(
+    "CenterDisplayButton",mainMenu,"Center Display");
+  centerDisplayButton->getSelectCallbacks().add(
+    this,&ExampleVTKReader::centerDisplayCallback);
 
-  GLMotif::ToggleButton * showSlicesDialog = new GLMotif::ToggleButton("ShowSlicesDialog", mainMenu,
-    "Slices");
+  GLMotif::ToggleButton * showSlicesDialog = new GLMotif::ToggleButton(
+    "ShowSlicesDialog", mainMenu, "Slices");
   showSlicesDialog->setToggle(false);
-  showSlicesDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showSlicesDialogCallback);
+  showSlicesDialog->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::showSlicesDialogCallback);
 
-   GLMotif::ToggleButton * showTransferFunctionDialog = new GLMotif::ToggleButton("ShowTransferFunctionDialog", mainMenu,
+   GLMotif::ToggleButton * showTransferFunctionDialog =
+     new GLMotif::ToggleButton("ShowTransferFunctionDialog", mainMenu,
     "Transfer Function");
   showTransferFunctionDialog->setToggle(false);
-  showTransferFunctionDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showTransferFunctionDialogCallback);
+  showTransferFunctionDialog->getValueChangedCallbacks().add(
+    this, &ExampleVTKReader::showTransferFunctionDialogCallback);
 
-  GLMotif::ToggleButton * showRenderingDialog = new GLMotif::ToggleButton("ShowRenderingDialog", mainMenu,
+  GLMotif::ToggleButton * showRenderingDialog = new GLMotif::ToggleButton(
+    "ShowRenderingDialog", mainMenu,
     "Rendering");
   showRenderingDialog->setToggle(false);
-  showRenderingDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showRenderingDialogCallback);
+  showRenderingDialog->getValueChangedCallbacks().add(
+    this, &ExampleVTKReader::showRenderingDialogCallback);
 
   mainMenu->manageChild();
   return mainMenuPopup;
@@ -307,29 +320,47 @@ GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
-  GLMotif::Popup* representationMenuPopup = new GLMotif::Popup("representationMenuPopup", Vrui::getWidgetManager());
-  GLMotif::SubMenu* representationMenu = new GLMotif::SubMenu("representationMenu", representationMenuPopup, false);
+  GLMotif::Popup* representationMenuPopup = new GLMotif::Popup(
+    "representationMenuPopup", Vrui::getWidgetManager());
+  GLMotif::SubMenu* representationMenu = new GLMotif::SubMenu(
+    "representationMenu", representationMenuPopup, false);
 
-  GLMotif::ToggleButton* showOutline=new GLMotif::ToggleButton("ShowOutline",representationMenu,"Outline");
-  showOutline->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showOutline=new GLMotif::ToggleButton(
+    "ShowOutline",representationMenu,"Outline");
+  showOutline->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
   showOutline->setToggle(true);
 
-  GLMotif::Label* representation_Label = new GLMotif::Label("Representations", representationMenu,"Representations:");
+  GLMotif::Label* representation_Label = new GLMotif::Label(
+    "Representations", representationMenu,"Representations:");
 
-  GLMotif::RadioBox* representation_RadioBox = new GLMotif::RadioBox("Representation RadioBox",representationMenu,true);
+  GLMotif::RadioBox* representation_RadioBox = new GLMotif::RadioBox(
+    "Representation RadioBox",representationMenu,true);
 
-  GLMotif::ToggleButton* showNone=new GLMotif::ToggleButton("ShowNone",representation_RadioBox,"None");
-  showNone->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showPoints=new GLMotif::ToggleButton("ShowPoints",representation_RadioBox,"Points");
-  showPoints->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showWireframe=new GLMotif::ToggleButton("ShowWireframe",representation_RadioBox,"Wireframe");
-  showWireframe->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton("ShowSurface",representation_RadioBox,"Surface");
-  showSurface->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showSurfaceWithEdges=new GLMotif::ToggleButton("ShowSurfaceWithEdges",representation_RadioBox,"Surface with Edges");
-  showSurfaceWithEdges->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
-  GLMotif::ToggleButton* showVolume=new GLMotif::ToggleButton("ShowVolume",representation_RadioBox,"Volume");
-  showVolume->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showNone=new GLMotif::ToggleButton(
+    "ShowNone",representation_RadioBox,"None");
+  showNone->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showPoints=new GLMotif::ToggleButton(
+    "ShowPoints",representation_RadioBox,"Points");
+  showPoints->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showWireframe=new GLMotif::ToggleButton(
+    "ShowWireframe",representation_RadioBox,"Wireframe");
+  showWireframe->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showSurface=new GLMotif::ToggleButton(
+    "ShowSurface",representation_RadioBox,"Surface");
+  showSurface->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showSurfaceWithEdges=new GLMotif::ToggleButton(
+    "ShowSurfaceWithEdges",representation_RadioBox,"Surface with Edges");
+  showSurfaceWithEdges->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
+  GLMotif::ToggleButton* showVolume=new GLMotif::ToggleButton(
+    "ShowVolume",representation_RadioBox,"Volume");
+  showVolume->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeRepresentationCallback);
 
   representation_RadioBox->setSelectionMode(GLMotif::RadioBox::ATMOST_ONE);
   representation_RadioBox->setSelectedToggle(showSurface);
@@ -343,17 +374,26 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
-  GLMotif::Popup * analysisToolsMenuPopup = new GLMotif::Popup("analysisToolsMenuPopup", Vrui::getWidgetManager());
-  GLMotif::SubMenu* analysisToolsMenu = new GLMotif::SubMenu("representationMenu", analysisToolsMenuPopup, false);
+  GLMotif::Popup * analysisToolsMenuPopup = new GLMotif::Popup(
+    "analysisToolsMenuPopup", Vrui::getWidgetManager());
+  GLMotif::SubMenu* analysisToolsMenu = new GLMotif::SubMenu(
+    "representationMenu", analysisToolsMenuPopup, false);
 
-  GLMotif::RadioBox * analysisTools_RadioBox = new GLMotif::RadioBox("analysisTools", analysisToolsMenu, true);
+  GLMotif::RadioBox * analysisTools_RadioBox = new GLMotif::RadioBox(
+    "analysisTools", analysisToolsMenu, true);
 
-  GLMotif::ToggleButton* showClippingPlane=new GLMotif::ToggleButton("ClippingPlane",analysisTools_RadioBox,"Clipping Plane");
-  showClippingPlane->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
-  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton("Flashlight",analysisTools_RadioBox,"Flashlight");
-  showFlashlight->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
-  GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton("Other",analysisTools_RadioBox,"Other");
-  showOther->getValueChangedCallbacks().add(this,&ExampleVTKReader::changeAnalysisToolsCallback);
+  GLMotif::ToggleButton* showClippingPlane=new GLMotif::ToggleButton(
+    "ClippingPlane",analysisTools_RadioBox,"Clipping Plane");
+  showClippingPlane->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeAnalysisToolsCallback);
+  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton(
+    "Flashlight",analysisTools_RadioBox,"Flashlight");
+  showFlashlight->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeAnalysisToolsCallback);
+  GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton(
+    "Other",analysisTools_RadioBox,"Other");
+  showOther->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeAnalysisToolsCallback);
 
   analysisTools_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   analysisTools_RadioBox->setSelectedToggle(showClippingPlane);
@@ -363,34 +403,41 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup* ExampleVTKReader::createColorMapSubMenu(void) {
-    GLMotif::Popup * colorMapSubMenuPopup = new GLMotif::Popup("ColorMapSubMenuPopup", Vrui::getWidgetManager());
-    GLMotif::RadioBox* colorMaps = new GLMotif::RadioBox("ColorMaps", colorMapSubMenuPopup, false);
-    colorMaps->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
-    colorMaps->addToggle("Full Rainbow");
-    colorMaps->addToggle("Inverse Full Rainbow");
-    colorMaps->addToggle("Rainbow");
-    colorMaps->addToggle("Inverse Rainbow");
-    colorMaps->addToggle("Cold to Hot");
-    colorMaps->addToggle("Hot to Cold");
-    colorMaps->addToggle("Black to White");
-    colorMaps->addToggle("White to Black");
-    colorMaps->addToggle("HSB Hues");
-    colorMaps->addToggle("Inverse HSB Hues");
-    colorMaps->addToggle("Davinci");
-    colorMaps->addToggle("Inverse Davinci");
-    colorMaps->addToggle("Seismic");
-    colorMaps->addToggle("Inverse Seismic");
-    colorMaps->setSelectedToggle(3);
-    colorMaps->getValueChangedCallbacks().add(this, &ExampleVTKReader::changeColorMapCallback);
-    colorMaps->manageChild();
-    return colorMapSubMenuPopup;
+GLMotif::Popup* ExampleVTKReader::createColorMapSubMenu(void)
+{
+  GLMotif::Popup * colorMapSubMenuPopup = new GLMotif::Popup(
+    "ColorMapSubMenuPopup", Vrui::getWidgetManager());
+  GLMotif::RadioBox* colorMaps = new GLMotif::RadioBox(
+    "ColorMaps", colorMapSubMenuPopup, false);
+  colorMaps->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
+  colorMaps->addToggle("Full Rainbow");
+  colorMaps->addToggle("Inverse Full Rainbow");
+  colorMaps->addToggle("Rainbow");
+  colorMaps->addToggle("Inverse Rainbow");
+  colorMaps->addToggle("Cold to Hot");
+  colorMaps->addToggle("Hot to Cold");
+  colorMaps->addToggle("Black to White");
+  colorMaps->addToggle("White to Black");
+  colorMaps->addToggle("HSB Hues");
+  colorMaps->addToggle("Inverse HSB Hues");
+  colorMaps->addToggle("Davinci");
+  colorMaps->addToggle("Inverse Davinci");
+  colorMaps->addToggle("Seismic");
+  colorMaps->addToggle("Inverse Seismic");
+  colorMaps->setSelectedToggle(3);
+  colorMaps->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::changeColorMapCallback);
+  colorMaps->manageChild();
+  return colorMapSubMenuPopup;
 } // end createColorMapSubMenu()
 
 //----------------------------------------------------------------------------
-GLMotif::Popup*  ExampleVTKReader::createAlphaSubMenu(void) {
-  GLMotif::Popup * alphaSubMenuPopup = new GLMotif::Popup("AlphaSubMenuPopup", Vrui::getWidgetManager());
-  GLMotif::RadioBox* alphas = new GLMotif::RadioBox("Alphas", alphaSubMenuPopup, false);
+GLMotif::Popup*  ExampleVTKReader::createAlphaSubMenu(void)
+{
+  GLMotif::Popup * alphaSubMenuPopup = new GLMotif::Popup(
+    "AlphaSubMenuPopup", Vrui::getWidgetManager());
+  GLMotif::RadioBox* alphas = new GLMotif::RadioBox(
+    "Alphas", alphaSubMenuPopup, false);
   alphas->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   alphas->addToggle("Up");
   alphas->addToggle("Down");
@@ -403,19 +450,24 @@ GLMotif::Popup*  ExampleVTKReader::createAlphaSubMenu(void) {
 } // end createAlphaSubMenu()
 
 //----------------------------------------------------------------------------
-GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void) {
+GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void)
+{
   const GLMotif::StyleSheet& ss = *Vrui::getWidgetManager()->getStyleSheet();
-  GLMotif::PopupWindow * dialogPopup = new GLMotif::PopupWindow("RenderingDialogPopup", Vrui::getWidgetManager(),
+  GLMotif::PopupWindow * dialogPopup = new GLMotif::PopupWindow(
+    "RenderingDialogPopup", Vrui::getWidgetManager(),
     "Rendering Dialog");
-  GLMotif::RowColumn * dialog = new GLMotif::RowColumn("RenderingDialog", dialogPopup, false);
+  GLMotif::RowColumn * dialog = new GLMotif::RowColumn(
+    "RenderingDialog", dialogPopup, false);
   dialog->setOrientation(GLMotif::RowColumn::HORIZONTAL);
 
   /* Create opacity slider */
-  GLMotif::Slider* opacitySlider = new GLMotif::Slider("OpacitySlider", dialog, GLMotif::Slider::HORIZONTAL,
+  GLMotif::Slider* opacitySlider = new GLMotif::Slider(
+    "OpacitySlider", dialog, GLMotif::Slider::HORIZONTAL,
     ss.fontHeight*10.0f);
   opacitySlider->setValue(Opacity);
   opacitySlider->setValueRange(0.0, 1.0, 0.1);
-  opacitySlider->getValueChangedCallbacks().add(this, &ExampleVTKReader::opacitySliderCallback);
+  opacitySlider->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::opacitySliderCallback);
   opacityValue = new GLMotif::TextField("OpacityValue", dialog, 6);
   opacityValue->setFieldWidth(6);
   opacityValue->setPrecision(3);
@@ -431,9 +483,12 @@ void ExampleVTKReader::frame(void)
   if(this->FirstFrame)
     {
     transferFunctionDialog = new TransferFunction1D(this);
-    transferFunctionDialog->createTransferFunction1D(CINVERSE_RAINBOW, UP_RAMP, 0.0, 1.0);
-    transferFunctionDialog->getColorMapChangedCallbacks().add(this, &ExampleVTKReader::volumeColorMapChangedCallback);
-    transferFunctionDialog->getAlphaChangedCallbacks().add(this, &ExampleVTKReader::alphaChangedCallback);
+    transferFunctionDialog->createTransferFunction1D(CINVERSE_RAINBOW,
+      UP_RAMP, 0.0, 1.0);
+    transferFunctionDialog->getColorMapChangedCallbacks().add(
+      this, &ExampleVTKReader::volumeColorMapChangedCallback);
+    transferFunctionDialog->getAlphaChangedCallbacks().add(this,
+      &ExampleVTKReader::alphaChangedCallback);
     updateAlpha();
     updateVolumeColorMap();
 
@@ -463,9 +518,12 @@ void ExampleVTKReader::frame(void)
     this->Radius *= 0.75;
     /* Initialize Vrui navigation transformation: */
     centerDisplayCallback(0);
-    this->xPlane->SetOrigin(this->xOrigin + (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
-    this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (this->ySlice * this->DataSpacing[1]), this->zCenter);
-    this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin + (this->zSlice * this->DataSpacing[2]));
+    this->xPlane->SetOrigin(this->xOrigin + (
+        this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+    this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (
+        this->ySlice * this->DataSpacing[1]), this->zCenter);
+    this->zPlane->SetOrigin(this->xCenter, this->yCenter,
+      this->zOrigin + (this->zSlice * this->DataSpacing[2]));
     this->FirstFrame = false;
     }
 }
@@ -750,89 +808,103 @@ void ExampleVTKReader::opacitySliderCallback(
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::changeRepresentationCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
-    /* Adjust representation state based on which toggle button changed state: */
-    if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
+  /* Adjust representation state based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
     {
-      this->RepresentationType = 2;
-      this->Volume = false;
+    this->RepresentationType = 2;
+    this->Volume = false;
     }
-    else if (strcmp(callBackData->toggle->getName(), "ShowSurfaceWithEdges") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "ShowSurfaceWithEdges") == 0)
     {
-      this->RepresentationType = 3;
-      this->Volume = false;
+    this->RepresentationType = 3;
+    this->Volume = false;
     }
-    else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
     {
-      this->RepresentationType = 1;
-      this->Volume = false;
+    this->RepresentationType = 1;
+    this->Volume = false;
     }
-    else if (strcmp(callBackData->toggle->getName(), "ShowPoints") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "ShowPoints") == 0)
     {
-      this->RepresentationType = 0;
-      this->Volume = false;
+    this->RepresentationType = 0;
+    this->Volume = false;
     }
-    else if (strcmp(callBackData->toggle->getName(), "ShowNone") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "ShowNone") == 0)
     {
+    this->RepresentationType = -1;
+    this->Volume = false;
+    }
+  else if (strcmp(callBackData->toggle->getName(), "ShowVolume") == 0)
+    {
+    this->Volume = callBackData->set;
+    if (this->Volume)
+      {
       this->RepresentationType = -1;
-      this->Volume = false;
+      }
     }
-    else if (strcmp(callBackData->toggle->getName(), "ShowVolume") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "ShowOutline") == 0)
     {
-      this->Volume = callBackData->set;
-      if (this->Volume)
-        {
-        this->RepresentationType = -1;
-        }
-    }
-    else if (strcmp(callBackData->toggle->getName(), "ShowOutline") == 0)
-    {
-      this->Outline = callBackData->set;
+    this->Outline = callBackData->set;
     }
 }
 //----------------------------------------------------------------------------
-void ExampleVTKReader::changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::changeAnalysisToolsCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
-    /* Set the new analysis tool: */
-    if (strcmp(callBackData->toggle->getName(), "ClippingPlane") == 0)
+  /* Set the new analysis tool: */
+  if (strcmp(callBackData->toggle->getName(), "ClippingPlane") == 0)
     {
-      this->analysisTool = 0;
+    this->analysisTool = 0;
     }
-    else if (strcmp(callBackData->toggle->getName(), "Flashlight") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "Flashlight") == 0)
     {
-      this->analysisTool = 1;
+    this->analysisTool = 1;
     }
-    else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
     {
-      this->analysisTool = 2;
+    this->analysisTool = 2;
     }
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showSlicesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::showSlicesDialogCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
-    /* open/close slices dialog based on which toggle button changed state: */
-  if (strcmp(callBackData->toggle->getName(), "ShowSlicesDialog") == 0) {
-    if (callBackData->set) {
+  /* open/close slices dialog based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowSlicesDialog") == 0)
+    {
+    if (callBackData->set)
+      {
       /* Open the slices dialog at the same position as the main menu: */
-      Vrui::getWidgetManager()->popupPrimaryWidget(slicesDialog, Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
-    } else {
+      Vrui::getWidgetManager()->popupPrimaryWidget(slicesDialog,
+        Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
+      }
+    else
+      {
       /* Close the slices dialog: */
       Vrui::popdownPrimaryWidget(slicesDialog);
+      }
     }
-  }
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::showTransferFunctionDialogCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
-    /* open/close transfer function dialog based on which toggle button changed state: */
-  if (strcmp(callBackData->toggle->getName(), "ShowTransferFunctionDialog") == 0) {
-    if (callBackData->set) {
+  /* open/close transfer function dialog based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowTransferFunctionDialog") == 0)
+    {
+    if (callBackData->set)
+      {
       /* Open the transfer function dialog at the same position as the main menu: */
-      Vrui::getWidgetManager()->popupPrimaryWidget(transferFunctionDialog, Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
-    } else {
+      Vrui::getWidgetManager()->popupPrimaryWidget(transferFunctionDialog,
+        Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
+      }
+    else
+      {
       /* Close the transfer function dialog: */
       Vrui::popdownPrimaryWidget(transferFunctionDialog);
     }
@@ -840,18 +912,24 @@ void ExampleVTKReader::showTransferFunctionDialogCallback(GLMotif::ToggleButton:
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+void ExampleVTKReader::showRenderingDialogCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
-    /* open/close rendering dialog based on which toggle button changed state: */
-  if (strcmp(callBackData->toggle->getName(), "ShowRenderingDialog") == 0) {
-    if (callBackData->set) {
+  /* open/close rendering dialog based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowRenderingDialog") == 0)
+    {
+    if (callBackData->set)
+      {
       /* Open the rendering dialog at the same position as the main menu: */
-      Vrui::getWidgetManager()->popupPrimaryWidget(renderingDialog, Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
-    } else {
+      Vrui::getWidgetManager()->popupPrimaryWidget(renderingDialog,
+        Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
+      }
+    else
+      {
       /* Close the rendering dialog: */
       Vrui::popdownPrimaryWidget(renderingDialog);
+      }
     }
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -863,44 +941,58 @@ ClippingPlane * ExampleVTKReader::getClippingPlanes(void)
 //----------------------------------------------------------------------------
 int ExampleVTKReader::getNumberOfClippingPlanes(void)
 {
-    return this->NumberOfClippingPlanes;
+  return this->NumberOfClippingPlanes;
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData * callbackData) {
-    /* Check if the new tool is a locator tool: */
-    Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (callbackData->tool);
-    if (locatorTool != 0) {
-        BaseLocator* newLocator;
-        if (analysisTool == 0) {
-            /* Create a clipping plane locator object and associate it with the new tool: */
-            newLocator = new ClippingPlaneLocator(locatorTool, this);
-        }
-        else if (analysisTool == 1) {
-          /* Create a flashlight locator object and associate it with the new tool: */
-          newLocator = new FlashlightLocator(locatorTool, this);
-        }
+void ExampleVTKReader::toolCreationCallback(
+  Vrui::ToolManager::ToolCreationCallbackData * callbackData)
+{
+  /* Check if the new tool is a locator tool: */
+  Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (
+    callbackData->tool);
+  if (locatorTool != 0)
+    {
+    BaseLocator* newLocator;
+    if (analysisTool == 0)
+      {
+      /* Create a clipping plane locator object and
+       * associate it with the new tool: */
+      newLocator = new ClippingPlaneLocator(locatorTool, this);
+      }
+    else if (analysisTool == 1)
+      {
+      /* Create a flashlight locator object and
+       * associate it with the new tool: */
+      newLocator = new FlashlightLocator(locatorTool, this);
+      }
 
-        /* Add new locator to list: */
-        baseLocators.push_back(newLocator);
+      /* Add new locator to list: */
+      baseLocators.push_back(newLocator);
     }
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData * callbackData) {
-    /* Check if the to-be-destroyed tool is a locator tool: */
-    Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (callbackData->tool);
-    if (locatorTool != 0) {
-        /* Find the data locator associated with the tool in the list: */
-        for (BaseLocatorList::iterator blIt = baseLocators.begin(); blIt != baseLocators.end(); ++blIt) {
-
-            if ((*blIt)->getTool() == locatorTool) {
-                /* Remove the locator: */
-                delete *blIt;
-                baseLocators.erase(blIt);
-                break;
-            }
+void ExampleVTKReader::toolDestructionCallback(
+  Vrui::ToolManager::ToolDestructionCallbackData * callbackData)
+{
+  /* Check if the to-be-destroyed tool is a locator tool: */
+  Vrui::LocatorTool* locatorTool = dynamic_cast<Vrui::LocatorTool*> (
+    callbackData->tool);
+  if (locatorTool != 0)
+    {
+    /* Find the data locator associated with the tool in the list: */
+    for (BaseLocatorList::iterator blIt = baseLocators.begin();
+      blIt != baseLocators.end(); ++blIt)
+      {
+      if ((*blIt)->getTool() == locatorTool)
+        {
+        /* Remove the locator: */
+        delete *blIt;
+        baseLocators.erase(blIt);
+        break;
         }
+      }
     }
 }
 
@@ -926,7 +1018,8 @@ double * ExampleVTKReader::getFlashlightDirection(void)
 void ExampleVTKReader::setXSlice(int xSlice)
 {
   this->xSlice = xSlice;
-  this->xPlane->SetOrigin(this->xOrigin + (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+  this->xPlane->SetOrigin(this->xOrigin +
+    (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
 
 }
 
@@ -934,14 +1027,16 @@ void ExampleVTKReader::setXSlice(int xSlice)
 void ExampleVTKReader::setYSlice(int ySlice)
 {
   this->ySlice = ySlice;
-  this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (this->ySlice * this->DataSpacing[1]), this->zCenter);
+  this->yPlane->SetOrigin(this->xCenter, this->yOrigin +
+    (this->ySlice * this->DataSpacing[1]), this->zCenter);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setZSlice(int zSlice)
 {
   this->zSlice = zSlice;
-  this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin + (this->zSlice * this->DataSpacing[2]));
+  this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
+    (this->zSlice * this->DataSpacing[2]));
 }
 
 //----------------------------------------------------------------------------
@@ -986,31 +1081,37 @@ void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
   this->SliceColormap = SliceColormap;
   for (int i=0;i<256;i++)
     {
-    this->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],this->SliceColormap[4*i + 1],
+    this->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],
+      this->SliceColormap[4*i + 1],
       this->SliceColormap[4*i + 2], 1.0);
     }
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData) {
+void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
+{
   transferFunctionDialog->exportAlpha(this->VolumeColormap);
   this->opacityFunction->RemoveAllPoints();
   double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
   for (int i = 0; i < 256; i++)
     {
-    this->opacityFunction->AddPoint(this->DataScalarRange[0] + (double)(i*step), this->VolumeColormap[4*i + 3]);
+    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
+      (double)(i*step), this->VolumeColormap[4*i + 3]);
     }
   Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::volumeColorMapChangedCallback(Misc::CallbackData* callBackData) {
+void ExampleVTKReader::volumeColorMapChangedCallback(
+  Misc::CallbackData* callBackData)
+{
   transferFunctionDialog->exportColorMap(this->VolumeColormap);
   this->colorFunction->RemoveAllPoints();
   double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
   for (int i = 0; i < 256; i++)
     {
-    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] + (double)(i*step), this->VolumeColormap[4*i + 0],
+    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
+      (double)(i*step), this->VolumeColormap[4*i + 0],
       this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
     }
   updateModelColorMap();
@@ -1018,25 +1119,29 @@ void ExampleVTKReader::volumeColorMapChangedCallback(Misc::CallbackData* callBac
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::updateAlpha(void) {
+void ExampleVTKReader::updateAlpha(void)
+{
   transferFunctionDialog->exportAlpha(this->VolumeColormap);
   this->opacityFunction->RemoveAllPoints();
   double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
   for (int i = 0; i < 256; i++)
     {
-    this->opacityFunction->AddPoint(this->DataScalarRange[0] + (double)(i*step), this->VolumeColormap[4*i + 3]);
+    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
+      (double)(i*step), this->VolumeColormap[4*i + 3]);
     }
   Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::updateVolumeColorMap(void) {
+void ExampleVTKReader::updateVolumeColorMap(void)
+{
   transferFunctionDialog->exportColorMap(this->VolumeColormap);
   this->colorFunction->RemoveAllPoints();
   double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
   for (int i = 0; i < 256; i++)
     {
-    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] + (double)(i*step), this->VolumeColormap[4*i + 0],
+    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
+      (double)(i*step), this->VolumeColormap[4*i + 0],
       this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
     }
   updateModelColorMap();
@@ -1044,26 +1149,34 @@ void ExampleVTKReader::updateVolumeColorMap(void) {
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::changeAlphaCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData) {
-  int value = callBackData->radioBox->getToggleIndex(callBackData->newSelectedToggle);
+void ExampleVTKReader::changeAlphaCallback(
+  GLMotif::RadioBox::ValueChangedCallbackData* callBackData)
+{
+  int value = callBackData->radioBox->getToggleIndex(
+    callBackData->newSelectedToggle);
   transferFunctionDialog->changeAlpha(value);
   updateAlpha();
   Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::changeColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData) {
-  int value = callBackData->radioBox->getToggleIndex(callBackData->newSelectedToggle);
+void ExampleVTKReader::changeColorMapCallback(
+  GLMotif::RadioBox::ValueChangedCallbackData* callBackData)
+{
+  int value = callBackData->radioBox->getToggleIndex(
+    callBackData->newSelectedToggle);
   transferFunctionDialog->changeColorMap(value);
   updateVolumeColorMap();
   Vrui::requestUpdate();
 }
 
+//----------------------------------------------------------------------------
 void ExampleVTKReader::updateModelColorMap(void)
 {
   for (int i=0;i<256;i++)
     {
-    this->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],this->VolumeColormap[4*i + 1],
+    this->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],
+      this->VolumeColormap[4*i + 1],
       this->VolumeColormap[4*i + 2], 1.0);
     }
 }
