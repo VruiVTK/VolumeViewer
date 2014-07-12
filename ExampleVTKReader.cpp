@@ -27,6 +27,7 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkContourFilter.h>
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetSurfaceFilter.h>
@@ -50,6 +51,7 @@
 #include "ClippingPlane.h"
 #include "ClippingPlaneLocator.h"
 #include "ColorMap.h"
+#include "Contours.h"
 #include "ExampleVTKReader.h"
 #include "FlashlightLocator.h"
 #include "ScalarWidget.h"
@@ -82,6 +84,9 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorZCutter);
 
+  this->contourFilter = vtkSmartPointer<vtkContourFilter>::New();
+  this->contourActor = vtkSmartPointer<vtkActor>::New();
+
   this->flashlight = vtkSmartPointer<vtkLight>::New();
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
 }
@@ -96,6 +101,10 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   :Vrui::Application(argc,argv),
   analysisTool(0),
   ClippingPlanes(NULL),
+  contoursDialog(NULL),
+  ContourVisible(0),
+  ContourValues(0),
+  NumberOfContourValues(0),
   FileName(0),
   FirstFrame(true),
   FlashlightDirection(0),
@@ -143,6 +152,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FlashlightDirection = new double[3];
 
   this->VolumeColormap = new double[4*256];
+  this->ContourValues = new double[4*256];
 
   this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -213,6 +223,14 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->FlashlightDirection)
     {
     delete[] this->FlashlightDirection;
+    }
+  if(this->VolumeColormap)
+    {
+    delete[] this->VolumeColormap;
+    }
+  if(this->ContourValues)
+    {
+    delete[] this->ContourValues;
     }
 }
 
@@ -296,6 +314,12 @@ GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
   showSlicesDialog->setToggle(false);
   showSlicesDialog->getValueChangedCallbacks().add(this,
     &ExampleVTKReader::showSlicesDialogCallback);
+
+  GLMotif::ToggleButton * showContoursDialog = new GLMotif::ToggleButton(
+    "ShowContoursDialog", mainMenu, "Contours");
+  showContoursDialog->setToggle(false);
+  showContoursDialog->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::showContoursDialogCallback);
 
    GLMotif::ToggleButton * showTransferFunctionDialog =
      new GLMotif::ToggleButton("ShowTransferFunctionDialog", mainMenu,
@@ -497,6 +521,10 @@ void ExampleVTKReader::frame(void)
     slicesDialog->exportSlicesColorMap(this->SliceColormap);
     updateSliceColorMap(this->SliceColormap);
 
+    this->contoursDialog = new Contours(this);
+    this->contoursDialog->getAlphaChangedCallbacks().add(this,
+      &ExampleVTKReader::contourValueChangedCallback);
+
     /* Compute the data center and Radius once */
     this->xCenter = (this->DataBounds[0] + this->DataBounds[1])/2.0;
     this->yCenter = (this->DataBounds[2] + this->DataBounds[3])/2.0;
@@ -567,6 +595,8 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputConnection(reader->GetOutputPort());
 
     dataItem->zCutter->SetInputConnection(reader->GetOutputPort());
+
+    dataItem->contourFilter->SetInputConnection(reader->GetOutputPort());
     }
   else
     {
@@ -611,6 +641,8 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputData(imageData.GetPointer());
 
     dataItem->zCutter->SetInputData(imageData.GetPointer());
+
+    dataItem->contourFilter->SetInputData(imageData.GetPointer());
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
@@ -657,6 +689,10 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->zCutterMapper->SetLookupTable(this->sliceLUT);
   dataItem->zCutterMapper->SetColorModeToMapScalars();
   dataItem->actorZCutter->SetMapper(dataItem->zCutterMapper);
+
+  vtkNew<vtkPolyDataMapper> contourMapper;
+  contourMapper->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  dataItem->contourActor->SetMapper(contourMapper.GetPointer());
 
   dataItem->flashlight->SwitchOff();
   dataItem->flashlight->SetLightTypeToHeadlight();
@@ -767,6 +803,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   else
     {
     dataItem->actorZCutter->VisibilityOff();
+    }
+
+  if(this->ContourVisible)
+    {
+    dataItem->contourFilter->SetNumberOfContours(this->NumberOfContourValues);
+//    std::cout << "Number = " << this->NumberOfContourValues << std::endl;
+//    for(int i = 0; i < 256; ++i)
+//      {
+//      std::cout << i << ":" << this->ContourValues[i*4 + 3] << std::endl;
+//      //dataItem->contourFilter->SetValue(i, this->ContourValues[i]);
+//      }
+    dataItem->externalVTKWidget->GetRenderer()->AddActor(dataItem->contourActor);
+    }
+  else
+    {
+    dataItem->externalVTKWidget->GetRenderer()->RemoveActor(dataItem->contourActor);
     }
 
   /* Render the scene */
@@ -886,6 +938,29 @@ void ExampleVTKReader::showSlicesDialogCallback(
       {
       /* Close the slices dialog: */
       Vrui::popdownPrimaryWidget(slicesDialog);
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showContoursDialogCallback(
+  GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+{
+  /* open/close slices dialog based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowContoursDialog") == 0)
+    {
+    if (callBackData->set)
+      {
+      /* Open the slices dialog at the same position as the main menu: */
+      Vrui::getWidgetManager()->popupPrimaryWidget(contoursDialog,
+        Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
+      this->ContourVisible = 1;
+      }
+    else
+      {
+      /* Close the slices dialog: */
+      Vrui::popdownPrimaryWidget(contoursDialog);
+      this->ContourVisible = 0;
       }
     }
 }
@@ -1098,6 +1173,16 @@ void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
     this->opacityFunction->AddPoint(this->DataScalarRange[0] +
       (double)(i*step), this->VolumeColormap[4*i + 3]);
     }
+  Vrui::requestUpdate();
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData* callBackData)
+{
+  this->NumberOfContourValues = contoursDialog->getNumberOfControlPoints();
+//  delete [] this->ContourValues;
+//  this->ContourValues = new double[this->NumberOfContourValues];
+  contoursDialog->getControlPointValues(this->ContourValues);
   Vrui::requestUpdate();
 }
 

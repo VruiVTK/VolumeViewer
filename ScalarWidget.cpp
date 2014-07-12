@@ -459,7 +459,7 @@ void ScalarWidget::draw(GLContextData& contextData) const {
     if (lightingEnabled)
         glDisable(GL_LIGHTING);
     //drawArea();
-    drawHistogram();
+    //drawHistogram();
     if (lightingEnabled)
         glEnable(GL_LIGHTING);
     GLfloat lineWidth;

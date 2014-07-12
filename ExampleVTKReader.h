@@ -25,11 +25,13 @@ namespace GLMotif
 
 class BaseLocator;
 class ClippingPlane;
+class Contours;
 class ExternalVTKWidget;
 class Slices;
 class TransferFunction1D;
 class vtkActor;
 class vtkColorTransferFunction;
+class vtkContourFilter;
 class vtkCutter;
 class vtkLight;
 class vtkLookupTable;
@@ -64,6 +66,8 @@ private:
     vtkSmartPointer<vtkCutter> zCutter;
     vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
     vtkSmartPointer<vtkActor> actorZCutter;
+    vtkSmartPointer<vtkContourFilter> contourFilter;
+    vtkSmartPointer<vtkActor> contourActor;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -130,6 +134,11 @@ private:
   vtkSmartPointer<vtkLookupTable> sliceLUT;
   Slices* slicesDialog;
 
+  Contours* contoursDialog;
+  int ContourVisible;
+  double* ContourValues;
+  int NumberOfContourValues;
+
   /* First Frame */
   bool FirstFrame;
 
@@ -190,6 +199,7 @@ public:
   void opacitySliderCallback(GLMotif::Slider::ValueChangedCallbackData* cbData);
   void changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showSlicesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void showContoursDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
@@ -203,8 +213,10 @@ public:
   void updateSliceColorMap(double* SliceColormap);
 
   void alphaChangedCallback(Misc::CallbackData* callBackData);
+  void contourValueChangedCallback(Misc::CallbackData* callBackData);
   void volumeColorMapChangedCallback(Misc::CallbackData* callBackData);
   void updateAlpha(void);
+  void updateContourValue(void);
   void updateVolumeColorMap(void);
   void updateModelColorMap(void);
 
