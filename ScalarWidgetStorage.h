@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetStorage.h - Class for storing scalar widget data.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #ifndef SCALARWIDGETSTORAGE_H_
 #define SCALARWIDGETSTORAGE_H_
 

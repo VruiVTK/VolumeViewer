@@ -1,10 +1,3 @@
-/*
- * ScalarWidget.h - Class for editing one-dimensional component transfer function.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright: 2008. All rights reserved.
- */
 #ifndef SCALARWIDGET_INCLUDED
 #define SCALARWIDGET_INCLUDED
 

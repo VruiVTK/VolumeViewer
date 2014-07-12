@@ -1,10 +1,3 @@
-/*
- * SwatchesWidget.h - Class for selecting a color swatch.
- *
- * Author: Patrick O'Leary
- * Created: December 9, 2007
- * Copyright: 2007
- */
 #ifndef SWATCHESWIDGET_INCLUDED
 #define SWATCHESWIDGET_INCLUDED
 

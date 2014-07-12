@@ -1,10 +1,3 @@
-/*
- * ControlPoint.h - Class for editable control points for colormaps and transfer functions.
- * 
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef CONTROLPOINT_H_
 #define CONTROLPOINT_H_
 

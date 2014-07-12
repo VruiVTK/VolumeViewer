@@ -1,10 +1,3 @@
-/*
- * ColorMap.h - Class for editing color map.
- *
- * Author: Patrick O'Leary
- * Created: October 30, 2007
- * Copyright: 2007
- */
 #ifndef COLORMAP_INCLUDED
 #define COLORMAP_INCLUDED
 

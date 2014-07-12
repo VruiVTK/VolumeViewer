@@ -1,10 +1,3 @@
-/*
- * ColorMapChangedCallbackData.h - Class for color map changed callback data.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef COLORMAPCHANGEDCALLBACKDATA_H_
 #define COLORMAPCHANGEDCALLBACKDATA_H_
 

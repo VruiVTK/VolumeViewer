@@ -1,10 +1,3 @@
-/*
- * ScalarWidget.cpp - Methods for ScalarWidget class.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright: 2008. All rights reserved.
- */
 #include <cfloat>
 #include <cmath>
 #include <fstream>

@@ -1,10 +1,3 @@
-/*
- * TransferFunction1D.cpp - Methods for TransferFunction1D class.
- *
- * Author: Patrick O'Leary
- * Created: October 28, 2007
- * Copyright: 2007
- */
 #include <iostream>
 #include <cmath>
 

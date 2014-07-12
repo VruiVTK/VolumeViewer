@@ -1,10 +1,3 @@
-/*
- * Slices.cpp - Methods for Slices class.
- *
- * Author: Patrick O'Leary
- * Created: August 11, 2008
- * Copyright: 2008. All rights reserved.
- */
 #include <iostream>
 #include <GL/GLColor.h>
 #include <GLMotif/Button.h>

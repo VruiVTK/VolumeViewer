@@ -1,11 +1,3 @@
-/*
- * ScalarWidgetControlPoint.h - Class for editable scalar widget control points for one-dimensional
- * component transfer functions.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #ifndef SCALARWIDGETCONTROLPOINT_H_
 #define SCALARWIDGETCONTROLPOINT_H_
 

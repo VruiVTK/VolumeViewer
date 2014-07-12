@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetControlPointChangedCallbackData.cpp - Methods for ScalarWidgetControlPointChangedCallbackData class.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #include "ScalarWidget.h"
 #include "ScalarWidgetControlPoint.h"
 #include "ScalarWidgetControlPointChangedCallbackData.h"

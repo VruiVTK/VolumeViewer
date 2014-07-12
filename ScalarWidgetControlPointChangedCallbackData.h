@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetControlPointChangedCallbackData.h - Class for scalar widget control point changed callback data.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #ifndef SCALARWIDGETCONTROLPOINTCHANGEDCALLBACKDATA_H_
 #define SCALARWIDGETCONTROLPOINTCHANGEDCALLBACKDATA_H_
 

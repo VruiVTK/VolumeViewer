@@ -1,12 +1,3 @@
-/*
- * Gaussian.h - Class encapsulating gaussian parameters.
-
- *
- * Author: Patrick O'Leary
- * Created: August 12, 2008
- * Copyright: 2008. All rights reserved.
- */
-
 #ifndef GAUSSIAN_H_
 #define GAUSSIAN_H_
 

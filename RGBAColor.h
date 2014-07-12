@@ -1,10 +1,3 @@
-/*
- * RGBAColor.h - Class for RGBA color data.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef RGBACOLOR_H_
 #define RGBACOLOR_H_
 

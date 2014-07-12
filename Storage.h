@@ -1,10 +1,3 @@
-/*
- * Storage.h - Class for storing color data.
- * 
- * Author: Patrick O'Leary
- * Created: November 10, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef STORAGE_H_
 #define STORAGE_H_
 

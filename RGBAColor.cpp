@@ -1,10 +1,3 @@
-/*
- * RGBAColor.cpp - Methods for RGBAColor class.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #include "RGBAColor.h"
 
 /*

@@ -1,10 +1,3 @@
-/*
- * ControlPointChangedCallbackData.cpp - Methods for ControlPointChangedCallbackData class.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #include "ColorMap.h"
 #include "ControlPoint.h"
 #include "ControlPointChangedCallbackData.h"

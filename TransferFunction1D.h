@@ -1,10 +1,3 @@
-/*
- * TransferFunction1D.h - Class for editing 1D transfer function.
- *
- * Author: Patrick O'Leary
- * Created: October 28, 2007
- * Copyright: 2007
- */
 #ifndef TRASFERFUNCTION1D_INCLUDED
 #define TRASFERFUNCTION1D_INCLUDED
 

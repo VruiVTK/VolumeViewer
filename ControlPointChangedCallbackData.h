@@ -1,10 +1,3 @@
-/*
- * ControlPointChangedCallbackData.h - Class for control point changed callback data.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef CONTROLPOINTCHANGEDCALLBACKDATA_H_
 #define CONTROLPOINTCHANGEDCALLBACKDATA_H_
 

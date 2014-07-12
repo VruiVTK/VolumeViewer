@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetCallbackData.h - Class for scalar widget callback data.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #ifndef SCALARWIDGETCALLBACKDATA_H_
 #define SCALARWIDGETCALLBACKDATA_H_
 

@@ -1,12 +1,3 @@
-/*
- * SwatchesWidget.cpp - Methods for SwatchesWidget class.
- *
- * Author: Patrick O'Leary
- * Created: December 9, 2007
- * Copyright: 2007 - 2008. All rights reserved.
- */
-
-/* Vrui includes */
 #include <GL/GLColorTemplates.h>
 #include <GL/GLVertexTemplates.h>
 

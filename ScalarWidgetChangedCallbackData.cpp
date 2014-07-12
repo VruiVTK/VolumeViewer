@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetChangedCallbackData.cpp - Methods for ScalarWidgetChangedCallbackData class.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #include "ScalarWidget.h"
 #include "ScalarWidgetChangedCallbackData.h"
 

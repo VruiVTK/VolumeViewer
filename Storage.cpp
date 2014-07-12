@@ -1,10 +1,3 @@
-/*
- * Storage.cpp - Methods for Storage class.
- *
- * Author: Patrick O'Leary
- * Created: November 10, 2007
- * Copyright 2007. All rights reserved.
- */
 #include "ControlPoint.h"
 #include "RGBAColor.h"
 #include "Storage.h"

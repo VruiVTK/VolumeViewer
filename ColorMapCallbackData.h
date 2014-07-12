@@ -1,10 +1,3 @@
-/*
- * ColorMapCallbackData.h - Class for callback data.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #ifndef COLORMAPCALLBACKDATA_H_
 #define COLORMAPCALLBACKDATA_H_
 

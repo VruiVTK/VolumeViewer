@@ -1,10 +1,3 @@
-/*
- * ColorMap.cpp - Methods for ColorMap class.
- *
- * Author: Patrick O'Leary
- * Created: October 30, 2007
- * Copyright: 2007
- */
 #include <iostream>
 #include <fstream>
 #include <GL/GLColorTemplates.h>

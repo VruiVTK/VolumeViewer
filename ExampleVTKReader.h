@@ -26,9 +26,11 @@ namespace GLMotif
 class BaseLocator;
 class ClippingPlane;
 class ExternalVTKWidget;
+class Isosurfaces;
 class Slices;
 class TransferFunction1D;
 class vtkActor;
+class vtkContourFilter;
 class vtkColorTransferFunction;
 class vtkCutter;
 class vtkLight;
@@ -64,6 +66,15 @@ private:
     vtkSmartPointer<vtkCutter> zCutter;
     vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
     vtkSmartPointer<vtkActor> actorZCutter;
+    vtkSmartPointer<vtkContourFilter> aContour;
+    vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
+    vtkSmartPointer<vtkActor> actorAContour;
+    vtkSmartPointer<vtkContourFilter> bContour;
+    vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
+    vtkSmartPointer<vtkActor> actorBContour;
+    vtkSmartPointer<vtkContourFilter> cContour;
+    vtkSmartPointer<vtkPolyDataMapper> cContourMapper;
+    vtkSmartPointer<vtkActor> actorCContour;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -114,6 +125,10 @@ private:
   int ySlice;
   int zSlice;
 
+  float aIsosurface;
+  float bIsosurface;
+  float cIsosurface;
+
   bool Outline;
   bool Volume;
 
@@ -129,6 +144,14 @@ private:
   double* SliceColormap;
   vtkSmartPointer<vtkLookupTable> sliceLUT;
   Slices* slicesDialog;
+
+  bool AIsosurface;
+  bool BIsosurface;
+  bool CIsosurface;
+
+  double* IsosurfaceColormap;
+  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
+  Isosurfaces* isosurfacesDialog;
 
   /* First Frame */
   bool FirstFrame;
@@ -189,6 +212,7 @@ public:
   void centerDisplayCallback(Misc::CallbackData* cbData);
   void opacitySliderCallback(GLMotif::Slider::ValueChangedCallbackData* cbData);
   void changeRepresentationCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void showIsosurfacesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showSlicesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
@@ -199,6 +223,9 @@ public:
   virtual void toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData* cbData);
   virtual void toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData* cbData);
 
+  void setIsosurfaceColorMapChanged(bool SliceColorMapChanged);
+  void updateIsosurfaceColorMap(double* SliceColormap);
+
   void setSliceColorMapChanged(bool SliceColorMapChanged);
   void updateSliceColorMap(double* SliceColormap);
 
@@ -207,6 +234,13 @@ public:
   void updateAlpha(void);
   void updateVolumeColorMap(void);
   void updateModelColorMap(void);
+
+  void setAIsosurface(float aIsosurface);
+  void setBIsosurface(float bIsosurface);
+  void setCIsosurface(float cIsosurface);
+  void showAIsosurface(bool AIsosurface);
+  void showBIsosurface(bool BIsosurface);
+  void showCIsosurface(bool CIsosurface);
 
   void setXSlice(int xSlice);
   void setYSlice(int ySlice);
@@ -218,6 +252,11 @@ public:
   int getWidth(void);
   int getLength(void);
   int getHeight(void);
+
+  float getDataMinimum(void);
+  float getDataMaximum(void);
+  float getDataIncrement(void);
+  float getDataMidPoint(void);
 };
 
 #endif //_EXAMPLEVTKREADER_H

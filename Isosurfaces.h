@@ -1,5 +1,5 @@
-#ifndef SLICES_INCLUDED
-#define SLICES_INCLUDED
+#ifndef ISOSURFACES_INCLUDED
+#define ISOSURFACES_INCLUDED
 
 /* Vrui includes */
 #include <GL/GLColorMap.h>
@@ -22,33 +22,33 @@ class Storage;
 class SwatchesWidget;
 // end Forward Declarations
 
-class Slices: public GLMotif::PopupWindow {
+class Isosurfaces: public GLMotif::PopupWindow {
 public:
     ExampleVTKReader * exampleVTKReader;
 
-    Slices(double* _sliceColormap, ExampleVTKReader * _ExampleVTKReader);
-    virtual ~Slices(void);
-    void changeSlicesColorMap(int colormap) const;
-    void changeSlicesColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData * callBackData);
-    void exportSlicesColorMap(double* colormap) const;
+    Isosurfaces(double* _isosurfaceColormap, ExampleVTKReader * _ExampleVTKReader);
+    virtual ~Isosurfaces(void);
+    void changeIsosurfacesColorMap(int colormap) const;
+    void changeIsosurfacesColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData * callBackData);
+    void exportIsosurfacesColorMap(double* colormap) const;
     Storage * getColorMap(void) const;
     void setColorMap(Storage* storage);
-    const ColorMap* getSlicesColorMap(void) const;
-    ColorMap* getSlicesColorMap(void);
-    void setSlicesColorMap(int colorMapCreationType, double _minimum, double _maximum);
-    Misc::CallbackList& getSlicesColorMapChangedCallbacks(void);
-    void sliceColorMapChangedCallback(Misc::CallbackData * callBackData);
+    const ColorMap* getIsosurfacesColorMap(void) const;
+    ColorMap* getIsosurfacesColorMap(void);
+    void setIsosurfacesColorMap(int colorMapCreationType, double _minimum, double _maximum);
+    Misc::CallbackList& getIsosurfacesColorMapChangedCallbacks(void);
+    void isosurfaceColorMapChangedCallback(Misc::CallbackData * callBackData);
     void sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBackData);
     void toggleSelectCallback(GLMotif::ToggleButton::ValueChangedCallbackData * callBackData);
 private:
     ColorMap * colorMap;
     GLMotif::Blind * colorPane;
     GLMotif::Slider * colorSliders[3];
-    double* sliceColormap;
+    double* isosurfaceColormap;
     SwatchesWidget * swatchesWidget;
-    GLMotif::TextField* xSliceValue;
-    GLMotif::TextField* ySliceValue;
-    GLMotif::TextField* zSliceValue;
+    GLMotif::TextField* AIsosurfacesValue;
+    GLMotif::TextField* BIsosurfacesValue;
+    GLMotif::TextField* CIsosurfacesValue;
     void colorMapChangedCallback(Misc::CallbackData * callbackData);
     void colorSliderCallback(Misc::CallbackData * callbackData);
     void colorSwatchesWidgetCallback(Misc::CallbackData * callbackData);
@@ -63,11 +63,11 @@ private:
     GLMotif::RowColumn * createColorSliderBox(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * colorEditor);
     void createColorSliders(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * colorEditor);
     void createColorSwatchesWidget(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * & colorEditor);
-    GLMotif::Popup * createSliceColorMapSubMenu(void);
-    void createXSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMotif::StyleSheet & styleSheet);
-    void createXYZSlices(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * & colorMapDialog);
-    void createYSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMotif::StyleSheet & styleSheet);
-    void createZSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMotif::StyleSheet & styleSheet);
+    GLMotif::Popup * createIsosurfaceColorMapSubMenu(void);
+    void createAIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowColumn, const GLMotif::StyleSheet & styleSheet);
+    void createABCIsosurfaces(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * & colorMapDialog);
+    void createBIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowColumn, const GLMotif::StyleSheet & styleSheet);
+    void createCIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowColumn, const GLMotif::StyleSheet & styleSheet);
     void initialize(void);
     void removeControlPointCallback(Misc::CallbackData * callbackData);
 };

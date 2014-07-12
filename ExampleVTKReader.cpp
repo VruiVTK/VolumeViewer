@@ -27,6 +27,7 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkContourFilter.h>
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetSurfaceFilter.h>
@@ -52,6 +53,7 @@
 #include "ColorMap.h"
 #include "ExampleVTKReader.h"
 #include "FlashlightLocator.h"
+#include "Isosurfaces.h"
 #include "ScalarWidget.h"
 #include "Slices.h"
 #include "TransferFunction1D.h"
@@ -82,6 +84,19 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorZCutter);
 
+  this->aContour = vtkSmartPointer<vtkContourFilter>::New();
+  this->aContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->actorAContour = vtkSmartPointer<vtkActor>::New();
+  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorAContour);
+  this->bContour = vtkSmartPointer<vtkContourFilter>::New();
+  this->bContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->actorBContour = vtkSmartPointer<vtkActor>::New();
+  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorBContour);
+  this->cContour = vtkSmartPointer<vtkContourFilter>::New();
+  this->cContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->actorCContour = vtkSmartPointer<vtkActor>::New();
+  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorCContour);
+
   this->flashlight = vtkSmartPointer<vtkLight>::New();
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
 }
@@ -94,7 +109,13 @@ ExampleVTKReader::DataItem::~DataItem(void)
 //----------------------------------------------------------------------------
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   :Vrui::Application(argc,argv),
+  aIsosurface(0),
+  AIsosurface(false),
   analysisTool(0),
+  bIsosurface(0),
+  BIsosurface(false),
+  cIsosurface(0),
+  CIsosurface(false),
   ClippingPlanes(NULL),
   FileName(0),
   FirstFrame(true),
@@ -146,6 +167,12 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 
   this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
+
+  this->IsosurfaceColormap = new double[4*256];
+
+  this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
+  this->isosurfaceLUT->SetNumberOfColors(256);
+  this->isosurfaceLUT->Build();
 
   this->SliceColormap = new double[4*256];
 
@@ -287,6 +314,11 @@ GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
     "Slices");
   showSlicesDialog->setToggle(false);
   showSlicesDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showSlicesDialogCallback);
+
+  GLMotif::ToggleButton * showIsosurfacesDialog = new GLMotif::ToggleButton("ShowIsosurfacesDialog", mainMenu,
+    "Isosurfaces");
+  showIsosurfacesDialog->setToggle(false);
+  showIsosurfacesDialog->getValueChangedCallbacks().add(this, &ExampleVTKReader::showIsosurfacesDialogCallback);
 
    GLMotif::ToggleButton * showTransferFunctionDialog = new GLMotif::ToggleButton("ShowTransferFunctionDialog", mainMenu,
     "Transfer Function");
@@ -439,8 +471,13 @@ void ExampleVTKReader::frame(void)
 
     this->slicesDialog = new Slices(this->SliceColormap, this);
     this->slicesDialog->setSlicesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
-    slicesDialog->exportSlicesColorMap(this->SliceColormap);
+    this->slicesDialog->exportSlicesColorMap(this->SliceColormap);
     updateSliceColorMap(this->SliceColormap);
+
+    this->isosurfacesDialog = new Isosurfaces(this->IsosurfaceColormap, this);
+    this->isosurfacesDialog->setIsosurfacesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
+    this->isosurfacesDialog->exportIsosurfacesColorMap(this->IsosurfaceColormap);
+    updateIsosurfaceColorMap(this->IsosurfaceColormap);
 
     /* Compute the data center and Radius once */
     this->xCenter = (this->DataBounds[0] + this->DataBounds[1])/2.0;
@@ -466,6 +503,9 @@ void ExampleVTKReader::frame(void)
     this->xPlane->SetOrigin(this->xOrigin + (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
     this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (this->ySlice * this->DataSpacing[1]), this->zCenter);
     this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin + (this->zSlice * this->DataSpacing[2]));
+    this->aIsosurface = this->getDataMidPoint();
+    this->bIsosurface = this->getDataMidPoint();
+    this->cIsosurface = this->getDataMidPoint();
     this->FirstFrame = false;
     }
 }
@@ -509,6 +549,12 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputConnection(reader->GetOutputPort());
 
     dataItem->zCutter->SetInputConnection(reader->GetOutputPort());
+
+    dataItem->aContour->SetInputConnection(reader->GetOutputPort());
+
+    dataItem->bContour->SetInputConnection(reader->GetOutputPort());
+
+    dataItem->cContour->SetInputConnection(reader->GetOutputPort());
     }
   else
     {
@@ -553,6 +599,12 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputData(imageData.GetPointer());
 
     dataItem->zCutter->SetInputData(imageData.GetPointer());
+
+    dataItem->aContour->SetInputData(imageData.GetPointer());
+
+    dataItem->bContour->SetInputData(imageData.GetPointer());
+
+    dataItem->cContour->SetInputData(imageData.GetPointer());
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
@@ -599,6 +651,27 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->zCutterMapper->SetLookupTable(this->sliceLUT);
   dataItem->zCutterMapper->SetColorModeToMapScalars();
   dataItem->actorZCutter->SetMapper(dataItem->zCutterMapper);
+
+  dataItem->aContour->SetValue(0, this->aIsosurface);
+  dataItem->aContourMapper->SetInputConnection(dataItem->aContour->GetOutputPort());
+  dataItem->aContourMapper->SetScalarRange(this->DataScalarRange);
+  dataItem->aContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->aContourMapper->SetColorModeToMapScalars();
+  dataItem->actorAContour->SetMapper(dataItem->aContourMapper);
+
+  dataItem->bContour->SetValue(0, this->bIsosurface);
+  dataItem->bContourMapper->SetInputConnection(dataItem->bContour->GetOutputPort());
+  dataItem->bContourMapper->SetScalarRange(this->DataScalarRange);
+  dataItem->bContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->bContourMapper->SetColorModeToMapScalars();
+  dataItem->actorBContour->SetMapper(dataItem->bContourMapper);
+
+  dataItem->cContour->SetValue(0, this->cIsosurface);
+  dataItem->cContourMapper->SetInputConnection(dataItem->cContour->GetOutputPort());
+  dataItem->cContourMapper->SetScalarRange(this->DataScalarRange);
+  dataItem->cContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->cContourMapper->SetColorModeToMapScalars();
+  dataItem->actorCContour->SetMapper(dataItem->cContourMapper);
 
   dataItem->flashlight->SwitchOff();
   dataItem->flashlight->SetLightTypeToHeadlight();
@@ -711,6 +784,35 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     dataItem->actorZCutter->VisibilityOff();
     }
 
+  if (this->AIsosurface)
+    {
+    dataItem->actorAContour->VisibilityOn();
+    dataItem->aContour->SetValue(0, this->aIsosurface);
+    }
+  else
+    {
+    dataItem->actorAContour->VisibilityOff();
+    }
+
+  if (this->BIsosurface)
+    {
+    dataItem->actorBContour->VisibilityOn();
+    dataItem->bContour->SetValue(0, this->bIsosurface);
+    }
+  else
+    {
+    dataItem->actorBContour->VisibilityOff();
+    }
+
+  if (this->CIsosurface)
+    {
+    dataItem->actorCContour->VisibilityOn();
+    dataItem->cContour->SetValue(0, this->cIsosurface);
+    }
+  else
+    {
+    dataItem->actorCContour->VisibilityOff();
+    }
   /* Render the scene */
   dataItem->externalVTKWidget->GetRenderWindow()->Render();
 
@@ -825,6 +927,21 @@ void ExampleVTKReader::showSlicesDialogCallback(GLMotif::ToggleButton::ValueChan
 }
 
 //----------------------------------------------------------------------------
+void ExampleVTKReader::showIsosurfacesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
+{
+    /* open/close isosurfaces dialog based on which toggle button changed state: */
+  if (strcmp(callBackData->toggle->getName(), "ShowIsosurfacesDialog") == 0) {
+    if (callBackData->set) {
+      /* Open the isosurfaces dialog at the same position as the main menu: */
+      Vrui::getWidgetManager()->popupPrimaryWidget(isosurfacesDialog, Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
+    } else {
+      /* Close the isosurfaces dialog: */
+      Vrui::popdownPrimaryWidget(isosurfacesDialog);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void ExampleVTKReader::showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
     /* open/close transfer function dialog based on which toggle button changed state: */
@@ -923,6 +1040,42 @@ double * ExampleVTKReader::getFlashlightDirection(void)
 }
 
 //----------------------------------------------------------------------------
+void ExampleVTKReader::setAIsosurface(float aIsosurface)
+{
+  this->aIsosurface = aIsosurface;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setBIsosurface(float bIsosurface)
+{
+  this->bIsosurface = bIsosurface;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setCIsosurface(float cIsosurface)
+{
+  this->cIsosurface = cIsosurface;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showAIsosurface(bool AIsosurface)
+{
+  this->AIsosurface = AIsosurface;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showBIsosurface(bool BIsosurface)
+{
+  this->BIsosurface = BIsosurface;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showCIsosurface(bool CIsosurface)
+{
+  this->CIsosurface = CIsosurface;
+}
+
+//----------------------------------------------------------------------------
 void ExampleVTKReader::setXSlice(int xSlice)
 {
   this->xSlice = xSlice;
@@ -978,6 +1131,17 @@ int ExampleVTKReader::getLength(void)
 int ExampleVTKReader::getHeight(void)
 {
   return this->DataDimensions[2];
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::updateIsosurfaceColorMap(double* IsosurfaceColormap)
+{
+  this->IsosurfaceColormap = IsosurfaceColormap;
+  for (int i=0;i<256;i++)
+    {
+    this->isosurfaceLUT->SetTableValue(i, this->IsosurfaceColormap[4*i + 0],this->IsosurfaceColormap[4*i + 1],
+      this->IsosurfaceColormap[4*i + 2], 1.0);
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1059,6 +1223,7 @@ void ExampleVTKReader::changeColorMapCallback(GLMotif::RadioBox::ValueChangedCal
   Vrui::requestUpdate();
 }
 
+//----------------------------------------------------------------------------
 void ExampleVTKReader::updateModelColorMap(void)
 {
   for (int i=0;i<256;i++)
@@ -1066,4 +1231,28 @@ void ExampleVTKReader::updateModelColorMap(void)
     this->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],this->VolumeColormap[4*i + 1],
       this->VolumeColormap[4*i + 2], 1.0);
     }
+}
+
+//----------------------------------------------------------------------------
+float ExampleVTKReader::getDataMinimum(void)
+{
+  return float(this->DataScalarRange[0]);
+}
+
+//----------------------------------------------------------------------------
+float ExampleVTKReader::getDataMaximum(void)
+{
+  return float(this->DataScalarRange[1]);
+}
+
+//----------------------------------------------------------------------------
+float ExampleVTKReader::getDataIncrement(void)
+{
+  return float((this->DataScalarRange[1]-this->DataScalarRange[0])/20.0);
+}
+
+//----------------------------------------------------------------------------
+float ExampleVTKReader::getDataMidPoint(void)
+{
+  return float((this->DataScalarRange[1]-this->DataScalarRange[0])/2.0);
 }

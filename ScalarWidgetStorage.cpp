@@ -1,10 +1,3 @@
-/*
- * ScalarWidgetStorage.cpp - Methods for ScalarWidgetStorage class.
- *
- * Author: Patrick O'Leary
- * Created: January 19, 2008
- * Copyright 2008. All rights reserved.
- */
 #include "ScalarWidgetControlPoint.h"
 #include "ScalarWidgetStorage.h"
 

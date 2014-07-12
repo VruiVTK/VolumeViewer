@@ -1,10 +1,3 @@
-/*
- * ColorMapCallbackData.cpp - Methods for ColorMapCallbackData class.
- *
- * Author: Patrick O'Leary
- * Created: November 9, 2007
- * Copyright 2007. All rights reserved.
- */
 #include "ColorMapCallbackData.h"
 #include "ColorMap.h"
 
