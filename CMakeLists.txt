@@ -49,6 +49,8 @@ SET(${PROJECT_NAME}_SRCS
   ExampleVTKReader.h
   FlashlightLocator.cpp
   FlashlightLocator.h
+  FreeSliceLocator.cpp
+  FreeSliceLocator.h
   Gaussian.cpp
   Gaussian.h
   main.cpp

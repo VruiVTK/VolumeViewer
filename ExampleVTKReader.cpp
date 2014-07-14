@@ -52,6 +52,7 @@
 #include "ColorMap.h"
 #include "ExampleVTKReader.h"
 #include "FlashlightLocator.h"
+#include "FreeSliceLocator.h"
 #include "ScalarWidget.h"
 #include "Slices.h"
 #include "TransferFunction1D.h"
@@ -81,6 +82,12 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->zCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddVolume(this->actorZCutter);
+  this->freeSliceCutter = vtkSmartPointer<vtkCutter>::New();
+  this->freeSliceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->freeSliceMapper->SetInputConnection(
+    this->freeSliceCutter->GetOutputPort());
+  this->freeSliceActor = vtkSmartPointer<vtkActor>::New();
+  this->freeSliceActor->SetMapper(this->freeSliceMapper);
 
   this->flashlight = vtkSmartPointer<vtkLight>::New();
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
@@ -101,6 +108,9 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   FlashlightDirection(0),
   FlashlightPosition(0),
   FlashlightSwitch(0),
+  FreeSliceNormal(0),
+  FreeSliceOrigin(0),
+  FreeSliceVisibility(0),
   mainMenu(NULL),
   NumberOfClippingPlanes(6),
   Opacity(1.0),
@@ -142,6 +152,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FlashlightPosition = new double[3];
   this->FlashlightDirection = new double[3];
 
+  this->FreeSliceVisibility = new int[1];
+  this->FreeSliceVisibility[0] = 0;
+  this->FreeSliceOrigin = new double[3];
+  this->FreeSliceNormal = new double[3];
+
   this->VolumeColormap = new double[4*256];
 
   this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -164,6 +179,8 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->zPlane = vtkSmartPointer<vtkPlane>::New();
   this->zPlane->SetOrigin(0.0, 0.0, 0.0);
   this->zPlane->SetNormal(0.0, 0.0, 1.0);
+
+  this->freeSlicePlane = vtkSmartPointer<vtkPlane>::New();
 
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
@@ -213,6 +230,18 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->FlashlightDirection)
     {
     delete[] this->FlashlightDirection;
+    }
+  if(this->FreeSliceVisibility)
+    {
+    delete[] this->FreeSliceVisibility;
+    }
+  if(this->FreeSliceOrigin)
+    {
+    delete[] this->FreeSliceOrigin;
+    }
+  if(this->FreeSliceNormal)
+    {
+    delete[] this->FreeSliceNormal;
     }
 }
 
@@ -389,6 +418,10 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
   GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton(
     "Flashlight",analysisTools_RadioBox,"Flashlight");
   showFlashlight->getValueChangedCallbacks().add(
+    this,&ExampleVTKReader::changeAnalysisToolsCallback);
+  GLMotif::ToggleButton* showFreeSlice=new GLMotif::ToggleButton(
+    "FreeSlice",analysisTools_RadioBox,"Free Slice");
+  showFreeSlice->getValueChangedCallbacks().add(
     this,&ExampleVTKReader::changeAnalysisToolsCallback);
   GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton(
     "Other",analysisTools_RadioBox,"Other");
@@ -567,6 +600,8 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputConnection(reader->GetOutputPort());
 
     dataItem->zCutter->SetInputConnection(reader->GetOutputPort());
+
+    dataItem->freeSliceCutter->SetInputConnection(reader->GetOutputPort());
     }
   else
     {
@@ -611,6 +646,8 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->yCutter->SetInputData(imageData.GetPointer());
 
     dataItem->zCutter->SetInputData(imageData.GetPointer());
+
+    dataItem->freeSliceCutter->SetInputData(imageData.GetPointer());
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
@@ -663,6 +700,11 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->flashlight->SetColor(0.0, 1.0, 1.0);
   dataItem->flashlight->SetConeAngle(15);
   dataItem->flashlight->SetPositional(true);
+
+  dataItem->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
+  dataItem->freeSliceMapper->SetScalarRange(this->DataScalarRange);
+  dataItem->freeSliceMapper->SetLookupTable(this->sliceLUT);
+  dataItem->freeSliceMapper->SetColorModeToMapScalars();
 }
 
 //----------------------------------------------------------------------------
@@ -702,6 +744,19 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   else
     {
     dataItem->flashlight->SwitchOff();
+    }
+
+  if(this->FreeSliceVisibility[0])
+    {
+    this->freeSlicePlane->SetOrigin(this->FreeSliceOrigin);
+    this->freeSlicePlane->SetNormal(this->FreeSliceNormal);
+    dataItem->externalVTKWidget->GetRenderer()->AddActor(
+      dataItem->freeSliceActor);
+    }
+  else
+    {
+    dataItem->externalVTKWidget->GetRenderer()->RemoveActor(
+      dataItem->freeSliceActor);
     }
 
   if (this->Outline)
@@ -863,9 +918,13 @@ void ExampleVTKReader::changeAnalysisToolsCallback(
     {
     this->analysisTool = 1;
     }
-  else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "FreeSlice") == 0)
     {
     this->analysisTool = 2;
+    }
+  else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
+    {
+    this->analysisTool = 3;
     }
 }
 
@@ -966,6 +1025,12 @@ void ExampleVTKReader::toolCreationCallback(
        * associate it with the new tool: */
       newLocator = new FlashlightLocator(locatorTool, this);
       }
+    else if (analysisTool == 2)
+      {
+      /* Create a freeSlice locator object and
+       * associate it with the new tool: */
+      newLocator = new FreeSliceLocator(locatorTool, this);
+      }
 
       /* Add new locator to list: */
       baseLocators.push_back(newLocator);
@@ -1012,6 +1077,24 @@ double * ExampleVTKReader::getFlashlightPosition(void)
 double * ExampleVTKReader::getFlashlightDirection(void)
 {
   return this->FlashlightDirection;
+}
+
+//----------------------------------------------------------------------------
+int * ExampleVTKReader::getFreeSliceVisibility(void)
+{
+  return this->FreeSliceVisibility;
+}
+
+//----------------------------------------------------------------------------
+double * ExampleVTKReader::getFreeSliceOrigin(void)
+{
+  return this->FreeSliceOrigin;
+}
+
+//----------------------------------------------------------------------------
+double * ExampleVTKReader::getFreeSliceNormal(void)
+{
+  return this->FreeSliceNormal;
 }
 
 //----------------------------------------------------------------------------
