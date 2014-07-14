@@ -9,6 +9,7 @@
 #define SCALARWIDGET_INCLUDED
 
 #include <GL/gl.h>
+#include <vector>
 
 /* Vrui includes */
 #include <GLMotif/Container.h>
@@ -62,6 +63,7 @@ public:
     void drawHistogram(void) const;
     void drawLine(void) const;
     void drawMargin(void) const;
+    std::vector<double> exportControlPointValues(void);
     void exportScalar(double* _scalar) const;
     void exportScalar(double* colormap, int component);
     bool findGaussianControlPoint(float x, float y, float z);

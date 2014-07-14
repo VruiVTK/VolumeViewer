@@ -74,18 +74,33 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->xCutter = vtkSmartPointer<vtkCutter>::New();
   this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorXCutter = vtkSmartPointer<vtkActor>::New();
-  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorXCutter);
+  this->externalVTKWidget->GetRenderer()->AddActor(this->actorXCutter);
   this->yCutter = vtkSmartPointer<vtkCutter>::New();
   this->yCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorYCutter = vtkSmartPointer<vtkActor>::New();
-  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorYCutter);
+  this->externalVTKWidget->GetRenderer()->AddActor(this->actorYCutter);
   this->zCutter = vtkSmartPointer<vtkCutter>::New();
   this->zCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
-  this->externalVTKWidget->GetRenderer()->AddVolume(this->actorZCutter);
+  this->externalVTKWidget->GetRenderer()->AddActor(this->actorZCutter);
 
   this->contourFilter = vtkSmartPointer<vtkContourFilter>::New();
   this->contourActor = vtkSmartPointer<vtkActor>::New();
+  this->actorXContourCutter = vtkSmartPointer<vtkActor>::New();
+  this->actorXContourCutter->GetProperty()->SetColor(1.0, 0.0, 0.0);
+  this->actorXContourCutter->GetProperty()->SetLineWidth(3);
+  this->externalVTKWidget->GetRenderer()->AddActor(
+    this->actorXContourCutter);
+  this->actorYContourCutter = vtkSmartPointer<vtkActor>::New();
+  this->actorYContourCutter->GetProperty()->SetColor(0.0, 1.0, 0.0);
+  this->actorYContourCutter->GetProperty()->SetLineWidth(3);
+  this->externalVTKWidget->GetRenderer()->AddActor(
+    this->actorYContourCutter);
+  this->actorZContourCutter = vtkSmartPointer<vtkActor>::New();
+  this->actorZContourCutter->GetProperty()->SetColor(0.0, 0.0, 1.0);
+  this->actorZContourCutter->GetProperty()->SetLineWidth(3);
+  this->externalVTKWidget->GetRenderer()->AddActor(
+    this->actorZContourCutter);
 
   this->flashlight = vtkSmartPointer<vtkLight>::New();
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
@@ -101,10 +116,10 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   :Vrui::Application(argc,argv),
   analysisTool(0),
   ClippingPlanes(NULL),
-  contoursDialog(NULL),
-  ContourVisible(0),
-  ContourValues(0),
-  NumberOfContourValues(0),
+  ContoursDialog(NULL),
+  ContourVisible(true),
+//  ContourValues(0),
+//  NumberOfContourValues(0),
   FileName(0),
   FirstFrame(true),
   FlashlightDirection(0),
@@ -125,14 +140,20 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   xOrigin(0),
   xSlice(0),
   XSlice(false),
+  xContourSlice(0),
+  XContourSlice(false),
   yCenter(0),
   yOrigin(0),
   ySlice(0),
   YSlice(false),
+  yContourSlice(0),
+  YContourSlice(false),
   zCenter(0),
   zOrigin(0),
   zSlice(0),
-  ZSlice(false)
+  ZSlice(false),
+  zContourSlice(0),
+  ZContourSlice(false)
 {
 
   this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
@@ -152,7 +173,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FlashlightDirection = new double[3];
 
   this->VolumeColormap = new double[4*256];
-  this->ContourValues = new double[4*256];
+//  this->ContourValues = new std::vector<double>();
 
   this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -174,6 +195,18 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->zPlane = vtkSmartPointer<vtkPlane>::New();
   this->zPlane->SetOrigin(0.0, 0.0, 0.0);
   this->zPlane->SetNormal(0.0, 0.0, 1.0);
+
+  this->xContourPlane = vtkSmartPointer<vtkPlane>::New();
+  this->xContourPlane->SetOrigin(0.0, 0.0, 0.0);
+  this->xContourPlane->SetNormal(1.0, 0.0, 0.0);
+
+  this->yContourPlane = vtkSmartPointer<vtkPlane>::New();
+  this->yContourPlane->SetOrigin(0.0, 0.0, 0.0);
+  this->yContourPlane->SetNormal(0.0, 1.0, 0.0);
+
+  this->zContourPlane = vtkSmartPointer<vtkPlane>::New();
+  this->zContourPlane->SetOrigin(0.0, 0.0, 0.0);
+  this->zContourPlane->SetNormal(0.0, 0.0, 1.0);
 
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
@@ -228,10 +261,10 @@ ExampleVTKReader::~ExampleVTKReader(void)
     {
     delete[] this->VolumeColormap;
     }
-  if(this->ContourValues)
-    {
-    delete[] this->ContourValues;
-    }
+//  if(this->ContourValues)
+//    {
+//    delete this->ContourValues;
+//    }
 }
 
 //----------------------------------------------------------------------------
@@ -521,8 +554,8 @@ void ExampleVTKReader::frame(void)
     slicesDialog->exportSlicesColorMap(this->SliceColormap);
     updateSliceColorMap(this->SliceColormap);
 
-    this->contoursDialog = new Contours(this);
-    this->contoursDialog->getAlphaChangedCallbacks().add(this,
+    this->ContoursDialog = new Contours(this);
+    this->ContoursDialog->getAlphaChangedCallbacks().add(this,
       &ExampleVTKReader::contourValueChangedCallback);
 
     /* Compute the data center and Radius once */
@@ -552,6 +585,12 @@ void ExampleVTKReader::frame(void)
         this->ySlice * this->DataSpacing[1]), this->zCenter);
     this->zPlane->SetOrigin(this->xCenter, this->yCenter,
       this->zOrigin + (this->zSlice * this->DataSpacing[2]));
+    this->xContourPlane->SetOrigin(this->xOrigin + (
+        this->xContourSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+    this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin + (
+        this->yContourSlice * this->DataSpacing[1]), this->zCenter);
+    this->zContourPlane->SetOrigin(this->xCenter, this->yCenter,
+      this->zOrigin + (this->zContourSlice * this->DataSpacing[2]));
     this->FirstFrame = false;
     }
 }
@@ -692,7 +731,32 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
   vtkNew<vtkPolyDataMapper> contourMapper;
   contourMapper->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  contourMapper->ScalarVisibilityOff();
   dataItem->contourActor->SetMapper(contourMapper.GetPointer());
+
+  vtkNew<vtkCutter> xContourCutter;
+  xContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  xContourCutter->SetCutFunction(this->xContourPlane);
+  vtkNew<vtkPolyDataMapper> mapperXContourCutter;
+  mapperXContourCutter->SetInputConnection(xContourCutter->GetOutputPort());
+  mapperXContourCutter->ScalarVisibilityOff();
+  dataItem->actorXContourCutter->SetMapper(mapperXContourCutter.GetPointer());
+
+  vtkNew<vtkCutter> yContourCutter;
+  yContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  yContourCutter->SetCutFunction(this->yContourPlane);
+  vtkNew<vtkPolyDataMapper> mapperYContourCutter;
+  mapperYContourCutter->SetInputConnection(yContourCutter->GetOutputPort());
+  mapperYContourCutter->ScalarVisibilityOff();
+  dataItem->actorYContourCutter->SetMapper(mapperYContourCutter.GetPointer());
+
+  vtkNew<vtkCutter> zContourCutter;
+  zContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  zContourCutter->SetCutFunction(this->zContourPlane);
+  vtkNew<vtkPolyDataMapper> mapperZContourCutter;
+  mapperZContourCutter->SetInputConnection(zContourCutter->GetOutputPort());
+  mapperZContourCutter->ScalarVisibilityOff();
+  dataItem->actorZContourCutter->SetMapper(mapperZContourCutter.GetPointer());
 
   dataItem->flashlight->SwitchOff();
   dataItem->flashlight->SetLightTypeToHeadlight();
@@ -805,15 +869,40 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     dataItem->actorZCutter->VisibilityOff();
     }
 
+  if (this->XContourSlice)
+    {
+    dataItem->actorXContourCutter->VisibilityOn();
+    }
+  else
+    {
+    dataItem->actorXContourCutter->VisibilityOff();
+    }
+
+  if (this->YContourSlice)
+    {
+    dataItem->actorYContourCutter->VisibilityOn();
+    }
+  else
+    {
+    dataItem->actorYContourCutter->VisibilityOff();
+    }
+
+  if (this->ZContourSlice)
+    {
+    dataItem->actorZContourCutter->VisibilityOn();
+    }
+  else
+    {
+    dataItem->actorZContourCutter->VisibilityOff();
+    }
+
+  dataItem->contourFilter->SetNumberOfContours(this->ContourValues.size());
+  for(int i = 0; i < this->ContourValues.size(); ++i)
+    {
+    dataItem->contourFilter->SetValue(i, this->ContourValues.at(i));
+    }
   if(this->ContourVisible)
     {
-    dataItem->contourFilter->SetNumberOfContours(this->NumberOfContourValues);
-//    std::cout << "Number = " << this->NumberOfContourValues << std::endl;
-//    for(int i = 0; i < 256; ++i)
-//      {
-//      std::cout << i << ":" << this->ContourValues[i*4 + 3] << std::endl;
-//      //dataItem->contourFilter->SetValue(i, this->ContourValues[i]);
-//      }
     dataItem->externalVTKWidget->GetRenderer()->AddActor(dataItem->contourActor);
     }
   else
@@ -952,15 +1041,13 @@ void ExampleVTKReader::showContoursDialogCallback(
     if (callBackData->set)
       {
       /* Open the slices dialog at the same position as the main menu: */
-      Vrui::getWidgetManager()->popupPrimaryWidget(contoursDialog,
+      Vrui::getWidgetManager()->popupPrimaryWidget(ContoursDialog,
         Vrui::getWidgetManager()->calcWidgetTransformation(mainMenu));
-      this->ContourVisible = 1;
       }
     else
       {
       /* Close the slices dialog: */
-      Vrui::popdownPrimaryWidget(contoursDialog);
-      this->ContourVisible = 0;
+      Vrui::popdownPrimaryWidget(ContoursDialog);
       }
     }
 }
@@ -1133,6 +1220,49 @@ void ExampleVTKReader::showZSlice(bool ZSlice)
 }
 
 //----------------------------------------------------------------------------
+void ExampleVTKReader::setXContourSlice(int xSlice)
+{
+  this->xContourSlice = xSlice;
+  this->xContourPlane->SetOrigin(this->xOrigin +
+    (this->xContourSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setYContourSlice(int ySlice)
+{
+  this->yContourSlice = ySlice;
+  this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin +
+    (this->yContourSlice * this->DataSpacing[1]), this->zCenter);
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setZContourSlice(int zSlice)
+{
+  this->zContourSlice = zSlice;
+  this->zContourPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
+    (this->zContourSlice * this->DataSpacing[2]));
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showXContourSlice(bool XSlice)
+{
+  this->XContourSlice = XSlice;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showYContourSlice(bool YSlice)
+{
+  this->YContourSlice = YSlice;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::showZContourSlice(bool ZSlice)
+{
+  this->ZContourSlice = ZSlice;
+}
+
+//----------------------------------------------------------------------------
 int ExampleVTKReader::getWidth(void)
 {
   return this->DataDimensions[0];
@@ -1179,10 +1309,11 @@ void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData* callBackData)
 {
-  this->NumberOfContourValues = contoursDialog->getNumberOfControlPoints();
+//  this->NumberOfContourValues = ContoursDialog->getNumberOfControlPoints();
 //  delete [] this->ContourValues;
 //  this->ContourValues = new double[this->NumberOfContourValues];
-  contoursDialog->getControlPointValues(this->ContourValues);
+//  ContoursDialog->getControlPointValues(this->ContourValues);
+  this->ContourValues = ContoursDialog->getContourValues();
   Vrui::requestUpdate();
 }
 
@@ -1264,4 +1395,16 @@ void ExampleVTKReader::updateModelColorMap(void)
       this->VolumeColormap[4*i + 1],
       this->VolumeColormap[4*i + 2], 1.0);
     }
+}
+
+//----------------------------------------------------------------------------
+std::vector<double> ExampleVTKReader::getContourValues(void)
+{
+  return this->ContourValues;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setContourVisible(bool visible)
+{
+  this->ContourVisible = visible;
 }

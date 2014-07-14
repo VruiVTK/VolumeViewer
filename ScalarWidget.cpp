@@ -9,6 +9,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 /* Vrui includes */
 #include <GL/GLColorTemplates.h>
@@ -816,6 +817,28 @@ void ScalarWidget::exportScalar(double* colormap) const {
             colormap[4*i + component] = (double) (opacities[i]);
     }
 } // end exportScalar()
+
+std::vector<double> ScalarWidget::exportControlPointValues( void )
+{
+  std::vector<double> controlPointValues;
+  ScalarWidgetControlPoint* previousControlPoint = first;
+  ScalarWidgetControlPoint* nextControlPoint;
+  if (!gaussian)
+    {
+    for (nextControlPoint = previousControlPoint->right;
+      nextControlPoint != last; nextControlPoint = nextControlPoint->right)
+      {
+      if( nextControlPoint == last)
+        {
+        continue;
+        }
+      controlPointValues.push_back(
+        static_cast<double>(nextControlPoint->getValue() * 255.0));
+      }
+    }
+  return controlPointValues;
+}
+
 
 /*
  * exportScalar - Export the current scalar component.

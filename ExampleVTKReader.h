@@ -1,6 +1,9 @@
 #ifndef _EXAMPLEVTKREADER_H
 #define _EXAMPLEVTKREADER_H
 
+// STD includes
+#include <vector>
+
 // OpenGL/Motif includes
 #include <GL/gl.h>
 
@@ -68,6 +71,12 @@ private:
     vtkSmartPointer<vtkActor> actorZCutter;
     vtkSmartPointer<vtkContourFilter> contourFilter;
     vtkSmartPointer<vtkActor> contourActor;
+    vtkSmartPointer<vtkCutter> xContourCutter;
+    vtkSmartPointer<vtkCutter> yContourCutter;
+    vtkSmartPointer<vtkCutter> zContourCutter;
+    vtkSmartPointer<vtkActor> actorXContourCutter;
+    vtkSmartPointer<vtkActor> actorYContourCutter;
+    vtkSmartPointer<vtkActor> actorZContourCutter;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -118,6 +127,14 @@ private:
   int ySlice;
   int zSlice;
 
+  vtkSmartPointer<vtkPlane> xContourPlane;
+  vtkSmartPointer<vtkPlane> yContourPlane;
+  vtkSmartPointer<vtkPlane> zContourPlane;
+
+  int xContourSlice;
+  int yContourSlice;
+  int zContourSlice;
+
   bool Outline;
   bool Volume;
 
@@ -130,14 +147,18 @@ private:
   bool YSlice;
   bool ZSlice;
 
+  bool XContourSlice;
+  bool YContourSlice;
+  bool ZContourSlice;
+
   double* SliceColormap;
   vtkSmartPointer<vtkLookupTable> sliceLUT;
   Slices* slicesDialog;
 
-  Contours* contoursDialog;
-  int ContourVisible;
-  double* ContourValues;
-  int NumberOfContourValues;
+  /* Contours */
+  Contours* ContoursDialog;
+  bool ContourVisible;
+  std::vector<double> ContourValues;
 
   /* First Frame */
   bool FirstFrame;
@@ -187,6 +208,9 @@ public:
   double * getFlashlightPosition(void);
   double * getFlashlightDirection(void);
 
+  /* Contours */
+  std::vector<double> getContourValues();
+
   void initialize(void);
 
   /* Methods to manage render context */
@@ -226,6 +250,14 @@ public:
   void showXSlice(bool XSlice);
   void showYSlice(bool YSlice);
   void showZSlice(bool ZSlice);
+
+  void setContourVisible(bool visible);
+  void setXContourSlice(int xSlice);
+  void setYContourSlice(int ySlice);
+  void setZContourSlice(int zSlice);
+  void showXContourSlice(bool XSlice);
+  void showYContourSlice(bool YSlice);
+  void showZContourSlice(bool ZSlice);
 
   int getWidth(void);
   int getLength(void);
