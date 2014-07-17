@@ -45,6 +45,7 @@
 #include <vtkXMLImageDataReader.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
+#include <vtkPointData.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
@@ -208,6 +209,12 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->zContourPlane->SetOrigin(0.0, 0.0, 0.0);
   this->zContourPlane->SetNormal(0.0, 0.0, 1.0);
 
+  this->Histogram = new float[256];
+  for(int j = 0; j < 256; ++j)
+    {
+    this->Histogram[j] = 0.0;
+    }
+
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
   for(int i = 0; i < NumberOfClippingPlanes; ++i)
@@ -261,10 +268,10 @@ ExampleVTKReader::~ExampleVTKReader(void)
     {
     delete[] this->VolumeColormap;
     }
-//  if(this->ContourValues)
-//    {
-//    delete this->ContourValues;
-//    }
+  if(this->Histogram)
+    {
+    delete[] this->Histogram;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -609,6 +616,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
   vtkNew<vtkSmartVolumeMapper> mapperVolume;
 
+  vtkSmartPointer<vtkUnsignedCharArray> scalars;
   if(this->FileName)
     {
     vtkNew<vtkXMLImageDataReader> reader;
@@ -636,6 +644,9 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->zCutter->SetInputConnection(reader->GetOutputPort());
 
     dataItem->contourFilter->SetInputConnection(reader->GetOutputPort());
+
+    scalars = vtkUnsignedCharArray::SafeDownCast(
+      reader->GetOutput()->GetPointData()->GetScalars());
     }
   else
     {
@@ -682,6 +693,9 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataItem->zCutter->SetInputData(imageData.GetPointer());
 
     dataItem->contourFilter->SetInputData(imageData.GetPointer());
+
+    scalars = vtkUnsignedCharArray::SafeDownCast(
+      imageData->GetPointData()->GetScalars());
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
@@ -763,6 +777,11 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->flashlight->SetColor(0.0, 1.0, 1.0);
   dataItem->flashlight->SetConeAngle(15);
   dataItem->flashlight->SetPositional(true);
+
+  for(int i = 0; i < scalars->GetNumberOfTuples(); ++i)
+    {
+    this->Histogram[static_cast<int>(scalars->GetTuple1(i))] += 1;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -1309,10 +1328,6 @@ void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData* callBackData)
 {
-//  this->NumberOfContourValues = ContoursDialog->getNumberOfControlPoints();
-//  delete [] this->ContourValues;
-//  this->ContourValues = new double[this->NumberOfContourValues];
-//  ContoursDialog->getControlPointValues(this->ContourValues);
   this->ContourValues = ContoursDialog->getContourValues();
   Vrui::requestUpdate();
 }
@@ -1407,4 +1422,10 @@ std::vector<double> ExampleVTKReader::getContourValues(void)
 void ExampleVTKReader::setContourVisible(bool visible)
 {
   this->ContourVisible = visible;
+}
+
+//----------------------------------------------------------------------------
+float * ExampleVTKReader::getHistogram(void)
+{
+  return this->Histogram;
 }

@@ -94,6 +94,8 @@ public:
     void removeGaussian(int which);
     virtual void resize(const GLMotif::Box& _exterior);
     void selectControlPoint(int i);
+    void setHistogram(float* hist);
+    void useAs1DWidget(bool enable);
 private:
     ScalarWidgetControlPoint* alphaFirst;
     bool alphaGaussian;
@@ -149,6 +151,7 @@ private:
     void saveState(void);
     void updateControlPoints(void);
     void updatePointers(int component);
+    bool is1D;
 };
 
 #endif /*SCALARWIDGET_INCLUDED*/

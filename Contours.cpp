@@ -83,6 +83,10 @@ void Contours::createAlphaComponent(const GLMotif::StyleSheet& styleSheet, GLMot
     alphaComponent->setControlPointSize(styleSheet.size);
     alphaComponent->setControlPointScalar(1.0f);
     alphaComponent->getControlPointChangedCallbacks().add(this, &Contours::alphaControlPointChangedCallback);
+    alphaComponent->setHistogram(this->exampleVTKReader->getHistogram());
+    alphaComponent->useAs1DWidget(true);
+    alphaComponent->setComponent(3);
+    alphaComponent->drawHistogram();
 } // end createAlphaComponent()
 
 /*
@@ -91,10 +95,17 @@ void Contours::createAlphaComponent(const GLMotif::StyleSheet& styleSheet, GLMot
  * parameter styleSheet - const GLMotif::StyleSheet&
  */
 void Contours::createContoursDialog(const GLMotif::StyleSheet& styleSheet) {
-    GLMotif::RowColumn* contoursDialog = new GLMotif::RowColumn("ContoursDialog", this, false);
+    GLMotif::RowColumn* contoursDialog =
+      new GLMotif::RowColumn("ContoursDialog", this, false);
+    GLMotif::Label * contourLabel = new GLMotif::Label(
+      "ContourLabel", contoursDialog, "Contours");
+    contourLabel->setString("Contour");
     createAlphaComponent(styleSheet, contoursDialog);
     GLMotif::RowColumn* buttonBox = createButtonBox(contoursDialog);
     buttonBox->manageChild();
+    GLMotif::Label * sliceContourLabel = new GLMotif::Label(
+      "SliceContourLabel", contoursDialog, "SliceContours");
+    sliceContourLabel->setString("Slice Contours");
     createXYZContours(styleSheet, contoursDialog);
     contoursDialog->manageChild();
 }

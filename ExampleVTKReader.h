@@ -159,6 +159,7 @@ private:
   Contours* ContoursDialog;
   bool ContourVisible;
   std::vector<double> ContourValues;
+  float* Histogram;
 
   /* First Frame */
   bool FirstFrame;
@@ -210,6 +211,7 @@ public:
 
   /* Contours */
   std::vector<double> getContourValues();
+  float * getHistogram();
 
   void initialize(void);
 
