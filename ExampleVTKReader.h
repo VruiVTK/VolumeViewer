@@ -88,6 +88,9 @@ private:
     vtkSmartPointer<vtkActor> actorXContourCutter;
     vtkSmartPointer<vtkActor> actorYContourCutter;
     vtkSmartPointer<vtkActor> actorZContourCutter;
+    vtkSmartPointer<vtkCutter> freeSliceCutter;
+    vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
+    vtkSmartPointer<vtkActor> freeSliceActor;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -210,6 +213,12 @@ private:
   double * FlashlightPosition;
   double * FlashlightDirection;
 
+  /* Free Slice visibility, origin and normal */
+  int * FreeSliceVisibility;
+  double * FreeSliceOrigin;
+  double * FreeSliceNormal;
+  vtkSmartPointer<vtkPlane> freeSlicePlane;
+
 public:
   /* Constructors and destructors: */
   ExampleVTKReader(int& argc,char**& argv);
@@ -235,6 +244,11 @@ public:
   /* Contours */
   std::vector<double> getContourValues();
   float * getHistogram();
+
+  /* Get Free Slice visibility, origin and normal*/
+  int * getFreeSliceVisibility(void);
+  double * getFreeSliceOrigin(void);
+  double * getFreeSliceNormal(void);
 
   void initialize(void);
 
