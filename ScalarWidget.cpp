@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 /* Vrui includes */
 #include <GL/GLColorTemplates.h>
@@ -26,6 +27,7 @@
 ScalarWidget::ScalarWidget(const char* _name, GLMotif::Container* _parent, int _component, bool _manageChild) :
     GLMotif::Widget(_name, _parent, false), currentGaussian(-1), gaussian(false), dragging(false), numberOfGaussians(0),
             unselected(false) {
+    is1D = false;
     numberOfRedGaussians = 0;
     numberOfGreenGaussians = 0;
     numberOfBlueGaussians = 0;
@@ -427,7 +429,13 @@ ScalarWidgetControlPoint* ScalarWidget::determineControlPoint(GLMotif::Event& ev
     GLfloat minimumDistanceSquared = Math::sqr(controlPointSize * 1.5f);
     ScalarWidgetControlPoint* _controlPoint = 0;
     for (ScalarWidgetControlPoint* controlPointPtr = first; controlPointPtr != 0; controlPointPtr = controlPointPtr->right) {
-        GLMotif::Point currentPoint(controlPointPtr->getX(), controlPointPtr->getY(), areaBox.getCorner(0)[2]);
+        GLMotif::Point currentPoint;
+        if (this->is1D) {
+            currentPoint = GLMotif::Point(controlPointPtr->getX(), areaBox.getCorner(0)[1], areaBox.getCorner(0)[2]);
+        }
+        else {
+            currentPoint = GLMotif::Point(controlPointPtr->getX(), controlPointPtr->getY(), areaBox.getCorner(0)[2]);
+        }
         GLfloat distanceSquared = Geometry::sqrDist(currentPoint, event.getWidgetPoint().getPoint());
         if (minimumDistanceSquared > distanceSquared) {
             minimumDistanceSquared = distanceSquared;
@@ -451,7 +459,7 @@ void ScalarWidget::draw(GLContextData& contextData) const {
     GLboolean lightingEnabled = glIsEnabled(GL_LIGHTING);
     if (lightingEnabled)
         glDisable(GL_LIGHTING);
-    //drawArea();
+//    drawArea();
     drawHistogram();
     if (lightingEnabled)
         glEnable(GL_LIGHTING);
@@ -809,6 +817,28 @@ void ScalarWidget::exportScalar(double* colormap) const {
             colormap[4*i + component] = (double) (opacities[i]);
     }
 } // end exportScalar()
+
+std::vector<double> ScalarWidget::exportControlPointValues( void )
+{
+  std::vector<double> controlPointValues;
+  ScalarWidgetControlPoint* previousControlPoint = first;
+  ScalarWidgetControlPoint* nextControlPoint;
+  if (!gaussian)
+    {
+    for (nextControlPoint = previousControlPoint->right;
+      nextControlPoint != last; nextControlPoint = nextControlPoint->right)
+      {
+      if( nextControlPoint == last)
+        {
+        continue;
+        }
+      controlPointValues.push_back(
+        static_cast<double>(nextControlPoint->getValue() * 255.0));
+      }
+    }
+  return controlPointValues;
+}
+
 
 /*
  * exportScalar - Export the current scalar component.
@@ -1321,8 +1351,14 @@ void ScalarWidget::pointerMotion(GLMotif::Event& event) {
                 _value = controlPoint->left->getValue();
             else if (_value > controlPoint->right->getValue())
                 _value = controlPoint->right->getValue();
-            GLfloat _scalar = (_point[1] - areaBox.getCorner(0)[1]) * (1.0f - 0.0f) / (areaBox.getCorner(2)[1] - areaBox.getCorner(
+            GLfloat _scalar;
+            if(!is1D) {
+                _scalar = (_point[1] - areaBox.getCorner(0)[1]) * (1.0f - 0.0f) / (areaBox.getCorner(2)[1] - areaBox.getCorner(
                     0)[1]) + 0.0f;
+            }
+            else {
+                _scalar = 0.0f;
+            }
             if (_scalar < 0.0f)
                 _scalar = 0.0f;
             else if (_scalar > 1.0f)
@@ -1472,7 +1508,12 @@ void ScalarWidget::updateControlPoints(void) {
     for (ScalarWidgetControlPoint* controlPointPtr = first; controlPointPtr != 0; controlPointPtr = controlPointPtr->right) {
         controlPointPtr->setX(GLfloat((controlPointPtr->getValue() - valueRange.first) / (valueRange.second - valueRange.first))
                 * (x2 - x1) + x1);
-        controlPointPtr->setY(GLfloat((controlPointPtr->getScalar() - 0.0f) * (y2 - y1) / (1.0f - 0.0f) + y1));
+        if (this->is1D) {
+          controlPointPtr->setY(y1);
+        }
+        else {
+          controlPointPtr->setY(GLfloat((controlPointPtr->getScalar() - 0.0f) * (y2 - y1) / (1.0f - 0.0f) + y1));
+        }
     }
 } // end updateControlPoints()
 
@@ -1516,3 +1557,43 @@ void ScalarWidget::updatePointers(int component) {
         gaussian = alphaGaussian;
     }
 } // end updatePointers()
+
+/*
+ * setHistogram
+ *
+ * parameter hist - float *
+ */
+void ScalarWidget::setHistogram(float* hist)
+{
+  float max_val = 1.0f;
+  float min_val = 0.0f;
+  for(int i = 1; i < 256; ++i)
+    {
+    if(hist[i] < min_val)
+      {
+      min_val = hist[i];
+      }
+    else if(hist[i] > max_val)
+      {
+      max_val = hist[i];
+      }
+    }
+  for(int i = 0; i < 256; ++i)
+    {
+    this->histogram[i] = (hist[i] - min_val)/(max_val - min_val);
+    if(this->histogram[i] > 1.0f)
+      {
+      this->histogram[i] = 1.0f;
+      }
+    }
+}
+
+/*
+ * is1D
+ *
+ * parameter enable - bool
+ */
+void ScalarWidget::useAs1DWidget(bool enable)
+{
+  this->is1D = enable;
+}

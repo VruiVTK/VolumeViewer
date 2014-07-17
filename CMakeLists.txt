@@ -41,6 +41,8 @@ SET(${PROJECT_NAME}_SRCS
   ColorMapCallbackData.h
   ColorMapChangedCallbackData.cpp
   ColorMapChangedCallbackData.h
+  Contours.cpp
+  Contours.h
   ControlPoint.cpp
   ControlPoint.h
   ControlPointChangedCallbackData.cpp

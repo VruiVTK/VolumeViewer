@@ -2,6 +2,7 @@
 #define SCALARWIDGET_INCLUDED
 
 #include <GL/gl.h>
+#include <vector>
 
 /* Vrui includes */
 #include <GLMotif/Container.h>
@@ -55,6 +56,7 @@ public:
     void drawHistogram(void) const;
     void drawLine(void) const;
     void drawMargin(void) const;
+    std::vector<double> exportControlPointValues(void);
     void exportScalar(double* _scalar) const;
     void exportScalar(double* colormap, int component);
     bool findGaussianControlPoint(float x, float y, float z);
@@ -85,6 +87,8 @@ public:
     void removeGaussian(int which);
     virtual void resize(const GLMotif::Box& _exterior);
     void selectControlPoint(int i);
+    void setHistogram(float* hist);
+    void useAs1DWidget(bool enable);
 private:
     ScalarWidgetControlPoint* alphaFirst;
     bool alphaGaussian;
@@ -140,6 +144,7 @@ private:
     void saveState(void);
     void updateControlPoints(void);
     void updatePointers(int component);
+    bool is1D;
 };
 
 #endif /*SCALARWIDGET_INCLUDED*/
