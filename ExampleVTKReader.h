@@ -102,6 +102,7 @@ private:
   GLMotif::PopupMenu* createMainMenu(void);
   GLMotif::Popup* createRepresentationMenu(void);
   GLMotif::Popup* createAnalysisToolsMenu(void);
+  GLMotif::Popup* createWidgetsMenu(void);
   GLMotif::Popup*  createColorMapSubMenu(void);
   GLMotif::Popup*  createAlphaSubMenu(void);
   GLMotif::PopupWindow* renderingDialog;

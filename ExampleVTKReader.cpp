@@ -399,30 +399,15 @@ GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
     new GLMotif::CascadeButton("AlphaSubCascade", mainMenu, "Opacity Ramp");
   alphaSubCascade->setPopup(createAlphaSubMenu());
 
+  GLMotif::CascadeButton* widgetsCascade =
+    new GLMotif::CascadeButton("WidgetsCascade", mainMenu,
+      "Widgets");
+  widgetsCascade->setPopup(createWidgetsMenu());
 
   GLMotif::Button* centerDisplayButton = new GLMotif::Button(
     "CenterDisplayButton",mainMenu,"Center Display");
   centerDisplayButton->getSelectCallbacks().add(
     this,&ExampleVTKReader::centerDisplayCallback);
-
-  GLMotif::ToggleButton * showSlicesDialog = new GLMotif::ToggleButton(
-    "ShowSlicesDialog", mainMenu, "Slices");
-  showSlicesDialog->setToggle(false);
-  showSlicesDialog->getValueChangedCallbacks().add(this,
-    &ExampleVTKReader::showSlicesDialogCallback);
-
-  GLMotif::ToggleButton * showIsosurfacesDialog =
-    new GLMotif::ToggleButton("ShowIsosurfacesDialog", mainMenu,
-    "Isosurfaces");
-  showIsosurfacesDialog->setToggle(false);
-  showIsosurfacesDialog->getValueChangedCallbacks().add(
-    this, &ExampleVTKReader::showIsosurfacesDialogCallback);
-
-  GLMotif::ToggleButton * showContoursDialog = new GLMotif::ToggleButton(
-    "ShowContoursDialog", mainMenu, "Contours");
-  showContoursDialog->setToggle(false);
-  showContoursDialog->getValueChangedCallbacks().add(this,
-    &ExampleVTKReader::showContoursDialogCallback);
 
    GLMotif::ToggleButton * showTransferFunctionDialog =
      new GLMotif::ToggleButton("ShowTransferFunctionDialog", mainMenu,
@@ -513,17 +498,13 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
     "ClippingPlane",analysisTools_RadioBox,"Clipping Plane");
   showClippingPlane->getValueChangedCallbacks().add(
     this,&ExampleVTKReader::changeAnalysisToolsCallback);
-  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton(
-    "Flashlight",analysisTools_RadioBox,"Flashlight");
-  showFlashlight->getValueChangedCallbacks().add(
-    this,&ExampleVTKReader::changeAnalysisToolsCallback);
   GLMotif::ToggleButton* showFreeSlice=new GLMotif::ToggleButton(
     "FreeSlice",analysisTools_RadioBox,"Free Slice");
   showFreeSlice->getValueChangedCallbacks().add(
     this,&ExampleVTKReader::changeAnalysisToolsCallback);
-  GLMotif::ToggleButton* showOther=new GLMotif::ToggleButton(
-    "Other",analysisTools_RadioBox,"Other");
-  showOther->getValueChangedCallbacks().add(
+  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton(
+    "Flashlight",analysisTools_RadioBox,"Flashlight");
+  showFlashlight->getValueChangedCallbacks().add(
     this,&ExampleVTKReader::changeAnalysisToolsCallback);
 
   analysisTools_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
@@ -531,6 +512,39 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
 
   analysisToolsMenu->manageChild();
   return analysisToolsMenuPopup;
+}
+
+//----------------------------------------------------------------------------
+GLMotif::Popup * ExampleVTKReader::createWidgetsMenu(void)
+{
+  const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
+
+  GLMotif::Popup * widgetsMenuPopup = new GLMotif::Popup(
+    "widgetsMenuPopup", Vrui::getWidgetManager());
+  GLMotif::SubMenu* widgetsMenu = new GLMotif::SubMenu(
+    "widgetsMenu", widgetsMenuPopup, false);
+
+  GLMotif::ToggleButton * showSlicesDialog = new GLMotif::ToggleButton(
+    "ShowSlicesDialog", widgetsMenu, "Slices");
+  showSlicesDialog->setToggle(false);
+  showSlicesDialog->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::showSlicesDialogCallback);
+
+  GLMotif::ToggleButton * showIsosurfacesDialog =
+    new GLMotif::ToggleButton("ShowIsosurfacesDialog", widgetsMenu,
+    "Isosurfaces");
+  showIsosurfacesDialog->setToggle(false);
+  showIsosurfacesDialog->getValueChangedCallbacks().add(
+    this, &ExampleVTKReader::showIsosurfacesDialogCallback);
+
+  GLMotif::ToggleButton * showContoursDialog = new GLMotif::ToggleButton(
+    "ShowContoursDialog", widgetsMenu, "Contours");
+  showContoursDialog->setToggle(false);
+  showContoursDialog->getValueChangedCallbacks().add(this,
+    &ExampleVTKReader::showContoursDialogCallback);
+
+  widgetsMenu->manageChild();
+  return widgetsMenuPopup;
 }
 
 //----------------------------------------------------------------------------
