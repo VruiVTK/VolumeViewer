@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+  <script language="javascript">
+     function totop() {
+       scroll(0,0);
+     }
+  </script>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="VolumeViewer : Application demonstrating the use of vtkRenderingExternal module to render VTK objects in the VRUI context" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>VolumeViewer</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/VruiVTK/VolumeViewer">View on GitHub</a>
+
+          <h1 id="project_title">VolumeViewer</h1>
+          <h2 id="project_tagline">Application demonstrating the use of vtkRenderingExternal module to render VTK objects in the VRUI context</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/VruiVTK/VolumeViewer/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/VruiVTK/VolumeViewer/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
+<a name="welcome-to-volumeviewer" class="anchor" href="#welcome-to-volumeviewer"><span class="octicon octicon-link"></span></a>Welcome to VolumeViewer</h3>
+
+<p>This application demonstrates use of the new vtkRenderingExternal module for VRUI and VTK integration.</p>
+
+<h3>
+<a name="supported-operating-systems" class="anchor" href="#supported-operating-systems"><span class="octicon octicon-link"></span></a>Supported Operating Systems</h3>
+
+<ul>
+<li>Linux</li>
+<li>Mac OSX</li>
+</ul><h3>
+<a name="prerequisites" class="anchor" href="#prerequisites"><span class="octicon octicon-link"></span></a>Prerequisites</h3>
+
+<p>NOTE: To build VolumeViewer along with all its prerequisites, simply build the superbuild from <a href="https://github.com/vruivtk/VolumeViewerSuperbuild">VolumeViewerSuperbuild</a></p>
+
+<p>VolumeViewer application requires the following software to be built and installed.</p>
+
+<ul>
+<li><a href="http://cmake.org">CMake</a></li>
+<li><a href="http://idav.ucdavis.edu/%7Eokreylos/ResDev/Vrui/">Vrui</a></li>
+<li><a href="https://github.com/sankhesh/VTK/tree/Rendering_External_Module">VTK with the vtkRenderingExternal module turned ON</a></li>
+</ul><h3>
+<a name="clone-volumeviewer-source" class="anchor" href="#clone-volumeviewer-source"><span class="octicon octicon-link"></span></a>Clone VolumeViewer source</h3>
+
+<p>The VolumeViewer application can be built from source obtained using one of the download links on this page or using the commandline as follows:</p>
+
+<p><code>
+$ git clone https://github.com/VruiVTK/VolumeViewer.git
+</code></p>
+
+<p>The above command creates a directory <em>VolumeViewer</em> with the source code.</p>
+
+<h3>
+<a name="configure-instructions" class="anchor" href="#configure-instructions"><span class="octicon octicon-link"></span></a>Configure Instructions</h3>
+
+<p>Configure the build using CMake.</p>
+
+<p>Set the following CMake variables:</p>
+
+<pre><code>* VRUI_PKGCONFIG_DIR - Path to pkgconfig directory of your VRUI installation
+* VTK_DIR - Path to the VTK build directory
+</code></pre>
+
+<p>Once all the required variables are set, press <code>generate</code> to generate the makefile.</p>
+
+<h3>
+<a name="build-instructions" class="anchor" href="#build-instructions"><span class="octicon octicon-link"></span></a>Build Instructions</h3>
+
+<p>Build using the make tool.</p>
+
+<pre><code>$ make
+</code></pre>
+
+<h3>
+<a name="run-vruivtk" class="anchor" href="#run-vruivtk"><span class="octicon octicon-link"></span></a>Run VolumeViewer</h3>
+
+<p>The build step will create an executable <em>VolumeViewer</em> under the build directory that can be used to run the application.
+To get usage instructions for the application:</p>
+
+<pre><code>$ ./VolumeViewer -help
+</code></pre>
+
+<p>To render a VTK image data (.vti) file, use the '-f' or '-fileName' argument.</p>
+
+<pre><code>$ ./VolumeViewer -f neghip.vti
+</code></pre>
+<p>If no arguments are provided, the application will bring up a VRUI window with a sample vtkImageData rendered at its origin.</p>
+<pre><code>$ ./VolumeViewer
+</code></pre>
+
+<h3>
+<a name="sample-configuration-files" class="anchor" href="#sample-configuration-files"><span class="octicon octicon-link"></span></a>Sample Configuration Files</h3>
+<p>A couple of sample configuration files are added to the <a
+  href="https://github.com/VruiVTK/VolumeViewer/tree/master/config">config</a>
+directory. <br>
+To use the sample files simply copy the files to the <code>etc</code> directory of
+your VRUI installation.<br>
+Make sure to backup your existing configuration files before copying the sample ones in.</p>
+
+<p>The sample configuration files are tested to work with an OptiTrack tracker
+with a VRPN server of hostname <em>OptiTrackServer</em>. The server uses the
+<em>Rigid Body Module</em> to configure two rigid bodies:<br>
+<ul>
+<li> Head </li>
+<li> Wand </li>
+</ul>
+The configuration files are merely the default configuration files for
+Vrui-3.1-002 with the required changes made to the <code>3dtv</code>(<a
+  href="https://github.com/VruiVTK/VolumeViewer/blob/997766af95465339b1ddc614fa941978fff7c29b/config/VRDevices.cfg#L149-238">VRDevices.cfg</a>,
+<a
+href="https://github.com/VruiVTK/VolumeViewer/blob/997766af95465339b1ddc614fa941978fff7c29b/config/Vrui.cfg#L1044-1302">Vrui.cfg</a>) section.
+</p>
+
+<p> To run the device daemon, </p>
+<pre><code>$ <VRUI-install-dir>/bin/VRDeviceDaemon -rootSection 3dtv</code></pre>
+<p> To run the application, </p>
+<pre><code>$ ./VolumeViewer -rootSection 3dtv</code></pre>
+
+<h3>
+<a name="screenshots" class="anchor" href="#screenshots"><span class="octicon octicon-link"></span></a>Screenshots</h3>
+<p>The following are some screenshots of the application that demonstrate its various aspects.</p>
+
+<p><img src="images/ApplicationStart.png" alt="DefaultApplication"></p>
+<p> Notice that the application calculates the bounds of the dataset and draws an outline around it. The outline can be turned off in the <strong>Representation</strong> menu.
+
+<p><img src="images/MainMenu.png" alt="Main Menu"><figcaption>Main Menu</figcaption></p>
+
+<h4>
+<a name="representation-menu" class="anchor" href="#representation-menu"><span
+    class="octicon octicon-link"></span></a>Representation Menu</h4>
+<p><img src="images/SurfaceWEdges.png" alt="Surface with edges representation"><figcaption>Surface with Edges Representation</figcaption></p>
+<p><img src="images/Volume.png" alt="Volume representation"><figcaption>Volume Representation</figcaption></p>
+
+<h4>
+<a name="analysis-tools" class="anchor" href="#analysis-tools"><span
+    class="octicon octicon-link"></span></a>Analysis Tools</h4>
+<p><img src="images/AnalysisTools.png" alt="Analysis Tools"><figcaption>Analysis Tools Sub-menu</figcaption></p>
+<p> The <strong> Analysis Tools </strong> are setup to work with the VRUI locator tool. To use one of the analysis tools, toggle the radio button next to it.
+Hit the button on the Wiimote (or the wand device being used) that you would
+like to assign the selected analysis tool to. Since, the button is not assigned
+to any tool right now, it will bring up the default Vrui Menu as shown in the
+below figure.</p>
+<p><img src="images/LocatorTool.png" alt="Default Vrui Menu"><figcaption>Default Vrui menu to show Locator Tool</figcaption></p>
+<p> Select the 6-DOF Locator. This assigns the selected analysis tool to the
+button pressed. From now, on this button can be used to invoke the analysis tool
+it is assigned to.</p>
+
+<h4>
+<a name="color-map" class="anchor" href="#color-map"><span
+    class="octicon octicon-link"></span></a>Color Map</h4>
+<p> This sub-menu can be used to select a different color map for the dataset.
+<p><img src="images/ColorMap.png" alt="Color Map"><figcaption>Color Map Menu</figcaption></p>
+
+<h4>
+<a name="widgets" class="anchor" href="#widgets"><span
+    class="octicon octicon-link"></span></a>Widgets Menu</h4>
+<p><img src="images/Widgets.png" alt="Widgets"><figcaption>Widgets Menu</figcaption></p>
+<h5>
+<a name="slices" class="anchor" href="#slices"><span
+    class="octicon octicon-link"></span></a>Slices</h5>
+<p> Slice through the dataset using X, Y and Z slices. One can also change the
+color map for the slices. </p>
+<p><img src="images/Slices.png" alt="Slices"><figcaption>Slices Dialog</figcaption></p>
+<h5>
+<a name="isosurfaces" class="anchor" href="#isosurfaces"><span
+    class="octicon octicon-link"></span></a>Isosurfaces</h5>
+<p> Create 3 different isosurfaces and color them independently. </p>
+<p><img src="images/Isosurfaces.png" alt="Isosurfaces"><figcaption>Isosurfaces Dialog</figcaption></p>
+<h5>
+<a name="contours" class="anchor" href="#contours"><span
+    class="octicon octicon-link"></span></a>Contours</h5>
+<p> Create any number of contours around the dataset. This dialog also offers
+the ability to slice through the contoured dataset using X, Y and Z planes.</p>
+<p><img src="images/ContoursDialog.png" alt="Contours"><figcaption>Contours Dialog</figcaption></p>
+
+<h4>
+<a name="transfer-function" class="anchor" href="#transfer-function"><span
+    class="octicon octicon-link"></span></a>Transfer Function Editor</h4>
+<p> Helps change the transfer function for the volume visualization. </p>
+<p><img src="images/TransferFunction.png" alt="Transfer Function
+Editor"><figcaption>Transfer Function Editor</figcaption></p>
+
+<h4>
+<a name="rendering" class="anchor" href="#rendering"><span
+    class="octicon octicon-link"></span></a>Rendering</h4>
+<p> Change the opacity of the vtkActor </p>
+<p><img src="images/Rendering.png" alt="Rendering"><figcaption>Rendering Dialog</figcaption></p>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Vruivtk maintained by <a href="https://github.com/VruiVTK">VruiVTK</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>
