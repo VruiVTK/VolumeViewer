@@ -31,21 +31,21 @@
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetSurfaceFilter.h>
-#include <vtkImageData.h>
 #include <vtkImageDataGeometryFilter.h>
+#include <vtkImageData.h>
 #include <vtkLight.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlane.h>
+#include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkSmartVolumeMapper.h>
-#include <vtkXMLImageDataReader.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
-#include <vtkPointData.h>
+#include <vtkXMLImageDataReader.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
@@ -706,7 +706,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
   vtkNew<vtkSmartVolumeMapper> mapperVolume;
 
-  vtkSmartPointer<vtkUnsignedCharArray> scalars;
   if(this->FileName)
     {
     vtkNew<vtkXMLImageDataReader> reader;
@@ -741,10 +740,21 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
     dataItem->contourFilter->SetInputConnection(reader->GetOutputPort());
 
-    scalars = vtkUnsignedCharArray::SafeDownCast(
-      reader->GetOutput()->GetPointData()->GetScalars());
-
     dataItem->freeSliceCutter->SetInputConnection(reader->GetOutputPort());
+
+    for (int i = 0; i < this->DataDimensions[0]; ++i)
+      {
+      for (int j = 0; j < this->DataDimensions[1]; ++j)
+        {
+        for (int k = 0; k < this->DataDimensions[2]; ++k)
+          {
+          unsigned char * pixel = static_cast<unsigned char *>(
+            reader->GetOutput()->GetScalarPointer(i,j,k));
+          this->Histogram[static_cast<int>(pixel[0])] += 1;
+          }
+        }
+      }
+
     }
   else
     {
@@ -786,10 +796,20 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
     dataItem->contourFilter->SetInputData(imageData.GetPointer());
 
-    scalars = vtkUnsignedCharArray::SafeDownCast(
-      imageData->GetPointData()->GetScalars());
-
     dataItem->freeSliceCutter->SetInputData(imageData.GetPointer());
+
+    for (int i = 0; i < this->DataDimensions[0]; ++i)
+      {
+      for (int j = 0; j < this->DataDimensions[1]; ++j)
+        {
+        for (int k = 0; k < this->DataDimensions[2]; ++k)
+          {
+          unsigned char * pixel = static_cast<unsigned char *>(
+            imageData->GetScalarPointer(i,j,k));
+          this->Histogram[static_cast<int>(pixel[0])] += 1;
+          }
+        }
+      }
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
@@ -892,11 +912,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->flashlight->SetColor(0.0, 1.0, 1.0);
   dataItem->flashlight->SetConeAngle(15);
   dataItem->flashlight->SetPositional(true);
-
-  for(int i = 0; i < scalars->GetNumberOfTuples(); ++i)
-    {
-    this->Histogram[static_cast<int>(scalars->GetTuple1(i))] += 1;
-    }
 
   dataItem->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   dataItem->freeSliceMapper->SetScalarRange(this->DataScalarRange);
