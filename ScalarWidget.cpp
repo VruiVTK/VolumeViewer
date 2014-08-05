@@ -1580,7 +1580,7 @@ void ScalarWidget::setHistogram(float* hist)
     }
   for(int i = 0; i < 256; ++i)
     {
-    this->histogram[i] = (hist[i] - min_val)/(max_val - min_val);
+    this->histogram[i] = 3*(hist[i] - min_val)/(max_val - min_val);
     if(this->histogram[i] > 1.0f)
       {
       this->histogram[i] = 1.0f;
