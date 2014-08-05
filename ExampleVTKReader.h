@@ -43,6 +43,7 @@ class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkPolyDataMapper;
+class vtkTimerLog;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -96,6 +97,10 @@ private:
     DataItem(void);
     virtual ~DataItem(void);
   };
+
+  /* Benchmarking ivars */
+  int Rotations;
+  vtkSmartPointer<vtkTimerLog> Timer;
 
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu

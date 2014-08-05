@@ -43,6 +43,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkSmartVolumeMapper.h>
+#include <vtkTimerLog.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkXMLImageDataReader.h>
@@ -61,6 +62,7 @@
 #include "Slices.h"
 #include "TransferFunction1D.h"
 
+#define ROTATIONS_MAX 1000
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::DataItem::DataItem(void)
@@ -163,10 +165,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   renderingDialog(NULL),
   RepresentationType(2),
   RequestedRenderMode(0),
+  Rotations(0),
   slicesDialog(NULL),
   transferFunctionDialog(NULL),
   Verbose(false),
-  Volume(false),
+  Volume(true),
   xCenter(0),
   xContourSlice(0),
   XContourSlice(false),
@@ -257,6 +260,8 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     }
 
   this->freeSlicePlane = vtkSmartPointer<vtkPlane>::New();
+
+  this->Timer = vtkSmartPointer<vtkTimerLog>::New();
 
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
@@ -688,6 +693,18 @@ void ExampleVTKReader::frame(void)
     this->bIsosurface = this->getDataMidPoint();
     this->cIsosurface = this->getDataMidPoint();
     this->FirstFrame = false;
+    this->Timer->StartTimer();
+    }
+  if (this->Rotations < ROTATIONS_MAX)
+    {
+    this->Rotations++;
+    Vrui::scheduleUpdate(Vrui::getApplicationTime());
+    }
+  else
+    {
+    this->Timer->StopTimer();
+    std::cout << "Time: " << this->Timer->GetElapsedTime() << std::endl;
+    Vrui::shutdown();
     }
 }
 
@@ -981,6 +998,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     dataItem->actorVolume->VisibilityOn();
     dataItem->actor->VisibilityOff();
+    if (this->Rotations < ROTATIONS_MAX)
+      {
+      dataItem->actorVolume->RotateY(1);
+      }
     }
   else
     {
@@ -1106,6 +1127,12 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   /* Render the scene */
   dataItem->externalVTKWidget->GetRenderWindow()->Render();
+  if (this->Rotations == ROTATIONS_MAX - 1)
+    {
+    vtkSmartPointer<vtkSmartVolumeMapper> mapperVolume =
+      vtkSmartVolumeMapper::SafeDownCast(dataItem->actorVolume->GetMapper());
+    std::cout << "Last used render mode: " << mapperVolume->GetLastUsedRenderMode() << std::endl;
+    }
 
   clippingPlaneIndex = 0;
   for (int i = 0; i < NumberOfClippingPlanes &&
