@@ -34,8 +34,8 @@ class Isosurfaces;
 class Slices;
 class TransferFunction1D;
 class vtkActor;
-class vtkContourFilter;
 class vtkColorTransferFunction;
+class vtkContourFilter;
 class vtkContourFilter;
 class vtkCutter;
 class vtkLight;
@@ -111,6 +111,9 @@ private:
 
   /* Name of file to load */
   char* FileName;
+
+  /* SmartVolumeMapper Requested RenderMode */
+  int RequestedRenderMode;
 
   /* Opacity value */
   double Opacity;
@@ -228,6 +231,10 @@ public:
   /* Methods to set/get the filename to read */
   void setFileName(const char* name);
   const char* getFileName(void);
+
+  /* Methods to set/get the requested render mode */
+  void setRequestedRenderMode(int mode);
+  int getRequestedRenderMode(void) const;
 
   /* Clipping Planes */
   ClippingPlane * getClippingPlanes(void);

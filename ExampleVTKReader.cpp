@@ -147,8 +147,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   ClippingPlanes(NULL),
   ContoursDialog(NULL),
   ContourVisible(true),
-//  ContourValues(0),
-//  NumberOfContourValues(0),
   FileName(0),
   FirstFrame(true),
   FlashlightDirection(0),
@@ -164,28 +162,29 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   Outline(true),
   renderingDialog(NULL),
   RepresentationType(2),
+  RequestedRenderMode(0),
   slicesDialog(NULL),
   transferFunctionDialog(NULL),
   Verbose(false),
   Volume(false),
   xCenter(0),
+  xContourSlice(0),
+  XContourSlice(false),
   xOrigin(0),
   xSlice(0),
   XSlice(false),
-  xContourSlice(0),
-  XContourSlice(false),
   yCenter(0),
+  yContourSlice(0),
+  YContourSlice(false),
   yOrigin(0),
   ySlice(0),
   YSlice(false),
-  yContourSlice(0),
-  YContourSlice(false),
   zCenter(0),
+  zContourSlice(0),
+  ZContourSlice(false),
   zOrigin(0),
   zSlice(0),
-  ZSlice(false),
-  zContourSlice(0),
-  ZContourSlice(false)
+  ZSlice(false)
 {
 
   this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
@@ -821,9 +820,9 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->actorOutline->SetMapper(mapperOutline.GetPointer());
   dataItem->actorOutline->GetProperty()->SetColor(1,1,1);
 
-  mapperVolume->SetInteractiveUpdateRate(12.0);
-  mapperVolume->SetRequestedRenderMode(3);
-  mapperVolume->SetBlendModeToComposite();
+//  mapperVolume->SetInteractiveUpdateRate(12.0);
+  mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
+//  mapperVolume->SetBlendModeToComposite();
   this->colorFunction->AddRGBPoint(this->DataScalarRange[0], 1.0, 1.0, 1.0);
   this->colorFunction->AddRGBPoint(this->DataScalarRange[1], 0.0, 0.0, 0.0);
   this->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
@@ -1718,4 +1717,16 @@ void ExampleVTKReader::setContourVisible(bool visible)
 float * ExampleVTKReader::getHistogram(void)
 {
   return this->Histogram;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setRequestedRenderMode(int mode)
+{
+  this->RequestedRenderMode = mode;
+}
+
+//----------------------------------------------------------------------------
+int ExampleVTKReader::getRequestedRenderMode(void) const
+{
+  return this->RequestedRenderMode;
 }
