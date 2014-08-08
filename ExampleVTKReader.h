@@ -38,11 +38,13 @@ class vtkColorTransferFunction;
 class vtkContourFilter;
 class vtkContourFilter;
 class vtkCutter;
+class vtkExtractVOI;
 class vtkLight;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkPolyDataMapper;
+class vtkProperty;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -56,41 +58,75 @@ private:
   /* Elements */
   public:
     /* VTK components */
+    vtkSmartPointer<vtkExtractVOI> extract;
     vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
     vtkSmartPointer<vtkActor> actor;
+    vtkSmartPointer<vtkActor> lowActor;
     vtkSmartPointer<vtkActor> actorOutline;
+    vtkSmartPointer<vtkActor> lowActorOutline;
     vtkSmartPointer<vtkLight> flashlight;
     vtkSmartPointer<vtkVolume> actorVolume;
+    vtkSmartPointer<vtkVolume> lowActorVolume;
     vtkSmartPointer<vtkVolumeProperty> propertyVolume;
+    vtkSmartPointer<vtkVolumeProperty> lowPropertyVolume;
+    vtkSmartPointer<vtkCutter> lowXCutter;
     vtkSmartPointer<vtkCutter> xCutter;
+    vtkSmartPointer<vtkPolyDataMapper> lowXCutterMapper;
     vtkSmartPointer<vtkPolyDataMapper> xCutterMapper;
     vtkSmartPointer<vtkActor> actorXCutter;
+    vtkSmartPointer<vtkActor> lowActorXCutter;
+    vtkSmartPointer<vtkCutter> lowYCutter;
     vtkSmartPointer<vtkCutter> yCutter;
+    vtkSmartPointer<vtkPolyDataMapper> lowYCutterMapper;
     vtkSmartPointer<vtkPolyDataMapper> yCutterMapper;
     vtkSmartPointer<vtkActor> actorYCutter;
+    vtkSmartPointer<vtkActor> lowActorYCutter;
+    vtkSmartPointer<vtkCutter> lowZCutter;
     vtkSmartPointer<vtkCutter> zCutter;
+    vtkSmartPointer<vtkPolyDataMapper> lowZCutterMapper;
     vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
     vtkSmartPointer<vtkActor> actorZCutter;
+    vtkSmartPointer<vtkActor> lowActorZCutter;
+    vtkSmartPointer<vtkContourFilter> lowAContour;
     vtkSmartPointer<vtkContourFilter> aContour;
+    vtkSmartPointer<vtkPolyDataMapper> lowAContourMapper;
     vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
     vtkSmartPointer<vtkActor> actorAContour;
+    vtkSmartPointer<vtkActor> lowActorAContour;
+    vtkSmartPointer<vtkContourFilter> lowBContour;
     vtkSmartPointer<vtkContourFilter> bContour;
+    vtkSmartPointer<vtkPolyDataMapper> lowBContourMapper;
     vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
     vtkSmartPointer<vtkActor> actorBContour;
+    vtkSmartPointer<vtkActor> lowActorBContour;
+    vtkSmartPointer<vtkContourFilter> lowCContour;
     vtkSmartPointer<vtkContourFilter> cContour;
+    vtkSmartPointer<vtkPolyDataMapper> lowCContourMapper;
     vtkSmartPointer<vtkPolyDataMapper> cContourMapper;
     vtkSmartPointer<vtkActor> actorCContour;
+    vtkSmartPointer<vtkActor> lowActorCContour;
+    vtkSmartPointer<vtkContourFilter> lowContourFilter;
     vtkSmartPointer<vtkContourFilter> contourFilter;
     vtkSmartPointer<vtkActor> contourActor;
+    vtkSmartPointer<vtkActor> lowContourActor;
+    vtkSmartPointer<vtkCutter> lowXContourCutter;
     vtkSmartPointer<vtkCutter> xContourCutter;
-    vtkSmartPointer<vtkCutter> yContourCutter;
-    vtkSmartPointer<vtkCutter> zContourCutter;
     vtkSmartPointer<vtkActor> actorXContourCutter;
+    vtkSmartPointer<vtkActor> lowActorXContourCutter;
+    vtkSmartPointer<vtkCutter> lowYContourCutter;
+    vtkSmartPointer<vtkCutter> yContourCutter;
     vtkSmartPointer<vtkActor> actorYContourCutter;
+    vtkSmartPointer<vtkActor> lowActorYContourCutter;
+    vtkSmartPointer<vtkCutter> lowZContourCutter;
+    vtkSmartPointer<vtkCutter> zContourCutter;
     vtkSmartPointer<vtkActor> actorZContourCutter;
+    vtkSmartPointer<vtkActor> lowActorZContourCutter;
+    vtkSmartPointer<vtkCutter> lowFreeSliceCutter;
     vtkSmartPointer<vtkCutter> freeSliceCutter;
+    vtkSmartPointer<vtkPolyDataMapper> lowFreeSliceMapper;
     vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
     vtkSmartPointer<vtkActor> freeSliceActor;
+    vtkSmartPointer<vtkActor> lowFreeSliceActor;
 
     /* Constructor and destructor*/
     DataItem(void);
@@ -108,7 +144,10 @@ private:
   GLMotif::PopupWindow* renderingDialog;
   GLMotif::PopupWindow* createRenderingDialog(void);
   GLMotif::TextField* opacityValue;
+  GLMotif::TextField* resolutionValue;
 
+  bool lowResolution;
+  int sampling;
   /* Name of file to load */
   char* FileName;
 
@@ -277,6 +316,8 @@ public:
   void changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
   void changeAlphaCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
+  void changeResolutionCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void changeSamplingCallback(GLMotif::Slider::ValueChangedCallbackData* callBackData);
 
   virtual void toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData* cbData);
   virtual void toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData* cbData);
