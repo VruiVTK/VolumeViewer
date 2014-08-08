@@ -13,9 +13,12 @@
 // Forward declarations
 class ExternalVTKWidget;
 class vtkActor;
+class vtkColorTransferFunction;
 class vtkContourFilter;
 class vtkCutter;
 class vtkLight;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
 class vtkProperty;
 class vtkRenderer;
@@ -62,6 +65,12 @@ public:
   vtkSmartPointer<vtkCutter> freeSliceCutter;
   vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
   vtkSmartPointer<vtkActor> freeSliceActor;
+
+  vtkSmartPointer<vtkLookupTable> modelLUT;
+  vtkSmartPointer<vtkLookupTable> sliceLUT;
+  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
+  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
+  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
 
   /* Constructor and destructor*/
   DataItem(void);

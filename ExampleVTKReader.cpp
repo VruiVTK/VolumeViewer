@@ -115,9 +115,9 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   ZSlice(false)
 {
 
-  this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->modelLUT->SetNumberOfColors(256);
-  this->modelLUT->Build();
+//  this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
+//  this->modelLUT->SetNumberOfColors(256);
+//  this->modelLUT->Build();
 
   this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
@@ -138,20 +138,20 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 
   this->VolumeColormap = new double[4*256];
 
-  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
+//  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+//  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
 
   this->IsosurfaceColormap = new double[4*256];
 
-  this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->isosurfaceLUT->SetNumberOfColors(256);
-  this->isosurfaceLUT->Build();
+//  this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
+//  this->isosurfaceLUT->SetNumberOfColors(256);
+//  this->isosurfaceLUT->Build();
 
   this->SliceColormap = new double[4*256];
 
-  this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->sliceLUT->SetNumberOfColors(256);
-  this->sliceLUT->Build();
+//  this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
+//  this->sliceLUT->SetNumberOfColors(256);
+//  this->sliceLUT->Build();
 
   this->xPlane = vtkSmartPointer<vtkPlane>::New();
   this->xPlane->SetOrigin(0.0, 0.0, 0.0);
@@ -739,7 +739,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     }
 
   mapper->SetScalarRange(this->DataScalarRange);
-  mapper->SetLookupTable(this->modelLUT);
+  mapper->SetLookupTable(dataItem->modelLUT);
   mapper->SetColorModeToMapScalars();
 
   vtkNew<vtkPolyDataMapper> mapperOutline;
@@ -750,14 +750,16 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 //  mapperVolume->SetInteractiveUpdateRate(12.0);
   mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
 //  mapperVolume->SetBlendModeToComposite();
-  this->colorFunction->AddRGBPoint(this->DataScalarRange[0], 1.0, 1.0, 1.0);
-  this->colorFunction->AddRGBPoint(this->DataScalarRange[1], 0.0, 0.0, 0.0);
-  this->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
-  this->opacityFunction->AddPoint(this->DataScalarRange[1], 1.0);
+
+  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[0], 1.0, 1.0, 1.0);
+  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[1], 0.0, 0.0, 0.0);
+  dataItem->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
+  dataItem->opacityFunction->AddPoint(this->DataScalarRange[1], 1.0);
+
   dataItem->propertyVolume->ShadeOff();
   dataItem->propertyVolume->SetScalarOpacityUnitDistance(1.0);
-  dataItem->propertyVolume->SetColor(this->colorFunction);
-  dataItem->propertyVolume->SetScalarOpacity(this->opacityFunction);
+  dataItem->propertyVolume->SetColor(dataItem->colorFunction);
+  dataItem->propertyVolume->SetScalarOpacity(dataItem->opacityFunction);
   dataItem->propertyVolume->SetInterpolationTypeToLinear();
   dataItem->actorVolume->SetProperty(dataItem->propertyVolume);
   dataItem->actorVolume->SetMapper(mapperVolume.GetPointer());
@@ -765,42 +767,42 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->xCutter->SetCutFunction(this->xPlane);
   dataItem->xCutterMapper->SetInputConnection(dataItem->xCutter->GetOutputPort());
   dataItem->xCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->xCutterMapper->SetLookupTable(this->sliceLUT);
+  dataItem->xCutterMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->xCutterMapper->SetColorModeToMapScalars();
   dataItem->actorXCutter->SetMapper(dataItem->xCutterMapper);
 
   dataItem->yCutter->SetCutFunction(this->yPlane);
   dataItem->yCutterMapper->SetInputConnection(dataItem->yCutter->GetOutputPort());
   dataItem->yCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->yCutterMapper->SetLookupTable(this->sliceLUT);
+  dataItem->yCutterMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->yCutterMapper->SetColorModeToMapScalars();
   dataItem->actorYCutter->SetMapper(dataItem->yCutterMapper);
 
   dataItem->zCutter->SetCutFunction(this->zPlane);
   dataItem->zCutterMapper->SetInputConnection(dataItem->zCutter->GetOutputPort());
   dataItem->zCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->zCutterMapper->SetLookupTable(this->sliceLUT);
+  dataItem->zCutterMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->zCutterMapper->SetColorModeToMapScalars();
   dataItem->actorZCutter->SetMapper(dataItem->zCutterMapper);
 
   dataItem->aContour->SetValue(0, this->aIsosurface);
   dataItem->aContourMapper->SetInputConnection(dataItem->aContour->GetOutputPort());
   dataItem->aContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->aContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->aContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
   dataItem->aContourMapper->SetColorModeToMapScalars();
   dataItem->actorAContour->SetMapper(dataItem->aContourMapper);
 
   dataItem->bContour->SetValue(0, this->bIsosurface);
   dataItem->bContourMapper->SetInputConnection(dataItem->bContour->GetOutputPort());
   dataItem->bContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->bContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->bContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
   dataItem->bContourMapper->SetColorModeToMapScalars();
   dataItem->actorBContour->SetMapper(dataItem->bContourMapper);
 
   dataItem->cContour->SetValue(0, this->cIsosurface);
   dataItem->cContourMapper->SetInputConnection(dataItem->cContour->GetOutputPort());
   dataItem->cContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->cContourMapper->SetLookupTable(this->isosurfaceLUT);
+  dataItem->cContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
   dataItem->cContourMapper->SetColorModeToMapScalars();
   dataItem->actorCContour->SetMapper(dataItem->cContourMapper);
 
@@ -841,7 +843,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
   dataItem->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   dataItem->freeSliceMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->freeSliceMapper->SetLookupTable(this->sliceLUT);
+  dataItem->freeSliceMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->freeSliceMapper->SetColorModeToMapScalars();
 }
 
@@ -870,6 +872,40 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   /* Get context data item */
   DataItem* dataItem = contextData.retrieveDataItem<DataItem>(this);
+
+  /* Update all lookup tables */
+  dataItem->colorFunction->RemoveAllPoints();
+  dataItem->opacityFunction->RemoveAllPoints();
+  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+  for (int i = 0; i < 256; ++i)
+    {
+    dataItem->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],
+                                         this->VolumeColormap[4*i + 1],
+                                         this->VolumeColormap[4*i + 2], 1.0);
+
+//    dataItem->modelLUT->SetTableValue(i, this->modelLUT->GetTableValue(i));
+    dataItem->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],
+                                         this->SliceColormap[4*i + 1],
+                                         this->SliceColormap[4*i + 2], 1.0);
+
+//    dataItem->sliceLUT->SetTableValue(i, this->sliceLUT->GetTableValue(i));
+
+    dataItem->isosurfaceLUT->SetTableValue(i,
+      this->IsosurfaceColormap[4*i + 0],
+      this->IsosurfaceColormap[4*i + 1],
+      this->IsosurfaceColormap[4*i + 2], 1.0);
+//    dataItem->isosurfaceLUT->SetTableValue(i,
+//      this->isosurfaceLUT->GetTableValue(i));
+
+    dataItem->colorFunction->AddRGBPoint(
+      this->DataScalarRange[0] + (double)(i*step),
+      this->VolumeColormap[4*i + 0],
+      this->VolumeColormap[4*i + 1],
+      this->VolumeColormap[4*i + 2]);
+    dataItem->opacityFunction->AddPoint(
+      this->DataScalarRange[0] + (double)(i*step),
+      this->VolumeColormap[4*i + 3]);
+    }
 
   if(this->FlashlightSwitch[0])
     {
@@ -1484,36 +1520,36 @@ int ExampleVTKReader::getHeight(void)
 void ExampleVTKReader::updateIsosurfaceColorMap(double* IsosurfaceColormap)
 {
   this->IsosurfaceColormap = IsosurfaceColormap;
-  for (int i=0;i<256;i++)
-    {
-    this->isosurfaceLUT->SetTableValue(i, this->IsosurfaceColormap[4*i + 0],this->IsosurfaceColormap[4*i + 1],
-      this->IsosurfaceColormap[4*i + 2], 1.0);
-    }
+//  for (int i=0;i<256;i++)
+//    {
+//    this->isosurfaceLUT->SetTableValue(i, this->IsosurfaceColormap[4*i + 0],this->IsosurfaceColormap[4*i + 1],
+//      this->IsosurfaceColormap[4*i + 2], 1.0);
+//    }
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
 {
   this->SliceColormap = SliceColormap;
-  for (int i=0;i<256;i++)
-    {
-    this->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],
-      this->SliceColormap[4*i + 1],
-      this->SliceColormap[4*i + 2], 1.0);
-    }
+//  for (int i=0;i<256;i++)
+//    {
+//    this->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],
+//      this->SliceColormap[4*i + 1],
+//      this->SliceColormap[4*i + 2], 1.0);
+//    }
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 {
   transferFunctionDialog->exportAlpha(this->VolumeColormap);
-  this->opacityFunction->RemoveAllPoints();
-  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
-  for (int i = 0; i < 256; i++)
-    {
-    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
-      (double)(i*step), this->VolumeColormap[4*i + 3]);
-    }
+//  this->opacityFunction->RemoveAllPoints();
+//  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+//  for (int i = 0; i < 256; i++)
+//    {
+//    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
+//      (double)(i*step), this->VolumeColormap[4*i + 3]);
+//    }
   Vrui::requestUpdate();
 }
 
@@ -1529,15 +1565,15 @@ void ExampleVTKReader::volumeColorMapChangedCallback(
   Misc::CallbackData* callBackData)
 {
   transferFunctionDialog->exportColorMap(this->VolumeColormap);
-  this->colorFunction->RemoveAllPoints();
-  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
-  for (int i = 0; i < 256; i++)
-    {
-    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
-      (double)(i*step), this->VolumeColormap[4*i + 0],
-      this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
-    }
-  updateModelColorMap();
+//  this->colorFunction->RemoveAllPoints();
+//  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+//  for (int i = 0; i < 256; i++)
+//    {
+//    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
+//      (double)(i*step), this->VolumeColormap[4*i + 0],
+//      this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
+//    }
+//  updateModelColorMap();
   Vrui::requestUpdate();
 }
 
@@ -1545,13 +1581,13 @@ void ExampleVTKReader::volumeColorMapChangedCallback(
 void ExampleVTKReader::updateAlpha(void)
 {
   transferFunctionDialog->exportAlpha(this->VolumeColormap);
-  this->opacityFunction->RemoveAllPoints();
-  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
-  for (int i = 0; i < 256; i++)
-    {
-    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
-      (double)(i*step), this->VolumeColormap[4*i + 3]);
-    }
+//  this->opacityFunction->RemoveAllPoints();
+//  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+//  for (int i = 0; i < 256; i++)
+//    {
+//    this->opacityFunction->AddPoint(this->DataScalarRange[0] +
+//      (double)(i*step), this->VolumeColormap[4*i + 3]);
+//    }
   Vrui::requestUpdate();
 }
 
@@ -1559,15 +1595,16 @@ void ExampleVTKReader::updateAlpha(void)
 void ExampleVTKReader::updateVolumeColorMap(void)
 {
   transferFunctionDialog->exportColorMap(this->VolumeColormap);
-  this->colorFunction->RemoveAllPoints();
-  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
-  for (int i = 0; i < 256; i++)
-    {
-    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
-      (double)(i*step), this->VolumeColormap[4*i + 0],
-      this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
-    }
-  updateModelColorMap();
+  std::cout <<"In update: " << this->VolumeColormap[3] << std::endl;
+//  this->colorFunction->RemoveAllPoints();
+//  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+//  for (int i = 0; i < 256; i++)
+//    {
+//    this->colorFunction->AddRGBPoint(this->DataScalarRange[0] +
+//      (double)(i*step), this->VolumeColormap[4*i + 0],
+//      this->VolumeColormap[4*i + 1], this->VolumeColormap[4*i + 2]);
+//    }
+//  updateModelColorMap();
   Vrui::requestUpdate();
 }
 
@@ -1596,12 +1633,12 @@ void ExampleVTKReader::changeColorMapCallback(
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateModelColorMap(void)
 {
-  for (int i=0;i<256;i++)
-    {
-    this->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],
-      this->VolumeColormap[4*i + 1],
-      this->VolumeColormap[4*i + 2], 1.0);
-    }
+//  for (int i=0;i<256;i++)
+//    {
+//    this->modelLUT->SetTableValue(i, this->VolumeColormap[4*i + 0],
+//      this->VolumeColormap[4*i + 1],
+//      this->VolumeColormap[4*i + 2], 1.0);
+//    }
 }
 
 //----------------------------------------------------------------------------

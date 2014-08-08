@@ -1,9 +1,12 @@
 // VTK includes
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
+#include <vtkColorTransferFunction.h>
 #include <vtkContourFilter.h>
 #include <vtkCutter.h>
 #include <vtkLight.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
@@ -78,6 +81,22 @@ ExampleVTKReader::DataItem::DataItem(void)
 
   this->flashlight = vtkSmartPointer<vtkLight>::New();
   this->externalVTKWidget->GetRenderer()->AddLight(this->flashlight);
+
+
+  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
+
+  this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
+  this->isosurfaceLUT->SetNumberOfColors(256);
+  this->isosurfaceLUT->Build();
+
+  this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
+  this->modelLUT->SetNumberOfColors(256);
+  this->modelLUT->Build();
+
+  this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
+  this->sliceLUT->SetNumberOfColors(256);
+  this->sliceLUT->Build();
 }
 
 //----------------------------------------------------------------------------

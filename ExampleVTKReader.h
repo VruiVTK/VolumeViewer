@@ -122,7 +122,7 @@ private:
   /* Representation Type */
   int RepresentationType;
 
-  vtkSmartPointer<vtkLookupTable> modelLUT;
+//  vtkSmartPointer<vtkLookupTable> modelLUT;
 
   int* DataDimensions;
   double* DataBounds;
@@ -162,8 +162,8 @@ private:
   bool Volume;
 
   double* VolumeColormap;
-  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
-  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
+//  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
+//  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
   TransferFunction1D* transferFunctionDialog;
 
   bool XSlice;
@@ -175,7 +175,7 @@ private:
   bool ZContourSlice;
 
   double* SliceColormap;
-  vtkSmartPointer<vtkLookupTable> sliceLUT;
+//  vtkSmartPointer<vtkLookupTable> sliceLUT;
   Slices* slicesDialog;
 
   bool AIsosurface;
@@ -183,7 +183,7 @@ private:
   bool CIsosurface;
 
   double* IsosurfaceColormap;
-  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
+//  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
   Isosurfaces* isosurfacesDialog;
 
   /* Contours */
