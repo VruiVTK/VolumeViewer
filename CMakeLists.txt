@@ -47,6 +47,8 @@ SET(${PROJECT_NAME}_SRCS
   ControlPoint.h
   ControlPointChangedCallbackData.cpp
   ControlPointChangedCallbackData.h
+  DataItem.cpp
+  DataItem.h
   ExampleVTKReader.cpp
   ExampleVTKReader.h
   FlashlightLocator.cpp
