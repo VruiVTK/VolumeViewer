@@ -38,11 +38,13 @@ class vtkColorTransferFunction;
 class vtkContourFilter;
 class vtkContourFilter;
 class vtkCutter;
+class vtkExtractVOI;
 class vtkLight;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkPolyDataMapper;
+class vtkProperty;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -51,53 +53,6 @@ class ExampleVTKReader:public Vrui::Application,public GLObject
 /* Embedded classes: */
   typedef std::vector<BaseLocator*> BaseLocatorList;
 private:
-  struct DataItem;
-//  struct DataItem : public GLObject::DataItem
-//  {
-//  /* Elements */
-//  public:
-//    /* VTK components */
-//    vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
-//    vtkSmartPointer<vtkActor> actor;
-//    vtkSmartPointer<vtkActor> actorOutline;
-//    vtkSmartPointer<vtkLight> flashlight;
-//    vtkSmartPointer<vtkVolume> actorVolume;
-//    vtkSmartPointer<vtkVolumeProperty> propertyVolume;
-//    vtkSmartPointer<vtkCutter> xCutter;
-//    vtkSmartPointer<vtkPolyDataMapper> xCutterMapper;
-//    vtkSmartPointer<vtkActor> actorXCutter;
-//    vtkSmartPointer<vtkCutter> yCutter;
-//    vtkSmartPointer<vtkPolyDataMapper> yCutterMapper;
-//    vtkSmartPointer<vtkActor> actorYCutter;
-//    vtkSmartPointer<vtkCutter> zCutter;
-//    vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
-//    vtkSmartPointer<vtkActor> actorZCutter;
-//    vtkSmartPointer<vtkContourFilter> aContour;
-//    vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
-//    vtkSmartPointer<vtkActor> actorAContour;
-//    vtkSmartPointer<vtkContourFilter> bContour;
-//    vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
-//    vtkSmartPointer<vtkActor> actorBContour;
-//    vtkSmartPointer<vtkContourFilter> cContour;
-//    vtkSmartPointer<vtkPolyDataMapper> cContourMapper;
-//    vtkSmartPointer<vtkActor> actorCContour;
-//    vtkSmartPointer<vtkContourFilter> contourFilter;
-//    vtkSmartPointer<vtkActor> contourActor;
-//    vtkSmartPointer<vtkCutter> xContourCutter;
-//    vtkSmartPointer<vtkCutter> yContourCutter;
-//    vtkSmartPointer<vtkCutter> zContourCutter;
-//    vtkSmartPointer<vtkActor> actorXContourCutter;
-//    vtkSmartPointer<vtkActor> actorYContourCutter;
-//    vtkSmartPointer<vtkActor> actorZContourCutter;
-//    vtkSmartPointer<vtkCutter> freeSliceCutter;
-//    vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
-//    vtkSmartPointer<vtkActor> freeSliceActor;
-//
-//    /* Constructor and destructor*/
-//    DataItem(void);
-//    virtual ~DataItem(void);
-//  };
-//
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
   GLMotif::PopupMenu* createMainMenu(void);
@@ -109,7 +64,10 @@ private:
   GLMotif::PopupWindow* renderingDialog;
   GLMotif::PopupWindow* createRenderingDialog(void);
   GLMotif::TextField* opacityValue;
+  GLMotif::TextField* resolutionValue;
 
+  bool lowResolution;
+  int sampling;
   /* Name of file to load */
   char* FileName;
 
@@ -278,6 +236,8 @@ public:
   void changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
   void changeAlphaCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
+  void changeResolutionCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void changeSamplingCallback(GLMotif::Slider::ValueChangedCallbackData* callBackData);
 
   virtual void toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData* cbData);
   virtual void toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData* cbData);
