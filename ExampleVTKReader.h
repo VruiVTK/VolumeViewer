@@ -53,6 +53,8 @@ class ExampleVTKReader:public Vrui::Application,public GLObject
 /* Embedded classes: */
   typedef std::vector<BaseLocator*> BaseLocatorList;
 private:
+  struct DataItem;
+
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
   GLMotif::PopupMenu* createMainMenu(void);
