@@ -84,7 +84,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   FreeSliceNormal(0),
   FreeSliceOrigin(0),
   FreeSliceVisibility(0),
-  lowResolution(false),
+  lowResolution(true),
   mainMenu(NULL),
   NumberOfClippingPlanes(6),
   Opacity(1.0),
