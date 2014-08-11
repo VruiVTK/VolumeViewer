@@ -100,6 +100,7 @@ void TransferFunction1D::createAlphaComponent(const GLMotif::StyleSheet& styleSh
     alphaComponent->setPreferredSize(GLMotif::Vector(styleSheet.fontHeight * 20.0, styleSheet.fontHeight * 10.0, 0.0f));
     alphaComponent->setControlPointSize(styleSheet.size);
     alphaComponent->setControlPointScalar(1.0f);
+    alphaComponent->setComponent(3);
     alphaComponent->setHistogram(this->exampleVTKReader->getHistogram());
     alphaComponent->drawHistogram();
     alphaComponent->getControlPointChangedCallbacks().add(this, &TransferFunction1D::alphaControlPointChangedCallback);

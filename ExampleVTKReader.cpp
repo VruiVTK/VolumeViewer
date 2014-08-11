@@ -560,8 +560,8 @@ void ExampleVTKReader::frame(void)
       this, &ExampleVTKReader::volumeColorMapChangedCallback);
     transferFunctionDialog->getAlphaChangedCallbacks().add(this,
       &ExampleVTKReader::alphaChangedCallback);
-    updateAlpha();
     updateVolumeColorMap();
+    updateAlpha();
 
     this->slicesDialog = new Slices(this->SliceColormap, this);
     this->slicesDialog->setSlicesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
@@ -883,19 +883,15 @@ void ExampleVTKReader::display(GLContextData& contextData) const
                                          this->VolumeColormap[4*i + 1],
                                          this->VolumeColormap[4*i + 2], 1.0);
 
-//    dataItem->modelLUT->SetTableValue(i, this->modelLUT->GetTableValue(i));
     dataItem->sliceLUT->SetTableValue(i, this->SliceColormap[4*i + 0],
                                          this->SliceColormap[4*i + 1],
                                          this->SliceColormap[4*i + 2], 1.0);
 
-//    dataItem->sliceLUT->SetTableValue(i, this->sliceLUT->GetTableValue(i));
 
     dataItem->isosurfaceLUT->SetTableValue(i,
       this->IsosurfaceColormap[4*i + 0],
       this->IsosurfaceColormap[4*i + 1],
       this->IsosurfaceColormap[4*i + 2], 1.0);
-//    dataItem->isosurfaceLUT->SetTableValue(i,
-//      this->isosurfaceLUT->GetTableValue(i));
 
     dataItem->colorFunction->AddRGBPoint(
       this->DataScalarRange[0] + (double)(i*step),
@@ -1595,7 +1591,6 @@ void ExampleVTKReader::updateAlpha(void)
 void ExampleVTKReader::updateVolumeColorMap(void)
 {
   transferFunctionDialog->exportColorMap(this->VolumeColormap);
-  std::cout <<"In update: " << this->VolumeColormap[3] << std::endl;
 //  this->colorFunction->RemoveAllPoints();
 //  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
 //  for (int i = 0; i < 256; i++)
