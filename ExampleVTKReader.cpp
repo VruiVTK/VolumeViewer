@@ -22,6 +22,7 @@
 #include <Vrui/Tool.h>
 #include <Vrui/ToolManager.h>
 #include <Vrui/Vrui.h>
+#include <Vrui/WindowProperties.h>
 
 // VTK includes
 #include <ExternalVTKWidget.h>
@@ -118,10 +119,15 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   zSlice(0),
   ZSlice(false)
 {
-
-//  this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
-//  this->modelLUT->SetNumberOfColors(256);
-//  this->modelLUT->Build();
+  /* Set Window properties:
+   * Since the application requires translucency, GLX_ALPHA_SIZE is set to 1 at
+   * context (VRWindow) creation time. To do this, we set the 4th component of
+   * ColorBufferSize in WindowProperties to 1. This should be done in the
+   * constructor to make sure it is set before the main loop is called.
+   */
+  Vrui::WindowProperties properties;
+  properties.setColorBufferSize(0,1);
+  Vrui::requestWindowProperties(properties);
 
   this->DataDimensions = new int[3];
   this->DataBounds = new double[6];
@@ -142,20 +148,9 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 
   this->VolumeColormap = new double[4*256];
 
-//  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-//  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
-
   this->IsosurfaceColormap = new double[4*256];
 
-//  this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
-//  this->isosurfaceLUT->SetNumberOfColors(256);
-//  this->isosurfaceLUT->Build();
-
   this->SliceColormap = new double[4*256];
-
-//  this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
-//  this->sliceLUT->SetNumberOfColors(256);
-//  this->sliceLUT->Build();
 
   this->xPlane = vtkSmartPointer<vtkPlane>::New();
   this->xPlane->SetOrigin(0.0, 0.0, 0.0);

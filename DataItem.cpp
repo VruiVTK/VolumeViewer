@@ -23,6 +23,12 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
   /* Initialize VTK renderwindow and renderer */
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
+
+  /* Use depth peeling to enable transparency */
+  this->externalVTKWidget->GetRenderer()->SetUseDepthPeeling(1);
+  this->externalVTKWidget->GetRenderer()->SetMaximumNumberOfPeels(4);
+  this->externalVTKWidget->GetRenderer()->SetOcclusionRatio(0.1);
+
   this->actor = vtkSmartPointer<vtkActor>::New();
   this->lowActor = vtkSmartPointer<vtkActor>::New();
   this->externalVTKWidget->GetRenderer()->AddActor(this->actor);
