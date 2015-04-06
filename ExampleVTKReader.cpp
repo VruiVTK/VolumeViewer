@@ -983,9 +983,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   /* Get context data item */
   DataItem* dataItem = contextData.retrieveDataItem<DataItem>(this);
 
-  dataItem->externalVTKWidget->GetRenderWindow()->SetSize(
-    const_cast<int*>(Vrui::getWindow(0)->getViewportSize()));
-
   /* Update all lookup tables */
   dataItem->colorFunction->RemoveAllPoints();
   dataItem->opacityFunction->RemoveAllPoints();
