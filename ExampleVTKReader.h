@@ -45,6 +45,7 @@ class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkPolyDataMapper;
 class vtkProperty;
+class vtkTimerLog;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -54,6 +55,10 @@ class ExampleVTKReader:public Vrui::Application,public GLObject
   typedef std::vector<BaseLocator*> BaseLocatorList;
 private:
   struct DataItem;
+
+  /* Benchmarking ivars */
+  int Rotations;
+  vtkSmartPointer<vtkTimerLog> Timer;
 
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
