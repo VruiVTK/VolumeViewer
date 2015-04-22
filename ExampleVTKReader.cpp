@@ -3,28 +3,6 @@
 #include <string>
 #include <math.h>
 
-// OpenGL/Motif includes
-#include <GL/GLContextData.h>
-#include <GL/gl.h>
-#include <GLMotif/CascadeButton.h>
-#include <GLMotif/Label.h>
-#include <GLMotif/Menu.h>
-#include <GLMotif/Popup.h>
-#include <GLMotif/PopupMenu.h>
-#include <GLMotif/RadioBox.h>
-#include <GLMotif/ToggleButton.h>
-#include <GLMotif/StyleSheet.h>
-#include <GLMotif/SubMenu.h>
-#include <GLMotif/WidgetManager.h>
-
-// VRUI includes
-#include <Vrui/Application.h>
-#include <Vrui/Tool.h>
-#include <Vrui/ToolManager.h>
-#include <Vrui/Vrui.h>
-#include <Vrui/VRWindow.h>
-#include <Vrui/WindowProperties.h>
-
 // VTK includes
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
@@ -49,6 +27,28 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkXMLImageDataReader.h>
+
+// OpenGL/Motif includes
+#include <GL/GLContextData.h>
+#include <GL/gl.h>
+#include <GLMotif/CascadeButton.h>
+#include <GLMotif/Label.h>
+#include <GLMotif/Menu.h>
+#include <GLMotif/Popup.h>
+#include <GLMotif/PopupMenu.h>
+#include <GLMotif/RadioBox.h>
+#include <GLMotif/ToggleButton.h>
+#include <GLMotif/StyleSheet.h>
+#include <GLMotif/SubMenu.h>
+#include <GLMotif/WidgetManager.h>
+
+// VRUI includes
+#include <Vrui/Application.h>
+#include <Vrui/Tool.h>
+#include <Vrui/ToolManager.h>
+#include <Vrui/Vrui.h>
+#include <Vrui/VRWindow.h>
+#include <Vrui/WindowProperties.h>
 
 // ExampleVTKReader includes
 #include "BaseLocator.h"
