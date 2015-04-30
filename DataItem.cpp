@@ -2,13 +2,13 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkCompositePolyDataMapper.h>
 #include <vtkContourFilter.h>
-#include <vtkCutter.h>
+#include <vtkPlaneCutter.h>
 #include <vtkExtractVOI.h>
 #include <vtkLight.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkVolume.h>
@@ -47,27 +47,27 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->propertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
   this->lowPropertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
 
-  this->xCutter = vtkSmartPointer<vtkCutter>::New();
-  this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->xCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->xCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorXCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowXCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowXCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowXCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->lowXCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorXCutter = vtkSmartPointer<vtkActor>::New();
   renderer->AddActor(this->actorXCutter);
   renderer->AddActor(this->lowActorXCutter);
-  this->yCutter = vtkSmartPointer<vtkCutter>::New();
-  this->yCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->yCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->yCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorYCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowYCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowYCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowYCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->lowYCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorYCutter = vtkSmartPointer<vtkActor>::New();
   renderer->AddActor(this->actorYCutter);
   renderer->AddActor(this->lowActorYCutter);
-  this->zCutter = vtkSmartPointer<vtkCutter>::New();
-  this->zCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->zCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->zCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorZCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowZCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowZCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowZCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->lowZCutterMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorZCutter = vtkSmartPointer<vtkActor>::New();
   renderer->AddActor(this->actorZCutter);
   renderer->AddActor(this->lowActorZCutter);
@@ -105,38 +105,38 @@ ExampleVTKReader::DataItem::DataItem(void)
   renderer->AddActor(this->lowActorZContourCutter);
 
   this->aContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->aContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->aContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorAContour = vtkSmartPointer<vtkActor>::New();
   this->lowAContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->lowAContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowAContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorAContour = vtkSmartPointer<vtkActor>::New();
   renderer->AddVolume(this->actorAContour);
   renderer->AddVolume(this->lowActorAContour);
   this->bContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->bContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->bContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorBContour = vtkSmartPointer<vtkActor>::New();
   this->lowBContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->lowBContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowBContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorBContour = vtkSmartPointer<vtkActor>::New();
   renderer->AddVolume(this->actorBContour);
   renderer->AddVolume(this->lowActorBContour);
   this->cContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->cContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->cContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->actorCContour = vtkSmartPointer<vtkActor>::New();
   this->lowCContour = vtkSmartPointer<vtkContourFilter>::New();
-  this->lowCContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowCContourMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowActorCContour = vtkSmartPointer<vtkActor>::New();
   renderer->AddVolume(this->actorCContour);
   renderer->AddVolume(this->lowActorCContour);
 
-  this->freeSliceCutter = vtkSmartPointer<vtkCutter>::New();
-  this->freeSliceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->freeSliceCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->freeSliceMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->freeSliceMapper->SetInputConnection(this->freeSliceCutter->GetOutputPort());
   this->freeSliceActor = vtkSmartPointer<vtkActor>::New();
   this->freeSliceActor->SetMapper(this->freeSliceMapper);
   renderer->AddActor(this->freeSliceActor);
-  this->lowFreeSliceCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowFreeSliceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->lowFreeSliceCutter = vtkSmartPointer<vtkPlaneCutter>::New();
+  this->lowFreeSliceMapper = vtkSmartPointer<vtkCompositePolyDataMapper>::New();
   this->lowFreeSliceMapper->SetInputConnection(this->lowFreeSliceCutter->GetOutputPort());
   this->lowFreeSliceActor = vtkSmartPointer<vtkActor>::New();
   this->lowFreeSliceActor->SetMapper(this->lowFreeSliceMapper);
