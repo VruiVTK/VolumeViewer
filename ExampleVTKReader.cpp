@@ -10,8 +10,9 @@
 #include <ExternalVTKWidget.h>
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkCompositePolyDataMapper.h>
 #include <vtkContourFilter.h>
-#include <vtkCutter.h>
+#include <vtkPlaneCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkExtractVOI.h>
@@ -910,45 +911,45 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   lowContourMapper->ScalarVisibilityOff();
   dataItem->lowContourActor->SetMapper(lowContourMapper.GetPointer());
 
-  vtkNew<vtkCutter> xContourCutter;
+  vtkNew<vtkPlaneCutter> xContourCutter;
   xContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
   xContourCutter->SetCutFunction(this->xContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperXContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> mapperXContourCutter;
   mapperXContourCutter->SetInputConnection(xContourCutter->GetOutputPort());
   mapperXContourCutter->ScalarVisibilityOff();
   dataItem->actorXContourCutter->SetMapper(mapperXContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowXContourCutter;
+  vtkNew<vtkPlaneCutter> lowXContourCutter;
   lowXContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
   lowXContourCutter->SetCutFunction(this->xContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperXContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> lowMapperXContourCutter;
   lowMapperXContourCutter->SetInputConnection(lowXContourCutter->GetOutputPort());
   lowMapperXContourCutter->ScalarVisibilityOff();
   dataItem->lowActorXContourCutter->SetMapper(lowMapperXContourCutter.GetPointer());
-  vtkNew<vtkCutter> yContourCutter;
+  vtkNew<vtkPlaneCutter> yContourCutter;
   yContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
   yContourCutter->SetCutFunction(this->yContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperYContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> mapperYContourCutter;
   mapperYContourCutter->SetInputConnection(yContourCutter->GetOutputPort());
   mapperYContourCutter->ScalarVisibilityOff();
   dataItem->actorYContourCutter->SetMapper(mapperYContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowYContourCutter;
+  vtkNew<vtkPlaneCutter> lowYContourCutter;
   lowYContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
   lowYContourCutter->SetCutFunction(this->yContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperYContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> lowMapperYContourCutter;
   lowMapperYContourCutter->SetInputConnection(lowYContourCutter->GetOutputPort());
   lowMapperYContourCutter->ScalarVisibilityOff();
   dataItem->lowActorYContourCutter->SetMapper(lowMapperYContourCutter.GetPointer());
-  vtkNew<vtkCutter> zContourCutter;
+  vtkNew<vtkPlaneCutter> zContourCutter;
   zContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
   zContourCutter->SetCutFunction(this->zContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperZContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> mapperZContourCutter;
   mapperZContourCutter->SetInputConnection(zContourCutter->GetOutputPort());
   mapperZContourCutter->ScalarVisibilityOff();
   dataItem->actorZContourCutter->SetMapper(mapperZContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowZContourCutter;
+  vtkNew<vtkPlaneCutter> lowZContourCutter;
   lowZContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
   lowZContourCutter->SetCutFunction(this->zContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperZContourCutter;
+  vtkNew<vtkCompositePolyDataMapper> lowMapperZContourCutter;
   lowMapperZContourCutter->SetInputConnection(lowZContourCutter->GetOutputPort());
   lowMapperZContourCutter->ScalarVisibilityOff();
   dataItem->lowActorZContourCutter->SetMapper(lowMapperZContourCutter.GetPointer());
