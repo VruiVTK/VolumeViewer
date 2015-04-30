@@ -70,7 +70,7 @@
 #include "Slices.h"
 #include "TransferFunction1D.h"
 
-#define ROTATIONS_MAX 1000
+#define ROTATIONS_MAX 40
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
@@ -100,7 +100,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   opacityValue(NULL),
   Outline(true),
   renderingDialog(NULL),
-  RepresentationType(2),
+  RepresentationType(-1),
   RequestedRenderMode(3),
   resolutionValue(NULL),
   sampling(4),
@@ -108,13 +108,13 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   slicesDialog(NULL),
   transferFunctionDialog(NULL),
   Verbose(false),
-  Volume(true),
+  Volume(false),
   xCenter(0),
   xContourSlice(0),
   XContourSlice(false),
   xOrigin(0),
   xSlice(0),
-  XSlice(false),
+  XSlice(true),
   yCenter(0),
   yContourSlice(0),
   YContourSlice(false),
@@ -652,6 +652,7 @@ void ExampleVTKReader::frame(void)
   if (this->Rotations < ROTATIONS_MAX)
     {
     this->Rotations++;
+    this->setXSlice(this->Rotations);
     Vrui::scheduleUpdate(Vrui::getApplicationTime());
     }
   else
@@ -1156,10 +1157,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       {
       dataItem->lowActor->VisibilityOff();
       }
-    if (this->Rotations < ROTATIONS_MAX)
-      {
-      dataItem->actorVolume->RotateY(1);
-      }
+//    if (this->Rotations < ROTATIONS_MAX)
+//      {
+//      dataItem->actorVolume->RotateY(1);
+//      }
     }
   else
     {
@@ -1483,12 +1484,12 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   /* Render the scene */
   dataItem->externalVTKWidget->GetRenderWindow()->Render();
-  if (this->Rotations == ROTATIONS_MAX - 1)
-    {
-    vtkSmartPointer<vtkSmartVolumeMapper> mapperVolume =
-      vtkSmartVolumeMapper::SafeDownCast(dataItem->actorVolume->GetMapper());
-    std::cout << "Last used render mode: " << mapperVolume->GetLastUsedRenderMode() << std::endl;
-    }
+//  if (this->Rotations == ROTATIONS_MAX - 1)
+//    {
+//    vtkSmartPointer<vtkSmartVolumeMapper> mapperVolume =
+//      vtkSmartVolumeMapper::SafeDownCast(dataItem->actorVolume->GetMapper());
+//    std::cout << "Last used render mode: " << mapperVolume->GetLastUsedRenderMode() << std::endl;
+//    }
 
   clippingPlaneIndex = 0;
   for (int i = 0; i < NumberOfClippingPlanes &&
