@@ -81,7 +81,6 @@ public:
   vtkSmartPointer<vtkCutter> zContourCutter;
   vtkSmartPointer<vtkCutter> zCutter;
   vtkSmartPointer<vtkExtractVOI> extract;
-  vtkSmartPointer<vtkLight> flashlight;
   vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
   vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
   vtkSmartPointer<vtkPolyDataMapper> cContourMapper;

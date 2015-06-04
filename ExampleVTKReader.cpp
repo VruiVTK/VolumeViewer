@@ -17,7 +17,6 @@
 #include <vtkExtractVOI.h>
 #include <vtkImageDataGeometryFilter.h>
 #include <vtkImageData.h>
-#include <vtkLight.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkOutlineFilter.h>
@@ -61,7 +60,6 @@
 #include "Contours.h"
 #include "DataItem.h"
 #include "ExampleVTKReader.h"
-#include "FlashlightLocator.h"
 #include "Isosurfaces.h"
 #include "FreeSliceLocator.h"
 #include "ScalarWidget.h"
@@ -83,9 +81,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   ContourVisible(true),
   FileName(0),
   FirstFrame(true),
-  FlashlightDirection(0),
-  FlashlightPosition(0),
-  FlashlightSwitch(0),
   FreeSliceNormal(0),
   FreeSliceOrigin(0),
   FreeSliceVisibility(0),
@@ -139,11 +134,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->DataOrigin = new double[6];
   this->DataSpacing = new double[3];
   this->DataScalarRange = new double[2];
-
-  this->FlashlightSwitch = new int[1];
-  this->FlashlightSwitch[0] = 0;
-  this->FlashlightPosition = new double[3];
-  this->FlashlightDirection = new double[3];
 
   this->FreeSliceVisibility = new int[1];
   this->FreeSliceVisibility[0] = 0;
@@ -224,18 +214,6 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->DataScalarRange)
     {
     delete[] this->DataScalarRange;
-    }
-  if(this->FlashlightSwitch)
-    {
-    delete[] this->FlashlightSwitch;
-    }
-  if(this->FlashlightPosition)
-    {
-    delete[] this->FlashlightPosition;
-    }
-  if(this->FlashlightDirection)
-    {
-    delete[] this->FlashlightDirection;
     }
   if(this->VolumeColormap)
     {
@@ -438,10 +416,6 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
   GLMotif::ToggleButton* showFreeSlice=new GLMotif::ToggleButton(
     "FreeSlice",analysisTools_RadioBox,"Free Slice");
   showFreeSlice->getValueChangedCallbacks().add(
-    this,&ExampleVTKReader::changeAnalysisToolsCallback);
-  GLMotif::ToggleButton* showFlashlight=new GLMotif::ToggleButton(
-    "Flashlight",analysisTools_RadioBox,"Flashlight");
-  showFlashlight->getValueChangedCallbacks().add(
     this,&ExampleVTKReader::changeAnalysisToolsCallback);
 
   analysisTools_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
@@ -952,11 +926,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   lowMapperZContourCutter->SetInputConnection(lowZContourCutter->GetOutputPort());
   lowMapperZContourCutter->ScalarVisibilityOff();
   dataItem->lowActorZContourCutter->SetMapper(lowMapperZContourCutter.GetPointer());
-  dataItem->flashlight->SwitchOff();
-  dataItem->flashlight->SetLightTypeToHeadlight();
-  dataItem->flashlight->SetColor(0.0, 1.0, 1.0);
-  dataItem->flashlight->SetConeAngle(15);
-  dataItem->flashlight->SetPositional(true);
 
   dataItem->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   dataItem->freeSliceMapper->SetScalarRange(this->DataScalarRange);
@@ -1058,17 +1027,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     dataItem->extract->SetSampleRate(
       this->sampling, this->sampling, this->sampling);
-    }
-
-  if(this->FlashlightSwitch[0])
-    {
-    dataItem->flashlight->SetPosition(this->FlashlightPosition);
-    dataItem->flashlight->SetFocalPoint(this->FlashlightDirection);
-    dataItem->flashlight->SwitchOn();
-    }
-  else
-    {
-    dataItem->flashlight->SwitchOff();
     }
 
   if(this->FreeSliceVisibility[0])
@@ -1554,17 +1512,13 @@ void ExampleVTKReader::changeAnalysisToolsCallback(
     {
     this->analysisTool = 0;
     }
-  else if (strcmp(callBackData->toggle->getName(), "Flashlight") == 0)
+  else if (strcmp(callBackData->toggle->getName(), "FreeSlice") == 0)
     {
     this->analysisTool = 1;
     }
-  else if (strcmp(callBackData->toggle->getName(), "FreeSlice") == 0)
-    {
-    this->analysisTool = 2;
-    }
   else if (strcmp(callBackData->toggle->getName(), "Other") == 0)
     {
-    this->analysisTool = 3;
+    this->analysisTool = 2;
     }
 }
 
@@ -1699,12 +1653,6 @@ void ExampleVTKReader::toolCreationCallback(
       }
     else if (analysisTool == 1)
       {
-      /* Create a flashlight locator object and
-       * associate it with the new tool: */
-      newLocator = new FlashlightLocator(locatorTool, this);
-      }
-    else if (analysisTool == 2)
-      {
       /* Create a freeSlice locator object and
        * associate it with the new tool: */
       newLocator = new FreeSliceLocator(locatorTool, this);
@@ -1737,24 +1685,6 @@ void ExampleVTKReader::toolDestructionCallback(
         }
       }
     }
-}
-
-//----------------------------------------------------------------------------
-int * ExampleVTKReader::getFlashlightSwitch(void)
-{
-  return this->FlashlightSwitch;
-}
-
-//----------------------------------------------------------------------------
-double * ExampleVTKReader::getFlashlightPosition(void)
-{
-  return this->FlashlightPosition;
-}
-
-//----------------------------------------------------------------------------
-double * ExampleVTKReader::getFlashlightDirection(void)
-{
-  return this->FlashlightDirection;
 }
 
 //----------------------------------------------------------------------------

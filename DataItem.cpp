@@ -5,7 +5,6 @@
 #include <vtkContourFilter.h>
 #include <vtkCutter.h>
 #include <vtkExtractVOI.h>
-#include <vtkLight.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
@@ -141,10 +140,6 @@ ExampleVTKReader::DataItem::DataItem(void)
   this->lowFreeSliceActor = vtkSmartPointer<vtkActor>::New();
   this->lowFreeSliceActor->SetMapper(this->lowFreeSliceMapper);
   renderer->AddActor(this->lowFreeSliceActor);
-
-  this->flashlight = vtkSmartPointer<vtkLight>::New();
-  renderer->AddLight(this->flashlight);
-
 
   this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();

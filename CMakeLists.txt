@@ -63,8 +63,6 @@ SET(${PROJECT_NAME}_SRCS
   DataItem.h
   ExampleVTKReader.cpp
   ExampleVTKReader.h
-  FlashlightLocator.cpp
-  FlashlightLocator.h
   FreeSliceLocator.cpp
   FreeSliceLocator.h
   Gaussian.cpp
