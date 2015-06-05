@@ -14,10 +14,15 @@
 #include <vtkCutter.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetSurfaceFilter.h>
-#include <vtkExtractVOI.h>
 #include <vtkImageDataGeometryFilter.h>
 #include <vtkImageData.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageProperty.h>
+#include <vtkImageResample.h>
+#include <vtkImageResliceMapper.h>
+#include <vtkImageSlice.h>
 #include <vtkLookupTable.h>
+#include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPiecewiseFunction.h>
@@ -67,7 +72,7 @@
 #include "TransferFunction1D.h"
 
 //----------------------------------------------------------------------------
-ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
+ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv, int _sampling)
   :Vrui::Application(argc,argv),
   aIsosurface(0),
   AIsosurface(false),
@@ -91,10 +96,10 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   opacityValue(NULL),
   Outline(true),
   renderingDialog(NULL),
-  RepresentationType(2),
+  RepresentationType(4),
   RequestedRenderMode(3),
   resolutionValue(NULL),
-  sampling(4),
+  sampling(_sampling),
   slicesDialog(NULL),
   transferFunctionDialog(NULL),
   Verbose(false),
@@ -532,16 +537,6 @@ GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void)
   opacityValue->setPrecision(3);
   opacityValue->setValue(Opacity);
 
-  /* Create sampling slider */
-  GLMotif::Label* sampling_Label = new GLMotif::Label("Sampling", dialog,"Sampling:");
-  GLMotif::Slider * resolutionSlider = new GLMotif::Slider("ResolutionSlider", dialog, GLMotif::Slider::HORIZONTAL, ss.fontHeight * 10.0f);
-  resolutionSlider->setValueRange(1.0, 8.0, 1.0);
-  resolutionSlider->setValue(float(this->sampling));
-  resolutionSlider->getValueChangedCallbacks().add(this, &ExampleVTKReader::changeSamplingCallback);
-  resolutionValue = new GLMotif::TextField("ResolutionValue", dialog, 6);
-  resolutionValue->setFieldWidth(6);
-  resolutionValue->setPrecision(1);
-  resolutionValue->setValue(float(this->sampling));
   dialog->manageChild();
 
   return dialogPopup;
@@ -640,9 +635,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   vtkNew<vtkOutlineFilter> dataOutline;
   vtkNew<vtkOutlineFilter> lowDataOutline;
 
-  vtkNew<vtkSmartVolumeMapper> mapperVolume;
-  vtkNew<vtkSmartVolumeMapper> lowMapperVolume;
-
   if(this->FileName)
     {
     vtkNew<vtkXMLImageDataReader> reader;
@@ -657,8 +649,12 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     reader->GetOutput()->GetScalarRange(this->DataScalarRange);
 
     dataItem->extract->SetInputConnection(reader->GetOutputPort());
-    dataItem->extract->SetVOI(0, this->DataDimensions[0], 0, this->DataDimensions[1], 0, this->DataDimensions[2]);
-    dataItem->extract->SetSampleRate(this->sampling, this->sampling, this->sampling);
+    dataItem->extract->SetAxisMagnificationFactor(0, 1.0/this->sampling);
+    dataItem->extract->SetAxisMagnificationFactor(1, 1.0/this->sampling);
+    dataItem->extract->SetAxisMagnificationFactor(2, 1.0/this->sampling);
+    dataItem->extract->SetAxisOutputSpacing(0, this->sampling);
+    dataItem->extract->SetAxisOutputSpacing(1, this->sampling);
+    dataItem->extract->SetAxisOutputSpacing(2, this->sampling);
 
     mapper->SetInputConnection(reader->GetOutputPort());
     lowMapper->SetInputConnection(dataItem->extract->GetOutputPort());
@@ -666,8 +662,11 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
     dataOutline->SetInputConnection(reader->GetOutputPort());
     lowDataOutline->SetInputConnection(dataItem->extract->GetOutputPort());
 
-    mapperVolume->SetInputConnection(reader->GetOutputPort());
-    lowMapperVolume->SetInputConnection(dataItem->extract->GetOutputPort());
+    dataItem->mapperVolume->SetInputConnection(reader->GetOutputPort());
+    dataItem->lowMapperVolume->SetInputConnection(dataItem->extract->GetOutputPort());
+
+    dataItem->xReslice->SetInputConnection(reader->GetOutputPort());
+    dataItem->lowXReslice->SetInputConnection(dataItem->extract->GetOutputPort());
 
     dataItem->xCutter->SetInputConnection(reader->GetOutputPort());
     dataItem->lowXCutter->SetInputConnection(dataItem->extract->GetOutputPort());
@@ -731,7 +730,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 
     dataOutline->SetInputData(imageData.GetPointer());
 
-    mapperVolume->SetInputData(imageData.GetPointer());
+    dataItem->mapperVolume->SetInputData(imageData.GetPointer());
 
     dataItem->xCutter->SetInputData(imageData.GetPointer());
 
@@ -779,7 +778,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->lowActorOutline->SetMapper(lowMapperOutline.GetPointer());
   dataItem->lowActorOutline->GetProperty()->SetColor(1,1,1);
 
-  mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
+  //dataItem->mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
 
   dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[0], 1.0, 1.0, 1.0);
   dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[1], 0.0, 0.0, 0.0);
@@ -792,27 +791,41 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   dataItem->propertyVolume->SetScalarOpacity(dataItem->opacityFunction);
   dataItem->propertyVolume->SetInterpolationTypeToLinear();
   dataItem->actorVolume->SetProperty(dataItem->propertyVolume);
-  dataItem->actorVolume->SetMapper(mapperVolume.GetPointer());
+  dataItem->actorVolume->SetMapper(dataItem->mapperVolume.GetPointer());
   dataItem->lowPropertyVolume->ShadeOff();
   dataItem->lowPropertyVolume->SetScalarOpacityUnitDistance(1.0);
   dataItem->lowPropertyVolume->SetColor(dataItem->colorFunction);
   dataItem->lowPropertyVolume->SetScalarOpacity(dataItem->opacityFunction);
   dataItem->lowPropertyVolume->SetInterpolationTypeToLinear();
   dataItem->lowActorVolume->SetProperty(dataItem->lowPropertyVolume);
-  dataItem->lowActorVolume->SetMapper(lowMapperVolume.GetPointer());
+  dataItem->lowActorVolume->SetMapper(dataItem->lowMapperVolume.GetPointer());
 
+  dataItem->xReslice->SetSlicePlane(this->xPlane);
+  dataItem->xReslice->BorderOff();
+  dataItem->xImageProperty->SetLookupTable(dataItem->sliceLUT);
+  dataItem->xImageProperty->SetInterpolationTypeToLinear();
+
+  dataItem->lowXReslice->SetSlicePlane(this->xPlane);
+  dataItem->lowXReslice->BorderOff();
+  dataItem->lowXImageProperty->SetLookupTable(dataItem->sliceLUT);
+  dataItem->lowXImageProperty->SetInterpolationTypeToLinear();
+
+/*
   dataItem->xCutter->SetCutFunction(this->xPlane);
   dataItem->xCutterMapper->SetInputConnection(dataItem->xCutter->GetOutputPort());
   dataItem->xCutterMapper->SetScalarRange(this->DataScalarRange);
   dataItem->xCutterMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->xCutterMapper->SetColorModeToMapScalars();
   dataItem->actorXCutter->SetMapper(dataItem->xCutterMapper);
+
   dataItem->lowXCutter->SetCutFunction(this->xPlane);
   dataItem->lowXCutterMapper->SetInputConnection(dataItem->lowXCutter->GetOutputPort());
   dataItem->lowXCutterMapper->SetScalarRange(this->DataScalarRange);
   dataItem->lowXCutterMapper->SetLookupTable(dataItem->sliceLUT);
   dataItem->lowXCutterMapper->SetColorModeToMapScalars();
   dataItem->lowActorXCutter->SetMapper(dataItem->lowXCutterMapper);
+  */
+
   dataItem->yCutter->SetCutFunction(this->yPlane);
   dataItem->yCutterMapper->SetInputConnection(dataItem->yCutter->GetOutputPort());
   dataItem->yCutterMapper->SetScalarRange(this->DataScalarRange);
@@ -1001,6 +1014,8 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   dataItem->lowActorOutline->VisibilityOff();
   dataItem->actorVolume->VisibilityOff();
   dataItem->lowActorVolume->VisibilityOff();
+  dataItem->actorXReslice->VisibilityOff();
+  dataItem->lowActorXReslice->VisibilityOff();
   dataItem->actorXCutter->VisibilityOff();
   dataItem->lowActorXCutter->VisibilityOff();
   dataItem->actorYCutter->VisibilityOff();
@@ -1023,10 +1038,8 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   dataItem->lowContourActor->VisibilityOff();
   dataItem->freeSliceActor->VisibilityOff();
   dataItem->lowFreeSliceActor->VisibilityOff();
-  if (lowResolution)
+
     {
-    dataItem->extract->SetSampleRate(
-      this->sampling, this->sampling, this->sampling);
     }
 
   if(this->FreeSliceVisibility[0])
@@ -1164,25 +1177,13 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorXCutter->VisibilityOn();
+      dataItem->actorXReslice->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorXCutter->VisibilityOn();
+      dataItem->lowActorXReslice->VisibilityOn();
       }
     }
-  else
-    {
-    if (!lowResolution)
-      {
-      dataItem->actorXCutter->VisibilityOff();
-      }
-    else
-      {
-      dataItem->lowActorXCutter->VisibilityOff();
-      }
-    }
-
   if (this->YSlice)
     {
     if (!lowResolution)
@@ -1450,14 +1451,6 @@ void ExampleVTKReader::opacitySliderCallback(
 {
   this->Opacity = static_cast<double>(callBackData->value);
   opacityValue->setValue(callBackData->value);
-}
-
-//----------------------------------------------------------------------------
-void ExampleVTKReader::changeSamplingCallback(
-  GLMotif::Slider::ValueChangedCallbackData* callBackData)
-{
-  this->sampling = static_cast<int>(callBackData->value);
-  resolutionValue->setValue(callBackData->value);
 }
 
 //----------------------------------------------------------------------------
@@ -1747,7 +1740,6 @@ void ExampleVTKReader::setXSlice(int xSlice)
   this->xSlice = xSlice;
   this->xPlane->SetOrigin(this->xOrigin +
     (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
-
 }
 
 //----------------------------------------------------------------------------

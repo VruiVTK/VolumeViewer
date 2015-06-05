@@ -19,6 +19,25 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 
+// Matrices for axial, coronal, sagittal, oblique view orientations
+static double axialElements[16] = {
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1 };
+
+static double yElements[16] = {
+         1, 0, 0, 0,
+         0, 0, 1, 0,
+         0,-1, 0, 0,
+         0, 0, 0, 1 };
+
+static double xElements[16] = {
+         0, 0,-1, 0,
+         1, 0, 0, 0,
+         0,-1, 0, 0,
+         0, 0, 0, 1 };
+
 /* Forward Declarations */
 namespace GLMotif
 {
@@ -186,7 +205,7 @@ private:
 
 public:
   /* Constructors and destructors: */
-  ExampleVTKReader(int& argc,char**& argv);
+  ExampleVTKReader(int& argc,char**& argv, int);
   virtual ~ExampleVTKReader(void);
 
   /* Methods to set/get the filename to read */

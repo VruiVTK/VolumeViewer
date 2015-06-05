@@ -4,12 +4,16 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkContourFilter.h>
 #include <vtkCutter.h>
-#include <vtkExtractVOI.h>
+#include <vtkImageProperty.h>
+#include <vtkImageResample.h>
+#include <vtkImageResliceMapper.h>
+#include <vtkImageSlice.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
@@ -19,7 +23,7 @@
 //----------------------------------------------------------------------------
 ExampleVTKReader::DataItem::DataItem(void)
 {
-  this->extract = vtkSmartPointer<vtkExtractVOI>::New();
+  this->extract = vtkSmartPointer<vtkImageResample>::New();
   /* Initialize VTK renderwindow and renderer */
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
 
@@ -39,12 +43,27 @@ ExampleVTKReader::DataItem::DataItem(void)
   renderer->AddActor(this->actorOutline);
   renderer->AddActor(this->lowActorOutline);
 
+  this->mapperVolume = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+  this->lowMapperVolume = vtkSmartPointer<vtkSmartVolumeMapper>::New();
   this->actorVolume = vtkSmartPointer<vtkVolume>::New();
   this->lowActorVolume = vtkSmartPointer<vtkVolume>::New();
   renderer->AddVolume(this->actorVolume);
   renderer->AddVolume(this->lowActorVolume);
   this->propertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
   this->lowPropertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
+
+  this->xReslice = vtkSmartPointer<vtkImageResliceMapper>::New();
+  this->xImageProperty = vtkSmartPointer<vtkImageProperty>::New();
+  this->actorXReslice = vtkSmartPointer<vtkImageSlice>::New();
+  this->actorXReslice->SetMapper(this->xReslice);
+  this->actorXReslice->SetProperty(this->xImageProperty);
+  renderer->AddViewProp(this->actorXReslice);
+  this->lowXReslice = vtkSmartPointer<vtkImageResliceMapper>::New();
+  this->lowXImageProperty = vtkSmartPointer<vtkImageProperty>::New();
+  this->lowActorXReslice = vtkSmartPointer<vtkImageSlice>::New();
+  this->lowActorXReslice->SetMapper(this->lowXReslice);
+  this->lowActorXReslice->SetProperty(this->lowXImageProperty);
+  renderer->AddViewProp(this->lowActorXReslice);
 
   this->xCutter = vtkSmartPointer<vtkCutter>::New();
   this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();

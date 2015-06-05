@@ -16,13 +16,17 @@ class vtkActor;
 class vtkColorTransferFunction;
 class vtkContourFilter;
 class vtkCutter;
-class vtkExtractVOI;
+class vtkImageProperty;
+class vtkImageResample;
+class vtkImageResliceMapper;
+class vtkImageSlice;
 class vtkLight;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 class vtkPolyDataMapper;
 class vtkProperty;
 class vtkRenderer;
+class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
@@ -75,12 +79,20 @@ public:
   vtkSmartPointer<vtkCutter> lowZContourCutter;
   vtkSmartPointer<vtkCutter> lowZCutter;
   vtkSmartPointer<vtkCutter> xContourCutter;
+
+  vtkSmartPointer<vtkImageResliceMapper> xReslice;
+  vtkSmartPointer<vtkImageProperty> xImageProperty;
+  vtkSmartPointer<vtkImageSlice> actorXReslice;
+  vtkSmartPointer<vtkImageResliceMapper> lowXReslice;
+  vtkSmartPointer<vtkImageProperty> lowXImageProperty;
+  vtkSmartPointer<vtkImageSlice> lowActorXReslice;
+
   vtkSmartPointer<vtkCutter> xCutter;
   vtkSmartPointer<vtkCutter> yContourCutter;
   vtkSmartPointer<vtkCutter> yCutter;
   vtkSmartPointer<vtkCutter> zContourCutter;
   vtkSmartPointer<vtkCutter> zCutter;
-  vtkSmartPointer<vtkExtractVOI> extract;
+  vtkSmartPointer<vtkImageResample> extract;
   vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
   vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
   vtkSmartPointer<vtkPolyDataMapper> cContourMapper;
@@ -95,6 +107,8 @@ public:
   vtkSmartPointer<vtkPolyDataMapper> xCutterMapper;
   vtkSmartPointer<vtkPolyDataMapper> yCutterMapper;
   vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
+  vtkSmartPointer<vtkSmartVolumeMapper> mapperVolume;
+  vtkSmartPointer<vtkSmartVolumeMapper> lowMapperVolume;
   vtkSmartPointer<vtkVolume> actorVolume;
   vtkSmartPointer<vtkVolume> lowActorVolume;
   vtkSmartPointer<vtkVolumeProperty> lowPropertyVolume;
