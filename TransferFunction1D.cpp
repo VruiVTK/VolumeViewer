@@ -1,3 +1,15 @@
+// VolumeViewer includes
+#include "VolumeViewer.h"
+
+#include "ColorMap.h"
+#include "ControlPointChangedCallbackData.h"
+#include "RGBAColor.h"
+#include "Storage.h"
+#include "ScalarWidget.h"
+#include "ScalarWidgetControlPointChangedCallbackData.h"
+#include "SwatchesWidget.h"
+#include "TransferFunction1D.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -11,23 +23,13 @@
 /* Vrui includes to use the Vrui interface */
 #include <Vrui/Vrui.h>
 
-#include "ColorMap.h"
-#include "ControlPointChangedCallbackData.h"
-#include "RGBAColor.h"
-#include "Storage.h"
-#include "ScalarWidget.h"
-#include "ScalarWidgetControlPointChangedCallbackData.h"
-#include "SwatchesWidget.h"
-#include "TransferFunction1D.h"
-#include "ExampleVTKReader.h"
-
 /*
  * TransferFunction1D - Constructor for TransferFunction1D class.
  * 		extends GLMotif::PopupWindow
  */
-TransferFunction1D::TransferFunction1D(ExampleVTKReader * exampleVTKReader) :
+TransferFunction1D::TransferFunction1D(VolumeViewer * volumeViewer) :
     GLMotif::PopupWindow("TransferFunction1DPopup", Vrui::getWidgetManager(), "1D Transfer Function Editor"), interactive(false) {
-    this->exampleVTKReader = exampleVTKReader;
+    this->volumeViewer = volumeViewer;
     initialize();
 }
 
@@ -101,7 +103,7 @@ void TransferFunction1D::createAlphaComponent(const GLMotif::StyleSheet& styleSh
     alphaComponent->setControlPointSize(styleSheet.size);
     alphaComponent->setControlPointScalar(1.0f);
     alphaComponent->setComponent(3);
-    alphaComponent->setHistogram(this->exampleVTKReader->getHistogram());
+    alphaComponent->setHistogram(this->volumeViewer->getHistogram());
     alphaComponent->drawHistogram();
     alphaComponent->getControlPointChangedCallbacks().add(this, &TransferFunction1D::alphaControlPointChangedCallback);
 } // end createAlphaComponent()

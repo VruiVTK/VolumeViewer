@@ -1,19 +1,17 @@
 #ifndef CLIPPINGPLANELOCATOR_H_
 #define CLIPPINGPLANELOCATOR_H_
 
-#include "BaseLocator.h"
-#include "ExampleVTKReader.h"
-
-/* Vrui includes */
 #include <Vrui/LocatorTool.h>
 
 // Begin forward declarations
+class BaseLocator;
 class ClippingPlane;
+class VolumeViewer;
 // End forward declarations
 class ClippingPlaneLocator : public BaseLocator {
 public:
 	ClippingPlaneLocator(Vrui::LocatorTool* locatorTool,
-			ExampleVTKReader * ExampleVTKReader);
+			VolumeViewer * volumeViewer);
 	~ClippingPlaneLocator(void);
 	virtual void buttonPressCallback(
 			Vrui::LocatorTool::ButtonPressCallbackData* callbackData);

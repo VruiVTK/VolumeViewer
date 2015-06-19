@@ -1,3 +1,13 @@
+// VolumeViewer includes
+#include "VolumeViewer.h"
+
+#include "ColorMap.h"
+#include "ControlPointChangedCallbackData.h"
+#include "RGBAColor.h"
+#include "Storage.h"
+#include "Isosurfaces.h"
+#include "SwatchesWidget.h"
+
 #include <iostream>
 #include <GL/GLColor.h>
 #include <GLMotif/Button.h>
@@ -10,20 +20,13 @@
 /* Vrui includes to use the Vrui interface */
 #include <Vrui/Vrui.h>
 
-#include "ColorMap.h"
-#include "ControlPointChangedCallbackData.h"
-#include "RGBAColor.h"
-#include "Storage.h"
-#include "Isosurfaces.h"
-#include "SwatchesWidget.h"
-
 /*
  * Isosurfaces - Constructor for Isosurfaces class.
  *      extends GLMotif::PopupWindow
  */
-Isosurfaces::Isosurfaces(double* _isosurfaceColormap, ExampleVTKReader * _ExampleVTKReader) :
+Isosurfaces::Isosurfaces(double* _isosurfaceColormap, VolumeViewer * _volumeViewer) :
     GLMotif::PopupWindow("IsosurfacesPopup", Vrui::getWidgetManager(), "Isosurfaces"), isosurfaceColormap(_isosurfaceColormap),
-            exampleVTKReader(_ExampleVTKReader) {
+            volumeViewer(_volumeViewer) {
     initialize();
 }
 
@@ -52,7 +55,7 @@ void Isosurfaces::changeIsosurfacesColorMapCallback(GLMotif::RadioBox::ValueChan
     int value = callBackData->radioBox->getToggleIndex(callBackData->newSelectedToggle);
     changeIsosurfacesColorMap(value);
     exportIsosurfacesColorMap(isosurfaceColormap);
-    exampleVTKReader->updateIsosurfaceColorMap(isosurfaceColormap);
+    volumeViewer->updateIsosurfaceColorMap(isosurfaceColormap);
     Vrui::requestUpdate();
 } // end changeIsosurfacesColorMapCallback()
 
@@ -303,10 +306,10 @@ void Isosurfaces::createAIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowCol
     showAIsosurfaceToggle->setToggleWidth(0.1f);
     AIsosurfacesValue = new GLMotif::TextField("AIsosurfaceValue", abcIsosurfacesRowColumn, 7);
     AIsosurfacesValue->setPrecision(3);
-    AIsosurfacesValue->setValue(exampleVTKReader->getDataMidPoint());
+    AIsosurfacesValue->setValue(volumeViewer->getDataMidPoint());
     GLMotif::Slider * AIsosurfacesSlider = new GLMotif::Slider("AIsosurfaceSlider", abcIsosurfacesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    AIsosurfacesSlider->setValueRange(exampleVTKReader->getDataMinimum(), exampleVTKReader->getDataMaximum(), exampleVTKReader->getDataIncrement());
-    AIsosurfacesSlider->setValue(exampleVTKReader->getDataMidPoint());
+    AIsosurfacesSlider->setValueRange(volumeViewer->getDataMinimum(), volumeViewer->getDataMaximum(), volumeViewer->getDataIncrement());
+    AIsosurfacesSlider->setValue(volumeViewer->getDataMidPoint());
     AIsosurfacesSlider->getValueChangedCallbacks().add(this, &Isosurfaces::sliderCallback);
 } // end createXIsosurfaces()
 
@@ -340,10 +343,10 @@ void Isosurfaces::createBIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowCol
     showBIsosurfaceToggle->getValueChangedCallbacks().add(this, &Isosurfaces::toggleSelectCallback);
     BIsosurfacesValue = new GLMotif::TextField("BIsosurfaceValue", abcIsosurfacesRowColumn, 7);
     BIsosurfacesValue->setPrecision(3);
-    BIsosurfacesValue->setValue(exampleVTKReader->getDataMidPoint());
+    BIsosurfacesValue->setValue(volumeViewer->getDataMidPoint());
     GLMotif::Slider * BIsosurfacesSlider = new GLMotif::Slider("BIsosurfaceSlider", abcIsosurfacesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    BIsosurfacesSlider->setValueRange(exampleVTKReader->getDataMinimum(), exampleVTKReader->getDataMaximum(), exampleVTKReader->getDataIncrement());
-    BIsosurfacesSlider->setValue(exampleVTKReader->getDataMidPoint());
+    BIsosurfacesSlider->setValueRange(volumeViewer->getDataMinimum(), volumeViewer->getDataMaximum(), volumeViewer->getDataIncrement());
+    BIsosurfacesSlider->setValue(volumeViewer->getDataMidPoint());
     BIsosurfacesSlider->getValueChangedCallbacks().add(this, &Isosurfaces::sliderCallback);
 } // end createYIsosurfaces()
 
@@ -360,10 +363,10 @@ void Isosurfaces::createCIsosurfaces(GLMotif::RowColumn * & abcIsosurfacesRowCol
     showCIsosurfacesToggle->getValueChangedCallbacks().add(this, &Isosurfaces::toggleSelectCallback);
     CIsosurfacesValue = new GLMotif::TextField("CIsosurfaceValue", abcIsosurfacesRowColumn, 7);
     CIsosurfacesValue->setPrecision(3);
-    CIsosurfacesValue->setValue(exampleVTKReader->getDataMidPoint());
+    CIsosurfacesValue->setValue(volumeViewer->getDataMidPoint());
     GLMotif::Slider * CIsosurfacesSlider = new GLMotif::Slider("CIsosurfaceSlider", abcIsosurfacesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    CIsosurfacesSlider->setValueRange(exampleVTKReader->getDataMinimum(), exampleVTKReader->getDataMaximum(), exampleVTKReader->getDataIncrement());
-    CIsosurfacesSlider->setValue(exampleVTKReader->getDataMidPoint());
+    CIsosurfacesSlider->setValueRange(volumeViewer->getDataMinimum(), volumeViewer->getDataMaximum(), volumeViewer->getDataIncrement());
+    CIsosurfacesSlider->setValue(volumeViewer->getDataMidPoint());
     CIsosurfacesSlider->getValueChangedCallbacks().add(this, &Isosurfaces::sliderCallback);
 } // end createZIsosurfaces()
 
@@ -458,7 +461,7 @@ void Isosurfaces::removeControlPointCallback(Misc::CallbackData* _callbackData) 
  */
 void Isosurfaces::isosurfaceColorMapChangedCallback(Misc::CallbackData * callBackData) {
     exportIsosurfacesColorMap(isosurfaceColormap);
-    exampleVTKReader->updateIsosurfaceColorMap(isosurfaceColormap);
+    volumeViewer->updateIsosurfaceColorMap(isosurfaceColormap);
     Vrui::requestUpdate();
 } // end isosurfaceColorMapChangedCallback()
 
@@ -470,17 +473,17 @@ void Isosurfaces::isosurfaceColorMapChangedCallback(Misc::CallbackData * callBac
 void Isosurfaces::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBackData) {
     if (strcmp(callBackData->slider->getName(), "AIsosurfaceSlider") == 0) {
         AIsosurfacesValue->setValue(callBackData->value);
-        exampleVTKReader->setAIsosurface(float(callBackData->value));
+        volumeViewer->setAIsosurface(float(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "BIsosurfaceSlider") == 0) {
         BIsosurfacesValue->setValue(callBackData->value);
-        exampleVTKReader->setBIsosurface(float(callBackData->value));
+        volumeViewer->setBIsosurface(float(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "CIsosurfaceSlider") == 0) {
         CIsosurfacesValue->setValue(callBackData->value);
-        exampleVTKReader->setCIsosurface(float(callBackData->value));
+        volumeViewer->setCIsosurface(float(callBackData->value));
         Vrui::requestUpdate();
     }
 } // end sliderCallback()
@@ -493,11 +496,11 @@ void Isosurfaces::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * cal
 void Isosurfaces::toggleSelectCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData) {
     /* Adjust gui/program state based on which toggle button changed state: */
     if (strcmp(callBackData->toggle->getName(), "ShowAIsosurfacesToggle") == 0) {
-        exampleVTKReader->showAIsosurface(callBackData->set);
+        volumeViewer->showAIsosurface(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowBIsosurfacesToggle") == 0) {
-        exampleVTKReader->showBIsosurface(callBackData->set);
+        volumeViewer->showBIsosurface(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowCIsosurfacesToggle") == 0) {
-        exampleVTKReader->showCIsosurface(callBackData->set);
+        volumeViewer->showCIsosurface(callBackData->set);
     }
     Vrui::requestUpdate();
 } // end toggleSelectCallback()

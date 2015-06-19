@@ -1,8 +1,11 @@
-#ifndef _EXAMPLEVTKREADER_H
-#define _EXAMPLEVTKREADER_H
+#ifndef _VOLUMEVIEWER_H
+#define _VOLUMEVIEWER_H
 
 // STL includes
 #include <vector>
+
+// Must come before any gl.h include
+#include <GL/glew.h>
 
 // OpenGL/Motif includes
 #include <GL/gl.h>
@@ -50,6 +53,8 @@ class ClippingPlane;
 class Contours;
 class ExternalVTKWidget;
 class Isosurfaces;
+class Lighting;
+class RGBAColor;
 class Slices;
 class TransferFunction1D;
 class vtkActor;
@@ -67,7 +72,7 @@ class vtkProperty;
 class vtkVolume;
 class vtkVolumeProperty;
 
-class ExampleVTKReader:public Vrui::Application,public GLObject
+class VolumeViewer:public Vrui::Application,public GLObject
 {
 /* Embedded classes: */
   typedef std::vector<BaseLocator*> BaseLocatorList;
@@ -82,6 +87,7 @@ private:
   GLMotif::Popup* createWidgetsMenu(void);
   GLMotif::Popup*  createColorMapSubMenu(void);
   GLMotif::Popup*  createAlphaSubMenu(void);
+  GLMotif::PopupWindow* lightingDialog;
   GLMotif::PopupWindow* renderingDialog;
   GLMotif::PopupWindow* createRenderingDialog(void);
   GLMotif::TextField* opacityValue;
@@ -203,10 +209,15 @@ private:
   double * FreeSliceNormal;
   vtkSmartPointer<vtkPlane> freeSlicePlane;
 
+  RGBAColor * ambientColor;
+  RGBAColor * diffuseColor;
+  RGBAColor * specularColor;
+  float intensity;
+
 public:
   /* Constructors and destructors: */
-  ExampleVTKReader(int& argc,char**& argv, int);
-  virtual ~ExampleVTKReader(void);
+  VolumeViewer(int& argc,char**& argv, int);
+  virtual ~VolumeViewer(void);
 
   /* Methods to set/get the filename to read */
   void setFileName(const char* name);
@@ -253,6 +264,7 @@ public:
   void showSlicesDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showContoursDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showTransferFunctionDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
+  void showLightingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void showRenderingDialogCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeAnalysisToolsCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData);
   void changeColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData* callBackData);
@@ -306,6 +318,11 @@ public:
   float getDataMaximum(void);
   float getDataIncrement(void);
   float getDataMidPoint(void);
+
+  void setAmbientColor(float r, float g, float b);
+  void setDiffuseColor(float r, float g, float b);
+  void setSpecularColor(float r, float g, float b);
+  void setIntensity(float intensity);
 };
 
-#endif //_EXAMPLEVTKREADER_H
+#endif //_VOLUMEVIEWER_H

@@ -5,6 +5,15 @@
  * Created: August 11, 2008
  * Copyright: 2008. All rights reserved.
  */
+// VolumeViewer includes
+#include "VolumeViewer.h"
+
+#include "ControlPointChangedCallbackData.h"
+#include "Contours.h"
+#include "ScalarWidget.h"
+#include "ScalarWidgetControlPointChangedCallbackData.h"
+#include "ScalarWidgetStorage.h"
+
 #include <iostream>
 //#include <GL/GLColor.h>
 #include <GLMotif/Button.h>
@@ -17,19 +26,13 @@
 /* Vrui includes to use the Vrui interface */
 #include <Vrui/Vrui.h>
 
-#include "ControlPointChangedCallbackData.h"
-#include "Contours.h"
-#include "ScalarWidget.h"
-#include "ScalarWidgetControlPointChangedCallbackData.h"
-#include "ScalarWidgetStorage.h"
-
 /*
  * Contours - Constructor for Contours class.
  * 		extends GLMotif::PopupWindow
  */
-Contours::Contours(ExampleVTKReader * _ExampleVTKReader) :
+Contours::Contours(VolumeViewer * _volumeViewer) :
     GLMotif::PopupWindow("ContoursPopup", Vrui::getWidgetManager(), "Contours"),
-            exampleVTKReader(_ExampleVTKReader) {
+            volumeViewer(_volumeViewer) {
     initialize();
 }
 
@@ -83,7 +86,7 @@ void Contours::createAlphaComponent(const GLMotif::StyleSheet& styleSheet, GLMot
     alphaComponent->setControlPointSize(styleSheet.size);
     alphaComponent->setControlPointScalar(1.0f);
     alphaComponent->getControlPointChangedCallbacks().add(this, &Contours::alphaControlPointChangedCallback);
-    alphaComponent->setHistogram(this->exampleVTKReader->getHistogram());
+    alphaComponent->setHistogram(this->volumeViewer->getHistogram());
     alphaComponent->useAs1DWidget(true);
     alphaComponent->setComponent(3);
     alphaComponent->drawHistogram();
@@ -126,7 +129,7 @@ void Contours::createXContours(GLMotif::RowColumn * & xyzContoursRowColumn, cons
     xSliceValue->setPrecision(3);
     xSliceValue->setValue(0.0);
     GLMotif::Slider * xSliceSlider = new GLMotif::Slider("XSliceSlider", xyzContoursRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    xSliceSlider->setValueRange(0.0, float(exampleVTKReader->getWidth() - 1), 1.0);
+    xSliceSlider->setValueRange(0.0, float(volumeViewer->getWidth() - 1), 1.0);
     xSliceSlider->setValue(0.0);
     xSliceSlider->getValueChangedCallbacks().add(this, &Contours::sliderCallback);
 } // end createXContours()
@@ -163,7 +166,7 @@ void Contours::createYContours(GLMotif::RowColumn * & xyzContoursRowColumn, cons
     ySliceValue->setPrecision(3);
     ySliceValue->setValue(0.0);
     GLMotif::Slider * ySliceSlider = new GLMotif::Slider("YSliceSlider", xyzContoursRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    ySliceSlider->setValueRange(0.0, float(exampleVTKReader->getLength() - 1), 1.0);
+    ySliceSlider->setValueRange(0.0, float(volumeViewer->getLength() - 1), 1.0);
     ySliceSlider->setValue(0.0);
     ySliceSlider->getValueChangedCallbacks().add(this, &Contours::sliderCallback);
 } // end createYContours()
@@ -183,7 +186,7 @@ void Contours::createZContours(GLMotif::RowColumn * & xyzContoursRowColumn, cons
     zSliceValue->setPrecision(3);
     zSliceValue->setValue(0.0);
     GLMotif::Slider * zSliceSlider = new GLMotif::Slider("ZSliceSlider", xyzContoursRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    zSliceSlider->setValueRange(0.0, float(exampleVTKReader->getHeight() - 1), 1.0);
+    zSliceSlider->setValueRange(0.0, float(volumeViewer->getHeight() - 1), 1.0);
     zSliceSlider->setValue(0.0);
     zSliceSlider->getValueChangedCallbacks().add(this, &Contours::sliderCallback);
 } // end createZContours()
@@ -213,17 +216,17 @@ void Contours::removeControlPointCallback(Misc::CallbackData* _callbackData) {
 void Contours::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBackData) {
     if (strcmp(callBackData->slider->getName(), "XSliceSlider") == 0) {
         xSliceValue->setValue(callBackData->value);
-        exampleVTKReader->setXContourSlice(int(callBackData->value));
+        volumeViewer->setXContourSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "YSliceSlider") == 0) {
         ySliceValue->setValue(callBackData->value);
-        exampleVTKReader->setYContourSlice(int(callBackData->value));
+        volumeViewer->setYContourSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "ZSliceSlider") == 0) {
         zSliceValue->setValue(callBackData->value);
-        exampleVTKReader->setZContourSlice(int(callBackData->value));
+        volumeViewer->setZContourSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
 } // end sliderCallback()
@@ -236,13 +239,13 @@ void Contours::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBa
 void Contours::toggleSelectCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData) {
     /* Adjust gui/program state based on which toggle button changed state: */
     if (strcmp(callBackData->toggle->getName(), "ShowXSliceToggle") == 0) {
-        exampleVTKReader->showXContourSlice(callBackData->set);
+        volumeViewer->showXContourSlice(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowYSliceToggle") == 0) {
-        exampleVTKReader->showYContourSlice(callBackData->set);
+        volumeViewer->showYContourSlice(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowZSliceToggle") == 0) {
-        exampleVTKReader->showZContourSlice(callBackData->set);
+        volumeViewer->showZContourSlice(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowContoursToggle") == 0) {
-        exampleVTKReader->setContourVisible(callBackData->set);
+        volumeViewer->setContourVisible(callBackData->set);
     }
     Vrui::requestUpdate();
 } // end toggleSelectCallback()

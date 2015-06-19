@@ -8,18 +8,18 @@
 namespace Vrui {
 class LocatorTool;
 }
-class ExampleVTKReader;
+class VolumeViewer;
 // end Forward Declarations
 class BaseLocator : public Vrui::LocatorToolAdapter {
 public:
-	BaseLocator(Vrui::LocatorTool* _locatorTool, ExampleVTKReader* _application);
+	BaseLocator(Vrui::LocatorTool* _locatorTool, VolumeViewer* _volumeViewer);
 	~BaseLocator();
 	virtual void highlightLocator(GLContextData& contextData) const;
 	virtual void glRenderAction(GLContextData& contextData) const;
 	virtual void glRenderActionTransparent(GLContextData& contextData) const;
         virtual void getName(std::string& name) const; // Returns a descriptive name for the tool adapter
 private:
-	ExampleVTKReader* application;
+	VolumeViewer* volumeViewer;
 };
 
 #endif /*BASELOCATOR_H_*/

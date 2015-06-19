@@ -14,19 +14,18 @@
 #include <Misc/CallbackData.h>
 #include <Misc/CallbackList.h>
 
-#include "ExampleVTKReader.h"
-
 // begin Forward Declarations
 class ColorMap;
+class VolumeViewer;
 class Storage;
 class SwatchesWidget;
 // end Forward Declarations
 
 class Slices: public GLMotif::PopupWindow {
 public:
-    ExampleVTKReader * exampleVTKReader;
+    VolumeViewer * volumeViewer;
 
-    Slices(double* _sliceColormap, ExampleVTKReader * _ExampleVTKReader);
+    Slices(double* _sliceColormap, VolumeViewer * _volumeViewer);
     virtual ~Slices(void);
     void changeSlicesColorMap(int colormap) const;
     void changeSlicesColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData * callBackData);

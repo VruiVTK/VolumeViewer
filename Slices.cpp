@@ -1,3 +1,13 @@
+// VolumeViewer includes
+#include "VolumeViewer.h"
+
+#include "ColorMap.h"
+#include "ControlPointChangedCallbackData.h"
+#include "RGBAColor.h"
+#include "Storage.h"
+#include "Slices.h"
+#include "SwatchesWidget.h"
+
 #include <iostream>
 #include <GL/GLColor.h>
 #include <GLMotif/Button.h>
@@ -10,20 +20,13 @@
 /* Vrui includes to use the Vrui interface */
 #include <Vrui/Vrui.h>
 
-#include "ColorMap.h"
-#include "ControlPointChangedCallbackData.h"
-#include "RGBAColor.h"
-#include "Storage.h"
-#include "Slices.h"
-#include "SwatchesWidget.h"
-
 /*
  * Slices - Constructor for Slices class.
  * 		extends GLMotif::PopupWindow
  */
-Slices::Slices(double* _sliceColormap, ExampleVTKReader * _ExampleVTKReader) :
+Slices::Slices(double* _sliceColormap, VolumeViewer * _volumeViewer) :
     GLMotif::PopupWindow("SlicesPopup", Vrui::getWidgetManager(), "Slices"), sliceColormap(_sliceColormap),
-            exampleVTKReader(_ExampleVTKReader) {
+            volumeViewer(_volumeViewer) {
     initialize();
 }
 
@@ -52,7 +55,7 @@ void Slices::changeSlicesColorMapCallback(GLMotif::RadioBox::ValueChangedCallbac
     int value = callBackData->radioBox->getToggleIndex(callBackData->newSelectedToggle);
     changeSlicesColorMap(value);
     exportSlicesColorMap(sliceColormap);
-    exampleVTKReader->updateSliceColorMap(sliceColormap);
+    volumeViewer->updateSliceColorMap(sliceColormap);
     Vrui::requestUpdate();
 } // end changeSlicesColorMapCallback()
 
@@ -305,7 +308,7 @@ void Slices::createXSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMo
     xSliceValue->setPrecision(3);
     xSliceValue->setValue(0.0);
     GLMotif::Slider * xSliceSlider = new GLMotif::Slider("XSliceSlider", xyzSlicesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    xSliceSlider->setValueRange(0.0, float(exampleVTKReader->getWidth() - 1), 1.0);
+    xSliceSlider->setValueRange(0.0, float(volumeViewer->getWidth() - 1), 1.0);
     xSliceSlider->setValue(0.0);
     xSliceSlider->getValueChangedCallbacks().add(this, &Slices::sliderCallback);
 } // end createXSlices()
@@ -342,7 +345,7 @@ void Slices::createYSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMo
     ySliceValue->setPrecision(3);
     ySliceValue->setValue(0.0);
     GLMotif::Slider * ySliceSlider = new GLMotif::Slider("YSliceSlider", xyzSlicesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    ySliceSlider->setValueRange(0.0, float(exampleVTKReader->getLength() - 1), 1.0);
+    ySliceSlider->setValueRange(0.0, float(volumeViewer->getLength() - 1), 1.0);
     ySliceSlider->setValue(0.0);
     ySliceSlider->getValueChangedCallbacks().add(this, &Slices::sliderCallback);
 } // end createYSlices()
@@ -362,7 +365,7 @@ void Slices::createZSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMo
     zSliceValue->setPrecision(3);
     zSliceValue->setValue(0.0);
     GLMotif::Slider * zSliceSlider = new GLMotif::Slider("ZSliceSlider", xyzSlicesRowColumn, GLMotif::Slider::HORIZONTAL, styleSheet.fontHeight * 10.0f);
-    zSliceSlider->setValueRange(0.0, float(exampleVTKReader->getHeight() - 1), 1.0);
+    zSliceSlider->setValueRange(0.0, float(volumeViewer->getHeight() - 1), 1.0);
     zSliceSlider->setValue(0.0);
     zSliceSlider->getValueChangedCallbacks().add(this, &Slices::sliderCallback);
 } // end createZSlices()
@@ -458,7 +461,7 @@ void Slices::removeControlPointCallback(Misc::CallbackData* _callbackData) {
  */
 void Slices::sliceColorMapChangedCallback(Misc::CallbackData * callBackData) {
     exportSlicesColorMap(sliceColormap);
-    exampleVTKReader->updateSliceColorMap(sliceColormap);
+    volumeViewer->updateSliceColorMap(sliceColormap);
     Vrui::requestUpdate();
 } // end sliceColorMapChangedCallback()
 
@@ -470,17 +473,17 @@ void Slices::sliceColorMapChangedCallback(Misc::CallbackData * callBackData) {
 void Slices::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBackData) {
     if (strcmp(callBackData->slider->getName(), "XSliceSlider") == 0) {
         xSliceValue->setValue(callBackData->value);
-        exampleVTKReader->setXSlice(int(callBackData->value));
+        volumeViewer->setXSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "YSliceSlider") == 0) {
         ySliceValue->setValue(callBackData->value);
-        exampleVTKReader->setYSlice(int(callBackData->value));
+        volumeViewer->setYSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
     if (strcmp(callBackData->slider->getName(), "ZSliceSlider") == 0) {
         zSliceValue->setValue(callBackData->value);
-        exampleVTKReader->setZSlice(int(callBackData->value));
+        volumeViewer->setZSlice(int(callBackData->value));
         Vrui::requestUpdate();
     }
 } // end sliderCallback()
@@ -493,11 +496,11 @@ void Slices::sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBack
 void Slices::toggleSelectCallback(GLMotif::ToggleButton::ValueChangedCallbackData* callBackData) {
     /* Adjust gui/program state based on which toggle button changed state: */
     if (strcmp(callBackData->toggle->getName(), "ShowXSliceToggle") == 0) {
-        exampleVTKReader->showXSlice(callBackData->set);
+        volumeViewer->showXSlice(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowYSliceToggle") == 0) {
-        exampleVTKReader->showYSlice(callBackData->set);
+        volumeViewer->showYSlice(callBackData->set);
     } else if (strcmp(callBackData->toggle->getName(), "ShowZSliceToggle") == 0) {
-        exampleVTKReader->showZSlice(callBackData->set);
+        volumeViewer->showZSlice(callBackData->set);
     }
     Vrui::requestUpdate();
 } // end toggleSelectCallback()

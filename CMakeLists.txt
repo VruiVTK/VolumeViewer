@@ -61,14 +61,14 @@ SET(${PROJECT_NAME}_SRCS
   ControlPointChangedCallbackData.h
   DataItem.cpp
   DataItem.h
-  ExampleVTKReader.cpp
-  ExampleVTKReader.h
   FreeSliceLocator.cpp
   FreeSliceLocator.h
   Gaussian.cpp
   Gaussian.h
   Isosurfaces.cpp
   Isosurfaces.h
+  Lighting.cpp
+  Lighting.h
   main.cpp
   RGBAColor.cpp
   RGBAColor.h
@@ -92,6 +92,8 @@ SET(${PROJECT_NAME}_SRCS
   SwatchesWidget.h
   TransferFunction1D.cpp
   TransferFunction1D.h
+  VolumeViewer.cpp
+  VolumeViewer.h
   )
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS})

@@ -14,19 +14,18 @@
 #include <Misc/CallbackData.h>
 #include <Misc/CallbackList.h>
 
-#include "ExampleVTKReader.h"
-
 // begin Forward Declarations
 class ColorMap;
+class VolumeViewer;
 class Storage;
 class SwatchesWidget;
 // end Forward Declarations
 
 class Isosurfaces: public GLMotif::PopupWindow {
 public:
-    ExampleVTKReader * exampleVTKReader;
+    VolumeViewer * volumeViewer;
 
-    Isosurfaces(double* _isosurfaceColormap, ExampleVTKReader * _ExampleVTKReader);
+    Isosurfaces(double* _isosurfaceColormap, VolumeViewer * _volumeViewer);
     virtual ~Isosurfaces(void);
     void changeIsosurfacesColorMap(int colormap) const;
     void changeIsosurfacesColorMapCallback(GLMotif::RadioBox::ValueChangedCallbackData * callBackData);

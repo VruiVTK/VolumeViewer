@@ -2,10 +2,10 @@
 #define __FREESLICELOCATOR_H_
 
 #include "BaseLocator.h"
-#include "ExampleVTKReader.h"
 #include <vtkSmartPointer.h>
 
 #include <Vrui/LocatorTool.h>
+#include "VolumeViewer.h"
 
 // Begin forward declarations
 class vtkLight;
@@ -15,7 +15,7 @@ class FreeSliceLocator : public BaseLocator
 {
 public:
   FreeSliceLocator(Vrui::LocatorTool* locatorTool,
-    ExampleVTKReader * ExampleVTKReader);
+    VolumeViewer * _volumeViewer);
   ~FreeSliceLocator(void);
 
   virtual void buttonPressCallback(

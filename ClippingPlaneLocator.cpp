@@ -1,3 +1,10 @@
+// VolumeViewer includes
+#include "VolumeViewer.h"
+
+#include "BaseLocator.h"
+#include "ClippingPlane.h"
+#include "ClippingPlaneLocator.h"
+
 #include <iostream>
 
 /* Vrui includes */
@@ -6,23 +13,18 @@
 #include <Geometry/Vector.h>
 #include <Geometry/OrthogonalTransformation.h>
 
-#include "BaseLocator.h"
-#include "ClippingPlane.h"
-#include "ClippingPlaneLocator.h"
-#include "ExampleVTKReader.h"
-
 /*
  * ClippingPlaneLocator - Constructor for ClippingPlaneLocator class.
  *
  * parameter locatorTool - Vrui::LocatorTool *
- * parameter ExampleVTKReader - ExampleVTKReader *
+ * parameter volumeViewer - VolumeViewer *
  */
 ClippingPlaneLocator::ClippingPlaneLocator(Vrui::LocatorTool * locatorTool,
-		ExampleVTKReader* ExampleVTKReader) :
-	BaseLocator(locatorTool, ExampleVTKReader), clippingPlane(0) {
+		VolumeViewer* volumeViewer) :
+	BaseLocator(locatorTool, volumeViewer), clippingPlane(0) {
 	/* Find a clipping plane index for this locator: */
-	ClippingPlane * clippingPlanes = ExampleVTKReader->getClippingPlanes();
-	for (int i=0; i<ExampleVTKReader->getNumberOfClippingPlanes(); ++i)
+	ClippingPlane * clippingPlanes = volumeViewer->getClippingPlanes();
+	for (int i=0; i<volumeViewer->getNumberOfClippingPlanes(); ++i)
 		if (!clippingPlanes[i].isAllocated()) {
 			clippingPlane=&clippingPlanes[i];
 			break;

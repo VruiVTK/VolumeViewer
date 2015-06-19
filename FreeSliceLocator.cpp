@@ -1,3 +1,9 @@
+/* VolumeViewer includes */
+#include "VolumeViewer.h"
+
+#include "BaseLocator.h"
+#include "FreeSliceLocator.h"
+
 #include <iostream>
 
 /* Vrui includes */
@@ -9,27 +15,22 @@
 /* VTK includes */
 #include <vtkLight.h>
 
-/* ExampleVTKReader includes */
-#include "BaseLocator.h"
-#include "FreeSliceLocator.h"
-#include "ExampleVTKReader.h"
-
 /*
  * FreeSliceLocator - Constructor for FreeSliceLocator class.
  *
  * parameter locatorTool - Vrui::LocatorTool *
- * parameter ExampleVTKReader - ExampleVTKReader *
+ * parameter volumeViewer - VolumeViewer *
  */
 FreeSliceLocator::FreeSliceLocator(Vrui::LocatorTool * locatorTool,
-  ExampleVTKReader* ExampleVTKReader) :
-  BaseLocator(locatorTool, ExampleVTKReader),
+  VolumeViewer* _volumeViewer) :
+  BaseLocator(locatorTool, _volumeViewer),
   FreeSliceVisibility(0),
   FreeSliceOrigin(0),
   FreeSliceNormal(0)
 {
-  this->FreeSliceVisibility = ExampleVTKReader->getFreeSliceVisibility();
-  this->FreeSliceOrigin = ExampleVTKReader->getFreeSliceOrigin();
-  this->FreeSliceNormal = ExampleVTKReader->getFreeSliceNormal();
+  this->FreeSliceVisibility = _volumeViewer->getFreeSliceVisibility();
+  this->FreeSliceOrigin = _volumeViewer->getFreeSliceOrigin();
+  this->FreeSliceNormal = _volumeViewer->getFreeSliceNormal();
 } // end FreeSliceLocator()
 
 /*

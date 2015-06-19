@@ -4,6 +4,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkContourFilter.h>
 #include <vtkCutter.h>
+#include <vtkExternalLight.h>
 #include <vtkImageProperty.h>
 #include <vtkImageResample.h>
 #include <vtkImageResliceMapper.h>
@@ -17,21 +18,31 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-// ExampleVTKReader includes
+// VolumeViewer includes
 #include "DataItem.h"
 
 //----------------------------------------------------------------------------
-ExampleVTKReader::DataItem::DataItem(void)
+VolumeViewer::DataItem::DataItem(void)
 {
   this->extract = vtkSmartPointer<vtkImageResample>::New();
   /* Initialize VTK renderwindow and renderer */
   this->externalVTKWidget = vtkSmartPointer<ExternalVTKWidget>::New();
 
   /* Use depth peeling to enable transparency */
-  vtkRenderer* renderer = this->externalVTKWidget->AddRenderer();
+  vtkExternalOpenGLRenderer* renderer = this->externalVTKWidget->AddRenderer();
+  //vtkRenderer* renderer = this->externalVTKWidget->AddRenderer();
   renderer->SetUseDepthPeeling(1);
   renderer->SetMaximumNumberOfPeels(4);
   renderer->SetOcclusionRatio(0.1);
+
+  // Add external light to tweak the intensity and color of externally
+  // created headlight
+  // NOTE: We know that VRUI creates a headlight with index GL_LIGHT0
+  this->externalLight = vtkSmartPointer<vtkExternalLight>::New();
+  this->externalLight->SetLightIndex(GL_LIGHT0);
+  this->externalLight->SetIntensity(1.0);
+  this->externalLight->SetDiffuseColor(1.0, 1.0, 1.0);
+  renderer->AddExternalLight(this->externalLight);
 
   this->actor = vtkSmartPointer<vtkActor>::New();
   this->lowActor = vtkSmartPointer<vtkActor>::New();
@@ -177,6 +188,6 @@ ExampleVTKReader::DataItem::DataItem(void)
 }
 
 //----------------------------------------------------------------------------
-ExampleVTKReader::DataItem::~DataItem(void)
+VolumeViewer::DataItem::~DataItem(void)
 {
 }

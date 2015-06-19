@@ -1,13 +1,11 @@
 #ifndef _DATAITEM_H
 #define _DATAITEM_H
+// VolumeViewer includes
+#include "VolumeViewer.h"
 
 // OpenGL/Motif includes
 #include <GL/GLObject.h>
 
-// ExampleVTKReader includes
-#include "ExampleVTKReader.h"
-
-// VTK includes
 #include <vtkSmartPointer.h>
 
 // Forward declarations
@@ -16,6 +14,7 @@ class vtkActor;
 class vtkColorTransferFunction;
 class vtkContourFilter;
 class vtkCutter;
+class vtkExternalLight;
 class vtkImageProperty;
 class vtkImageResample;
 class vtkImageResliceMapper;
@@ -30,12 +29,13 @@ class vtkSmartVolumeMapper;
 class vtkVolume;
 class vtkVolumeProperty;
 
-struct ExampleVTKReader::DataItem : public GLObject::DataItem
+struct VolumeViewer::DataItem : public GLObject::DataItem
 {
 /* Elements */
 public:
   /* VTK components */
   vtkSmartPointer<ExternalVTKWidget> externalVTKWidget;
+  vtkSmartPointer<vtkExternalLight> externalLight;
   vtkSmartPointer<vtkActor> actor;
   vtkSmartPointer<vtkActor> actorAContour;
   vtkSmartPointer<vtkActor> actorBContour;

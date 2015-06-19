@@ -17,11 +17,11 @@ class ColorMap;
 class ScalarWidget;
 class Storage;
 class SwatchesWidget;
-class ExampleVTKReader;
+class VolumeViewer;
 
 class TransferFunction1D: public GLMotif::PopupWindow {
 public:
-    TransferFunction1D(ExampleVTKReader * exampleVTKReader);
+    TransferFunction1D(VolumeViewer * volumeViewer);
     virtual ~TransferFunction1D(void);
     void changeAlpha(int ramp) const;
     void changeColorMap(int colormap) const;
@@ -45,7 +45,7 @@ private:
     bool interactive;
     GLMotif::ToggleButton* interactiveToggleButton;
     SwatchesWidget * swatchesWidget;
-    ExampleVTKReader * exampleVTKReader;
+    VolumeViewer * volumeViewer;
     void colorMapChangedCallback(Misc::CallbackData* _callbackData);
     void colorSliderCallback(Misc::CallbackData* _callbackData);
     void colorSwatchesWidgetCallback(Misc::CallbackData* _callbackData);

@@ -1,24 +1,25 @@
-#include <Vrui/LocatorTool.h>
-
+// VolumeViewer includes
+#include "VolumeViewer.h"
 #include "BaseLocator.h"
-#include "ExampleVTKReader.h"
+
+#include <Vrui/LocatorTool.h>
 
 /*
  * BaseLocator
  *
  * parameter _locatorTool - Vrui::LocatorTool*
- * parameter _application - ExampleVTKReader*
+ * parameter _volumeViewer - VolumeViewer*
  */
-BaseLocator::BaseLocator(Vrui::LocatorTool* _locatorTool, ExampleVTKReader* _application) :
+BaseLocator::BaseLocator(Vrui::LocatorTool* _locatorTool, VolumeViewer* _volumeViewer) :
 	Vrui::LocatorToolAdapter(_locatorTool) {
-	application = _application;
+	volumeViewer = _volumeViewer;
 } // end BaseLocator()
 
 /*
  * ~BaseLocator - Destructor
  */
 BaseLocator::~BaseLocator(void) {
-	application = 0;
+	volumeViewer = 0;
 } // end ~BaseLocator()
 
 /*

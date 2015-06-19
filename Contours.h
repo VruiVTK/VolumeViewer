@@ -25,17 +25,16 @@
 #include <Misc/CallbackData.h>
 #include <Misc/CallbackList.h>
 
-#include "ExampleVTKReader.h"
-
 // begin Forward Declarations
 class ScalarWidget;
+class VolumeViewer;
 // end Forward Declarations
 
 class Contours: public GLMotif::PopupWindow {
 public:
-    ExampleVTKReader * exampleVTKReader;
+    VolumeViewer * volumeViewer;
 
-    Contours(ExampleVTKReader * _ExampleVTKReader);
+    Contours(VolumeViewer * _volumeViewer);
     virtual ~Contours(void);
     void sliderCallback(GLMotif::Slider::ValueChangedCallbackData * callBackData);
     void toggleSelectCallback(GLMotif::ToggleButton::ValueChangedCallbackData * callBackData);
