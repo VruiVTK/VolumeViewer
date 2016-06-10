@@ -14,6 +14,8 @@ void printUsage(void)
   std::cout << "\tName of VTK file to load using VTK.\n" << std::endl;
   std::cout << "\t-r <digit>, -renderMode <digit>" << std::endl;
   std::cout << "\tRender mode to request for vtkSmartVolumeMapper.\n" << std::endl;
+  std::cout << "\t-showfps" << std::endl;
+  std::cout << "\tShow the FPS display by default.\n" << std::endl;
   std::cout << "\t-h, -help" << std::endl;
   std::cout << "\tDisplay this usage information and exit." << std::endl;
   std::cout << "\nAdditionally, all the commandline switches the VRUI " <<
@@ -34,6 +36,7 @@ int main(int argc, char* argv[])
   try
     {
     std::string name;
+    bool showFPS = false;
     int renderMode = -1;
     bool verbose = false;
     if(argc > 1)
@@ -50,6 +53,10 @@ int main(int argc, char* argv[])
           {
           renderMode = atoi(argv[i+1]);
           ++i;
+          }
+        if(strcmp(argv[i], "-showfps")==0)
+          {
+          showFPS = true;
           }
         if(strcmp(argv[i],"-h")==0 || strcmp(argv[i], "-help")==0)
           {
@@ -73,6 +80,8 @@ int main(int argc, char* argv[])
       {
       application.setRequestedRenderMode(renderMode);
       }
+    application.setShowFPS(showFPS);
+    application.initialize();
     application.run();
     return 0;
     }

@@ -7,6 +7,8 @@
 // OpenGL/Motif includes
 #include <GL/gl.h>
 
+#include <vvApplication.h>
+
 // Vrui includes
 #include <GL/GLObject.h>
 #include <GLMotif/PopupWindow.h>
@@ -33,6 +35,7 @@ class ExternalVTKWidget;
 class Isosurfaces;
 class Slices;
 class TransferFunction1D;
+class volApplicationState;
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkContourFilter;
@@ -48,12 +51,14 @@ class vtkProperty;
 class vtkVolume;
 class vtkVolumeProperty;
 
-class ExampleVTKReader:public Vrui::Application,public GLObject
+class ExampleVTKReader : public vvApplication
 {
 /* Embedded classes: */
   typedef std::vector<BaseLocator*> BaseLocatorList;
 private:
   struct DataItem;
+
+  volApplicationState &m_volState;
 
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
@@ -69,7 +74,6 @@ private:
   GLMotif::TextField* resolutionValue;
 
   bool lowResolution;
-  int sampling;
   /* Name of file to load */
   char* FileName;
 
@@ -81,15 +85,6 @@ private:
 
   /* Representation Type */
   int RepresentationType;
-
-//  vtkSmartPointer<vtkLookupTable> modelLUT;
-
-  int* DataDimensions;
-  double* DataBounds;
-  int* DataExtent;
-  double* DataOrigin;
-  double* DataSpacing;
-  double* DataScalarRange;
 
   double xCenter;
   double yCenter;
@@ -122,8 +117,6 @@ private:
   bool Volume;
 
   double* VolumeColormap;
-//  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
-//  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
   TransferFunction1D* transferFunctionDialog;
 
   bool XSlice;
@@ -135,7 +128,6 @@ private:
   bool ZContourSlice;
 
   double* SliceColormap;
-//  vtkSmartPointer<vtkLookupTable> sliceLUT;
   Slices* slicesDialog;
 
   bool AIsosurface;
@@ -143,7 +135,6 @@ private:
   bool CIsosurface;
 
   double* IsosurfaceColormap;
-//  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
   Isosurfaces* isosurfacesDialog;
 
   /* Contours */
@@ -154,12 +145,6 @@ private:
 
   /* First Frame */
   bool FirstFrame;
-
-  /* Data Center */
-  Vrui::Point Center;
-
-  /* Data Radius  */
-  Vrui::Scalar Radius;
 
   BaseLocatorList baseLocators;
 
@@ -173,11 +158,6 @@ private:
   /* Verbose */
   bool Verbose;
 
-  /* Flashlight position and direction */
-  int * FlashlightSwitch;
-  double * FlashlightPosition;
-  double * FlashlightDirection;
-
   /* Free Slice visibility, origin and normal */
   int * FreeSliceVisibility;
   double * FreeSliceOrigin;
@@ -185,6 +165,8 @@ private:
   vtkSmartPointer<vtkPlane> freeSlicePlane;
 
 public:
+  using Superclass = vvApplication;
+
   /* Constructors and destructors: */
   ExampleVTKReader(int& argc,char**& argv);
   virtual ~ExampleVTKReader(void);
@@ -219,12 +201,12 @@ public:
   double * getFreeSliceOrigin(void);
   double * getFreeSliceNormal(void);
 
-  void initialize(void);
+  void initialize() override;
 
   /* Methods to manage render context */
-  virtual void initContext(GLContextData& contextData) const;
-  virtual void display(GLContextData& contextData) const;
-  virtual void frame(void);
+  void initContext(GLContextData& contextData) const override;
+  void display(GLContextData& contextData) const override;
+  void frame() override;
 
   /* Callback methods */
   void centerDisplayCallback(Misc::CallbackData* cbData);
@@ -287,6 +269,9 @@ public:
   float getDataMaximum(void);
   float getDataIncrement(void);
   float getDataMidPoint(void);
+
+protected:
+  vvContextState* createContextState() const override;
 };
 
 #endif //_EXAMPLEVTKREADER_H

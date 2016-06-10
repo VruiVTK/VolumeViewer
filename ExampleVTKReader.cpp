@@ -58,83 +58,68 @@
 #include "ClippingPlaneLocator.h"
 #include "ColorMap.h"
 #include "Contours.h"
-#include "DataItem.h"
 #include "ExampleVTKReader.h"
 #include "Isosurfaces.h"
 #include "FreeSliceLocator.h"
 #include "ScalarWidget.h"
 #include "Slices.h"
 #include "TransferFunction1D.h"
+#include "volApplicationState.h"
+#include "volContextState.h"
+#include "volReader.h"
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
-  :Vrui::Application(argc,argv),
-  aIsosurface(0),
-  AIsosurface(false),
-  analysisTool(0),
-  bIsosurface(0),
-  BIsosurface(false),
-  cIsosurface(0),
-  CIsosurface(false),
-  ClippingPlanes(NULL),
-  ContoursDialog(NULL),
-  ContourVisible(true),
-  FileName(0),
-  FirstFrame(true),
-  FreeSliceNormal(0),
-  FreeSliceOrigin(0),
-  FreeSliceVisibility(0),
-  lowResolution(true),
-  mainMenu(NULL),
-  NumberOfClippingPlanes(6),
-  Opacity(1.0),
-  opacityValue(NULL),
-  Outline(true),
-  renderingDialog(NULL),
-  RepresentationType(2),
-  RequestedRenderMode(3),
-  resolutionValue(NULL),
-  sampling(4),
-  slicesDialog(NULL),
-  transferFunctionDialog(NULL),
-  Verbose(false),
-  Volume(false),
-  xCenter(0),
-  xContourSlice(0),
-  XContourSlice(false),
-  xOrigin(0),
-  xSlice(0),
-  XSlice(false),
-  yCenter(0),
-  yContourSlice(0),
-  YContourSlice(false),
-  yOrigin(0),
-  ySlice(0),
-  YSlice(false),
-  zCenter(0),
-  zContourSlice(0),
-  ZContourSlice(false),
-  zOrigin(0),
-  zSlice(0),
-  ZSlice(false)
+  : Superclass(argc, argv, new volApplicationState),
+    m_volState(*static_cast<volApplicationState*>(m_state)),
+    aIsosurface(0),
+    AIsosurface(false),
+    analysisTool(0),
+    bIsosurface(0),
+    BIsosurface(false),
+    cIsosurface(0),
+    CIsosurface(false),
+    ClippingPlanes(NULL),
+    ContoursDialog(NULL),
+    ContourVisible(true),
+    FileName(0),
+    FirstFrame(true),
+    FreeSliceNormal(0),
+    FreeSliceOrigin(0),
+    FreeSliceVisibility(0),
+    lowResolution(true),
+    mainMenu(NULL),
+    NumberOfClippingPlanes(6),
+    Opacity(1.0),
+    opacityValue(NULL),
+    Outline(true),
+    renderingDialog(NULL),
+    RepresentationType(2),
+    RequestedRenderMode(3),
+    resolutionValue(NULL),
+    slicesDialog(NULL),
+    transferFunctionDialog(NULL),
+    Verbose(false),
+    Volume(false),
+    xCenter(0),
+    xContourSlice(0),
+    XContourSlice(false),
+    xOrigin(0),
+    xSlice(0),
+    XSlice(false),
+    yCenter(0),
+    yContourSlice(0),
+    YContourSlice(false),
+    yOrigin(0),
+    ySlice(0),
+    YSlice(false),
+    zCenter(0),
+    zContourSlice(0),
+    ZContourSlice(false),
+    zOrigin(0),
+    zSlice(0),
+    ZSlice(false)
 {
-  /* Set Window properties:
-   * Since the application requires translucency, GLX_ALPHA_SIZE is set to 1 at
-   * context (VRWindow) creation time. To do this, we set the 4th component of
-   * ColorBufferSize in WindowProperties to 1. This should be done in the
-   * constructor to make sure it is set before the main loop is called.
-   */
-  Vrui::WindowProperties properties;
-  properties.setColorBufferSize(0,1);
-  Vrui::requestWindowProperties(properties);
-
-  this->DataDimensions = new int[3];
-  this->DataBounds = new double[6];
-  this->DataExtent = new int[6];
-  this->DataOrigin = new double[6];
-  this->DataSpacing = new double[3];
-  this->DataScalarRange = new double[2];
-
   this->FreeSliceVisibility = new int[1];
   this->FreeSliceVisibility[0] = 0;
   this->FreeSliceOrigin = new double[3];
@@ -185,36 +170,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     ClippingPlanes[i].setAllocated(false);
     ClippingPlanes[i].setActive(false);
     }
-  initialize();
 }
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::~ExampleVTKReader(void)
 {
-  if(this->DataDimensions)
-    {
-    delete[] this->DataDimensions;
-    }
-  if(this->DataBounds)
-    {
-    delete[] this->DataBounds;
-    }
-  if(this->DataExtent)
-    {
-    delete[] this->DataExtent;
-    }
-  if(this->DataOrigin)
-    {
-    delete[] this->DataOrigin;
-    }
-  if(this->DataSpacing)
-    {
-    delete[] this->DataSpacing;
-    }
-  if(this->DataScalarRange)
-    {
-    delete[] this->DataScalarRange;
-    }
   if(this->VolumeColormap)
     {
     delete[] this->VolumeColormap;
@@ -240,20 +200,43 @@ ExampleVTKReader::~ExampleVTKReader(void)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::initialize(void)
 {
-    /* Create the user interface: */
+  this->Superclass::initialize();
+
+  // Start async file read.
+  m_volState.reader().setFileName(this->FileName);
+  m_volState.reader().update(m_volState);
+
+  /* Create the user interface: */
   renderingDialog = createRenderingDialog();
-  mainMenu=createMainMenu();
+  mainMenu = createMainMenu();
   Vrui::setMainMenu(mainMenu);
+
+  // TODO This is ugly, it'd be great to find a way around this.
+  // Force sync reader output:
+  while (m_volState.reader().running(std::chrono::seconds(1)))
+    {
+    std::cout << "Waiting for initial file read to complete..." << std::endl;
+    }
+
+  // Update cached data object, start reducer
+  m_volState.reader().update(m_volState);
+
+  // Wait for reduced data, too
+  while (m_volState.reader().reducing(std::chrono::seconds(1)))
+    {
+    std::cout << "Waiting for initial file read to complete..." << std::endl;
+    }
+  m_volState.reader().update(m_volState); // Update cached data object
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setFileName(const char* name)
 {
-  if(this->FileName && name && (!strcmp(this->FileName, name)))
+  if (this->FileName && name && (!strcmp(this->FileName, name)))
     {
     return;
     }
-  if(this->FileName && name)
+  if (this->FileName)
     {
     delete [] this->FileName;
     }
@@ -536,12 +519,14 @@ GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void)
   GLMotif::Label* sampling_Label = new GLMotif::Label("Sampling", dialog,"Sampling:");
   GLMotif::Slider * resolutionSlider = new GLMotif::Slider("ResolutionSlider", dialog, GLMotif::Slider::HORIZONTAL, ss.fontHeight * 10.0f);
   resolutionSlider->setValueRange(1.0, 8.0, 1.0);
-  resolutionSlider->setValue(float(this->sampling));
+  resolutionSlider->setValue(static_cast<float>(
+                               m_volState.reader().sampleRate()));
   resolutionSlider->getValueChangedCallbacks().add(this, &ExampleVTKReader::changeSamplingCallback);
   resolutionValue = new GLMotif::TextField("ResolutionValue", dialog, 6);
   resolutionValue->setFieldWidth(6);
   resolutionValue->setPrecision(1);
-  resolutionValue->setValue(float(this->sampling));
+  resolutionValue->setValue(static_cast<float>(
+                              m_volState.reader().sampleRate()));
   dialog->manageChild();
 
   return dialogPopup;
@@ -577,65 +562,55 @@ void ExampleVTKReader::frame(void)
       &ExampleVTKReader::contourValueChangedCallback);
 
     /* Compute the data center and Radius once */
-    this->xCenter = (this->DataBounds[0] + this->DataBounds[1])/2.0;
-    this->yCenter = (this->DataBounds[2] + this->DataBounds[3])/2.0;
-    this->zCenter = (this->DataBounds[4] + this->DataBounds[5])/2.0;
-    this->xOrigin = this->DataBounds[0];
-    this->yOrigin = this->DataBounds[2];
-    this->zOrigin = this->DataBounds[4];
-    this->Center[0] = this->xCenter;
-    this->Center[1] = this->yCenter;
-    this->Center[2] = this->zCenter;
+    std::array<double, 3> center;
+    m_volState.reader().bounds().GetCenter(center.data());
+    const double *origin = m_volState.reader().bounds().GetMinPoint();
+    this->xCenter = center[0];
+    this->yCenter = center[1];
+    this->zCenter = center[2];
+    this->xOrigin = origin[0];
+    this->yOrigin = origin[1];
+    this->zOrigin = origin[2];
 
-    this->Radius = sqrt((this->DataBounds[1] - this->DataBounds[0])*
-                        (this->DataBounds[1] - this->DataBounds[0]) +
-                        (this->DataBounds[3] - this->DataBounds[2])*
-                        (this->DataBounds[3] - this->DataBounds[2]) +
-                        (this->DataBounds[5] - this->DataBounds[4])*
-                        (this->DataBounds[5] - this->DataBounds[4]));
-    /* Scale the Radius */
-    this->Radius *= 0.75;
     /* Initialize Vrui navigation transformation: */
     centerDisplayCallback(0);
 
+    std::array<double, 3> spacing = m_volState.reader().spacing();
     this->xPlane->SetOrigin(this->xOrigin + (
-        this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+        this->xSlice * spacing[0]), this->yCenter, this->zCenter);
     this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (
-        this->ySlice * this->DataSpacing[1]), this->zCenter);
+        this->ySlice * spacing[1]), this->zCenter);
     this->zPlane->SetOrigin(this->xCenter, this->yCenter,
-      this->zOrigin + (this->zSlice * this->DataSpacing[2]));
+      this->zOrigin + (this->zSlice * spacing[2]));
     this->xContourPlane->SetOrigin(this->xOrigin + (
-        this->xContourSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+        this->xContourSlice * spacing[0]), this->yCenter, this->zCenter);
     this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin + (
-        this->yContourSlice * this->DataSpacing[1]), this->zCenter);
+        this->yContourSlice * spacing[1]), this->zCenter);
     this->zContourPlane->SetOrigin(this->xCenter, this->yCenter,
-      this->zOrigin + (this->zContourSlice * this->DataSpacing[2]));
+      this->zOrigin + (this->zContourSlice * spacing[2]));
     this->aIsosurface = this->getDataMidPoint();
     this->bIsosurface = this->getDataMidPoint();
     this->cIsosurface = this->getDataMidPoint();
     this->FirstFrame = false;
     }
+
+  this->Superclass::frame();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::initContext(GLContextData& contextData) const
 {
-  // The VTK OpenGL2 backend seems to require this:
-  GLenum glewInitResult = glewInit();
-  if (glewInitResult != GLEW_OK)
-    {
-    std::cerr << "Error: Could not initialize GLEW (glewInit() returned: "
-      << glewInitResult << ")." << std::endl;
-    }
+  this->Superclass::initContext(contextData);
 
-  /* Create a new context data item */
-  DataItem* dataItem = new DataItem();
-  contextData.addDataItem(this, dataItem);
+  // Created by superclass:
+  volContextState *context =
+      contextData.retrieveDataItem<volContextState>(this);
+  assert("volContextState initialized by vvApplication." && context);
 
   vtkNew<vtkDataSetMapper> mapper;
   vtkNew<vtkDataSetMapper> lowMapper;
-  dataItem->actor->SetMapper(mapper.GetPointer());
-  dataItem->lowActor->SetMapper(lowMapper.GetPointer());
+  context->actor->SetMapper(mapper.GetPointer());
+  context->lowActor->SetMapper(lowMapper.GetPointer());
 
   vtkNew<vtkOutlineFilter> dataOutline;
   vtkNew<vtkOutlineFilter> lowDataOutline;
@@ -643,298 +618,229 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   vtkNew<vtkSmartVolumeMapper> mapperVolume;
   vtkNew<vtkSmartVolumeMapper> lowMapperVolume;
 
-  if(this->FileName)
+  // TODO refactor these to use vvGLObjects:
+  mapper->SetInputData(m_volState.reader().typedDataObject());
+  lowMapper->SetInputData(m_volState.reader().typedReducedDataObject());
+
+  dataOutline->SetInputData(m_volState.reader().dataObject());
+  lowDataOutline->SetInputData(m_volState.reader().reducedDataObject());
+
+  mapperVolume->SetInputData(m_volState.reader().typedDataObject());
+  lowMapperVolume->SetInputData(m_volState.reader().typedReducedDataObject());
+
+  context->xCutter->SetInputData(m_volState.reader().dataObject());
+  context->lowXCutter->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->yCutter->SetInputData(m_volState.reader().dataObject());
+  context->lowYCutter->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->zCutter->SetInputData(m_volState.reader().dataObject());
+  context->lowZCutter->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->aContour->SetInputData(m_volState.reader().dataObject());
+  context->lowAContour->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->bContour->SetInputData(m_volState.reader().dataObject());
+  context->lowBContour->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->cContour->SetInputData(m_volState.reader().dataObject());
+  context->lowCContour->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->contourFilter->SetInputData(m_volState.reader().dataObject());
+  context->lowContourFilter->SetInputData(m_volState.reader().reducedDataObject());
+
+  context->freeSliceCutter->SetInputData(m_volState.reader().dataObject());
+  context->lowFreeSliceCutter->SetInputData(m_volState.reader().reducedDataObject());
+
+  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
+  std::array<int, 3> dims = m_volState.reader().dimensions();
+
+  vtkImageData *imageData = m_volState.reader().typedDataObject();
+  for (int i = 0; i < dims[0]; ++i)
     {
-    vtkNew<vtkXMLImageDataReader> reader;
-    reader->SetFileName(this->FileName);
-    reader->Update();
-
-    reader->GetOutput()->GetDimensions(this->DataDimensions);
-    reader->GetOutput()->GetBounds(this->DataBounds);
-    reader->GetOutput()->GetOrigin(this->DataOrigin);
-    reader->GetOutput()->GetExtent(this->DataExtent);
-    reader->GetOutput()->GetSpacing(this->DataSpacing);
-    reader->GetOutput()->GetScalarRange(this->DataScalarRange);
-
-    dataItem->extract->SetInputConnection(reader->GetOutputPort());
-    dataItem->extract->SetVOI(0, this->DataDimensions[0], 0, this->DataDimensions[1], 0, this->DataDimensions[2]);
-    dataItem->extract->SetSampleRate(this->sampling, this->sampling, this->sampling);
-
-    mapper->SetInputConnection(reader->GetOutputPort());
-    lowMapper->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataOutline->SetInputConnection(reader->GetOutputPort());
-    lowDataOutline->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    mapperVolume->SetInputConnection(reader->GetOutputPort());
-    lowMapperVolume->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->xCutter->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowXCutter->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->yCutter->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowYCutter->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->zCutter->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowZCutter->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->aContour->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowAContour->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->bContour->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowBContour->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->cContour->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowCContour->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->contourFilter->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowContourFilter->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    dataItem->freeSliceCutter->SetInputConnection(reader->GetOutputPort());
-    dataItem->lowFreeSliceCutter->SetInputConnection(dataItem->extract->GetOutputPort());
-
-    for (int i = 0; i < this->DataDimensions[0]; ++i)
+    for (int j = 0; j < dims[1]; ++j)
       {
-      for (int j = 0; j < this->DataDimensions[1]; ++j)
+      for (int k = 0; k < dims[2]; ++k)
         {
-        for (int k = 0; k < this->DataDimensions[2]; ++k)
-          {
-          unsigned char * pixel = static_cast<unsigned char *>(
-            reader->GetOutput()->GetScalarPointer(i,j,k));
-          this->Histogram[static_cast<int>(pixel[0])] += 1;
-          }
-        }
-      }
-
-    }
-  else
-    {
-    vtkNew<vtkImageData> imageData;
-    this->DataDimensions[0] = 3;
-    this->DataDimensions[1] = 3;
-    this->DataDimensions[2] = 3;
-    this->DataOrigin[0] = -1;
-    this->DataOrigin[1] = -1;
-    this->DataOrigin[2] = -1;
-    this->DataSpacing[0] = 1;
-    this->DataSpacing[1] = 1;
-    this->DataSpacing[2] = 1;
-    imageData->SetDimensions(this->DataDimensions);
-    imageData->SetOrigin(this->DataOrigin);
-    imageData->SetSpacing(this->DataSpacing);
-    imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-    imageData->GetBounds(this->DataBounds);
-    imageData->GetScalarRange(this->DataScalarRange);
-    imageData->GetExtent(this->DataExtent);
-
-    mapper->SetInputData(imageData.GetPointer());
-
-    dataOutline->SetInputData(imageData.GetPointer());
-
-    mapperVolume->SetInputData(imageData.GetPointer());
-
-    dataItem->xCutter->SetInputData(imageData.GetPointer());
-
-    dataItem->yCutter->SetInputData(imageData.GetPointer());
-
-    dataItem->zCutter->SetInputData(imageData.GetPointer());
-
-    dataItem->aContour->SetInputData(imageData.GetPointer());
-
-    dataItem->bContour->SetInputData(imageData.GetPointer());
-
-    dataItem->cContour->SetInputData(imageData.GetPointer());
-
-    dataItem->contourFilter->SetInputData(imageData.GetPointer());
-
-    dataItem->freeSliceCutter->SetInputData(imageData.GetPointer());
-
-    for (int i = 0; i < this->DataDimensions[0]; ++i)
-      {
-      for (int j = 0; j < this->DataDimensions[1]; ++j)
-        {
-        for (int k = 0; k < this->DataDimensions[2]; ++k)
-          {
-          unsigned char * pixel = static_cast<unsigned char *>(
-            imageData->GetScalarPointer(i,j,k));
-          this->Histogram[static_cast<int>(pixel[0])] += 1;
-          }
+        unsigned char *pixel =
+            static_cast<unsigned char *>(imageData->GetScalarPointer(i,j,k));
+        this->Histogram[static_cast<int>(pixel[0])] += 1;
         }
       }
     }
 
-  mapper->SetScalarRange(this->DataScalarRange);
-  mapper->SetLookupTable(dataItem->modelLUT);
+  mapper->SetScalarRange(scalarRange.data());
+  mapper->SetLookupTable(context->modelLUT);
   mapper->SetColorModeToMapScalars();
-  lowMapper->SetScalarRange(this->DataScalarRange);
-  lowMapper->SetLookupTable(dataItem->modelLUT);
+  lowMapper->SetScalarRange(scalarRange.data());
+  lowMapper->SetLookupTable(context->modelLUT);
   lowMapper->SetColorModeToMapScalars();
 
   vtkNew<vtkPolyDataMapper> mapperOutline;
   mapperOutline->SetInputConnection(dataOutline->GetOutputPort());
-  dataItem->actorOutline->SetMapper(mapperOutline.GetPointer());
-  dataItem->actorOutline->GetProperty()->SetColor(1,1,1);
+  context->actorOutline->SetMapper(mapperOutline.GetPointer());
+  context->actorOutline->GetProperty()->SetColor(1,1,1);
   vtkNew<vtkPolyDataMapper> lowMapperOutline;
   lowMapperOutline->SetInputConnection(lowDataOutline->GetOutputPort());
-  dataItem->lowActorOutline->SetMapper(lowMapperOutline.GetPointer());
-  dataItem->lowActorOutline->GetProperty()->SetColor(1,1,1);
+  context->lowActorOutline->SetMapper(lowMapperOutline.GetPointer());
+  context->lowActorOutline->GetProperty()->SetColor(1,1,1);
 
   mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
 
-  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[0], 1.0, 1.0, 1.0);
-  dataItem->colorFunction->AddRGBPoint(this->DataScalarRange[1], 0.0, 0.0, 0.0);
-  dataItem->opacityFunction->AddPoint(this->DataScalarRange[0], 0.0);
-  dataItem->opacityFunction->AddPoint(this->DataScalarRange[1], 1.0);
+  context->colorFunction->AddRGBPoint(scalarRange[0], 1.0, 1.0, 1.0);
+  context->colorFunction->AddRGBPoint(scalarRange[1], 0.0, 0.0, 0.0);
+  context->opacityFunction->AddPoint(scalarRange[0], 0.0);
+  context->opacityFunction->AddPoint(scalarRange[1], 1.0);
 
-  dataItem->propertyVolume->ShadeOff();
-  dataItem->propertyVolume->SetScalarOpacityUnitDistance(1.0);
-  dataItem->propertyVolume->SetColor(dataItem->colorFunction);
-  dataItem->propertyVolume->SetScalarOpacity(dataItem->opacityFunction);
-  dataItem->propertyVolume->SetInterpolationTypeToLinear();
-  dataItem->actorVolume->SetProperty(dataItem->propertyVolume);
-  dataItem->actorVolume->SetMapper(mapperVolume.GetPointer());
-  dataItem->lowPropertyVolume->ShadeOff();
-  dataItem->lowPropertyVolume->SetScalarOpacityUnitDistance(1.0);
-  dataItem->lowPropertyVolume->SetColor(dataItem->colorFunction);
-  dataItem->lowPropertyVolume->SetScalarOpacity(dataItem->opacityFunction);
-  dataItem->lowPropertyVolume->SetInterpolationTypeToLinear();
-  dataItem->lowActorVolume->SetProperty(dataItem->lowPropertyVolume);
-  dataItem->lowActorVolume->SetMapper(lowMapperVolume.GetPointer());
+  context->propertyVolume->ShadeOff();
+  context->propertyVolume->SetScalarOpacityUnitDistance(1.0);
+  context->propertyVolume->SetColor(context->colorFunction);
+  context->propertyVolume->SetScalarOpacity(context->opacityFunction);
+  context->propertyVolume->SetInterpolationTypeToLinear();
+  context->actorVolume->SetProperty(context->propertyVolume);
+  context->actorVolume->SetMapper(mapperVolume.GetPointer());
+  context->lowPropertyVolume->ShadeOff();
+  context->lowPropertyVolume->SetScalarOpacityUnitDistance(1.0);
+  context->lowPropertyVolume->SetColor(context->colorFunction);
+  context->lowPropertyVolume->SetScalarOpacity(context->opacityFunction);
+  context->lowPropertyVolume->SetInterpolationTypeToLinear();
+  context->lowActorVolume->SetProperty(context->lowPropertyVolume);
+  context->lowActorVolume->SetMapper(lowMapperVolume.GetPointer());
 
-  dataItem->xCutter->SetCutFunction(this->xPlane);
-  dataItem->xCutterMapper->SetInputConnection(dataItem->xCutter->GetOutputPort());
-  dataItem->xCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->xCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->xCutterMapper->SetColorModeToMapScalars();
-  dataItem->actorXCutter->SetMapper(dataItem->xCutterMapper);
-  dataItem->lowXCutter->SetCutFunction(this->xPlane);
-  dataItem->lowXCutterMapper->SetInputConnection(dataItem->lowXCutter->GetOutputPort());
-  dataItem->lowXCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowXCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->lowXCutterMapper->SetColorModeToMapScalars();
-  dataItem->lowActorXCutter->SetMapper(dataItem->lowXCutterMapper);
-  dataItem->yCutter->SetCutFunction(this->yPlane);
-  dataItem->yCutterMapper->SetInputConnection(dataItem->yCutter->GetOutputPort());
-  dataItem->yCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->yCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->yCutterMapper->SetColorModeToMapScalars();
-  dataItem->actorYCutter->SetMapper(dataItem->yCutterMapper);
-  dataItem->lowYCutter->SetCutFunction(this->yPlane);
-  dataItem->lowYCutterMapper->SetInputConnection(dataItem->lowYCutter->GetOutputPort());
-  dataItem->lowYCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowYCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->lowYCutterMapper->SetColorModeToMapScalars();
-  dataItem->lowActorYCutter->SetMapper(dataItem->lowYCutterMapper);
-  dataItem->zCutter->SetCutFunction(this->zPlane);
-  dataItem->zCutterMapper->SetInputConnection(dataItem->zCutter->GetOutputPort());
-  dataItem->zCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->zCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->zCutterMapper->SetColorModeToMapScalars();
-  dataItem->actorZCutter->SetMapper(dataItem->zCutterMapper);
-  dataItem->lowZCutter->SetCutFunction(this->zPlane);
-  dataItem->lowZCutterMapper->SetInputConnection(dataItem->lowZCutter->GetOutputPort());
-  dataItem->lowZCutterMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowZCutterMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->lowZCutterMapper->SetColorModeToMapScalars();
-  dataItem->lowActorZCutter->SetMapper(dataItem->lowZCutterMapper);
+  context->xCutter->SetCutFunction(this->xPlane);
+  context->xCutterMapper->SetInputConnection(context->xCutter->GetOutputPort());
+  context->xCutterMapper->SetScalarRange(scalarRange.data());
+  context->xCutterMapper->SetLookupTable(context->sliceLUT);
+  context->xCutterMapper->SetColorModeToMapScalars();
+  context->actorXCutter->SetMapper(context->xCutterMapper);
+  context->lowXCutter->SetCutFunction(this->xPlane);
+  context->lowXCutterMapper->SetInputConnection(context->lowXCutter->GetOutputPort());
+  context->lowXCutterMapper->SetScalarRange(scalarRange.data());
+  context->lowXCutterMapper->SetLookupTable(context->sliceLUT);
+  context->lowXCutterMapper->SetColorModeToMapScalars();
+  context->lowActorXCutter->SetMapper(context->lowXCutterMapper);
+  context->yCutter->SetCutFunction(this->yPlane);
+  context->yCutterMapper->SetInputConnection(context->yCutter->GetOutputPort());
+  context->yCutterMapper->SetScalarRange(scalarRange.data());
+  context->yCutterMapper->SetLookupTable(context->sliceLUT);
+  context->yCutterMapper->SetColorModeToMapScalars();
+  context->actorYCutter->SetMapper(context->yCutterMapper);
+  context->lowYCutter->SetCutFunction(this->yPlane);
+  context->lowYCutterMapper->SetInputConnection(context->lowYCutter->GetOutputPort());
+  context->lowYCutterMapper->SetScalarRange(scalarRange.data());
+  context->lowYCutterMapper->SetLookupTable(context->sliceLUT);
+  context->lowYCutterMapper->SetColorModeToMapScalars();
+  context->lowActorYCutter->SetMapper(context->lowYCutterMapper);
+  context->zCutter->SetCutFunction(this->zPlane);
+  context->zCutterMapper->SetInputConnection(context->zCutter->GetOutputPort());
+  context->zCutterMapper->SetScalarRange(scalarRange.data());
+  context->zCutterMapper->SetLookupTable(context->sliceLUT);
+  context->zCutterMapper->SetColorModeToMapScalars();
+  context->actorZCutter->SetMapper(context->zCutterMapper);
+  context->lowZCutter->SetCutFunction(this->zPlane);
+  context->lowZCutterMapper->SetInputConnection(context->lowZCutter->GetOutputPort());
+  context->lowZCutterMapper->SetScalarRange(scalarRange.data());
+  context->lowZCutterMapper->SetLookupTable(context->sliceLUT);
+  context->lowZCutterMapper->SetColorModeToMapScalars();
+  context->lowActorZCutter->SetMapper(context->lowZCutterMapper);
 
-  dataItem->aContour->SetValue(0, this->aIsosurface);
-  dataItem->aContourMapper->SetInputConnection(dataItem->aContour->GetOutputPort());
-  dataItem->aContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->aContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->aContourMapper->SetColorModeToMapScalars();
-  dataItem->actorAContour->SetMapper(dataItem->aContourMapper);
-  dataItem->lowAContour->SetValue(0, this->aIsosurface);
-  dataItem->lowAContourMapper->SetInputConnection(dataItem->lowAContour->GetOutputPort());
-  dataItem->lowAContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowAContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->lowAContourMapper->SetColorModeToMapScalars();
-  dataItem->lowActorAContour->SetMapper(dataItem->lowAContourMapper);
-  dataItem->bContour->SetValue(0, this->bIsosurface);
-  dataItem->bContourMapper->SetInputConnection(dataItem->bContour->GetOutputPort());
-  dataItem->bContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->bContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->bContourMapper->SetColorModeToMapScalars();
-  dataItem->actorBContour->SetMapper(dataItem->bContourMapper);
-  dataItem->lowBContour->SetValue(0, this->bIsosurface);
-  dataItem->lowBContourMapper->SetInputConnection(dataItem->lowBContour->GetOutputPort());
-  dataItem->lowBContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowBContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->lowBContourMapper->SetColorModeToMapScalars();
-  dataItem->lowActorBContour->SetMapper(dataItem->lowBContourMapper);
-  dataItem->cContour->SetValue(0, this->cIsosurface);
-  dataItem->cContourMapper->SetInputConnection(dataItem->cContour->GetOutputPort());
-  dataItem->cContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->cContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->cContourMapper->SetColorModeToMapScalars();
-  dataItem->actorCContour->SetMapper(dataItem->cContourMapper);
-  dataItem->lowCContour->SetValue(0, this->cIsosurface);
-  dataItem->lowCContourMapper->SetInputConnection(dataItem->lowCContour->GetOutputPort());
-  dataItem->lowCContourMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowCContourMapper->SetLookupTable(dataItem->isosurfaceLUT);
-  dataItem->lowCContourMapper->SetColorModeToMapScalars();
-  dataItem->lowActorCContour->SetMapper(dataItem->lowCContourMapper);
+  context->aContour->SetValue(0, this->aIsosurface);
+  context->aContourMapper->SetInputConnection(context->aContour->GetOutputPort());
+  context->aContourMapper->SetScalarRange(scalarRange.data());
+  context->aContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->aContourMapper->SetColorModeToMapScalars();
+  context->actorAContour->SetMapper(context->aContourMapper);
+  context->lowAContour->SetValue(0, this->aIsosurface);
+  context->lowAContourMapper->SetInputConnection(context->lowAContour->GetOutputPort());
+  context->lowAContourMapper->SetScalarRange(scalarRange.data());
+  context->lowAContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->lowAContourMapper->SetColorModeToMapScalars();
+  context->lowActorAContour->SetMapper(context->lowAContourMapper);
+  context->bContour->SetValue(0, this->bIsosurface);
+  context->bContourMapper->SetInputConnection(context->bContour->GetOutputPort());
+  context->bContourMapper->SetScalarRange(scalarRange.data());
+  context->bContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->bContourMapper->SetColorModeToMapScalars();
+  context->actorBContour->SetMapper(context->bContourMapper);
+  context->lowBContour->SetValue(0, this->bIsosurface);
+  context->lowBContourMapper->SetInputConnection(context->lowBContour->GetOutputPort());
+  context->lowBContourMapper->SetScalarRange(scalarRange.data());
+  context->lowBContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->lowBContourMapper->SetColorModeToMapScalars();
+  context->lowActorBContour->SetMapper(context->lowBContourMapper);
+  context->cContour->SetValue(0, this->cIsosurface);
+  context->cContourMapper->SetInputConnection(context->cContour->GetOutputPort());
+  context->cContourMapper->SetScalarRange(scalarRange.data());
+  context->cContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->cContourMapper->SetColorModeToMapScalars();
+  context->actorCContour->SetMapper(context->cContourMapper);
+  context->lowCContour->SetValue(0, this->cIsosurface);
+  context->lowCContourMapper->SetInputConnection(context->lowCContour->GetOutputPort());
+  context->lowCContourMapper->SetScalarRange(scalarRange.data());
+  context->lowCContourMapper->SetLookupTable(context->isosurfaceLUT);
+  context->lowCContourMapper->SetColorModeToMapScalars();
+  context->lowActorCContour->SetMapper(context->lowCContourMapper);
 
   vtkNew<vtkPolyDataMapper> contourMapper;
-  contourMapper->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  contourMapper->SetInputConnection(context->contourFilter->GetOutputPort());
   contourMapper->ScalarVisibilityOff();
-  dataItem->contourActor->SetMapper(contourMapper.GetPointer());
+  context->contourActor->SetMapper(contourMapper.GetPointer());
   vtkNew<vtkPolyDataMapper> lowContourMapper;
-  lowContourMapper->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
+  lowContourMapper->SetInputConnection(context->lowContourFilter->GetOutputPort());
   lowContourMapper->ScalarVisibilityOff();
-  dataItem->lowContourActor->SetMapper(lowContourMapper.GetPointer());
+  context->lowContourActor->SetMapper(lowContourMapper.GetPointer());
 
   vtkNew<vtkCutter> xContourCutter;
-  xContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  xContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
   xContourCutter->SetCutFunction(this->xContourPlane);
   vtkNew<vtkPolyDataMapper> mapperXContourCutter;
   mapperXContourCutter->SetInputConnection(xContourCutter->GetOutputPort());
   mapperXContourCutter->ScalarVisibilityOff();
-  dataItem->actorXContourCutter->SetMapper(mapperXContourCutter.GetPointer());
+  context->actorXContourCutter->SetMapper(mapperXContourCutter.GetPointer());
   vtkNew<vtkCutter> lowXContourCutter;
-  lowXContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
+  lowXContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
   lowXContourCutter->SetCutFunction(this->xContourPlane);
   vtkNew<vtkPolyDataMapper> lowMapperXContourCutter;
   lowMapperXContourCutter->SetInputConnection(lowXContourCutter->GetOutputPort());
   lowMapperXContourCutter->ScalarVisibilityOff();
-  dataItem->lowActorXContourCutter->SetMapper(lowMapperXContourCutter.GetPointer());
+  context->lowActorXContourCutter->SetMapper(lowMapperXContourCutter.GetPointer());
   vtkNew<vtkCutter> yContourCutter;
-  yContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  yContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
   yContourCutter->SetCutFunction(this->yContourPlane);
   vtkNew<vtkPolyDataMapper> mapperYContourCutter;
   mapperYContourCutter->SetInputConnection(yContourCutter->GetOutputPort());
   mapperYContourCutter->ScalarVisibilityOff();
-  dataItem->actorYContourCutter->SetMapper(mapperYContourCutter.GetPointer());
+  context->actorYContourCutter->SetMapper(mapperYContourCutter.GetPointer());
   vtkNew<vtkCutter> lowYContourCutter;
-  lowYContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
+  lowYContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
   lowYContourCutter->SetCutFunction(this->yContourPlane);
   vtkNew<vtkPolyDataMapper> lowMapperYContourCutter;
   lowMapperYContourCutter->SetInputConnection(lowYContourCutter->GetOutputPort());
   lowMapperYContourCutter->ScalarVisibilityOff();
-  dataItem->lowActorYContourCutter->SetMapper(lowMapperYContourCutter.GetPointer());
+  context->lowActorYContourCutter->SetMapper(lowMapperYContourCutter.GetPointer());
   vtkNew<vtkCutter> zContourCutter;
-  zContourCutter->SetInputConnection(dataItem->contourFilter->GetOutputPort());
+  zContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
   zContourCutter->SetCutFunction(this->zContourPlane);
   vtkNew<vtkPolyDataMapper> mapperZContourCutter;
   mapperZContourCutter->SetInputConnection(zContourCutter->GetOutputPort());
   mapperZContourCutter->ScalarVisibilityOff();
-  dataItem->actorZContourCutter->SetMapper(mapperZContourCutter.GetPointer());
+  context->actorZContourCutter->SetMapper(mapperZContourCutter.GetPointer());
   vtkNew<vtkCutter> lowZContourCutter;
-  lowZContourCutter->SetInputConnection(dataItem->lowContourFilter->GetOutputPort());
+  lowZContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
   lowZContourCutter->SetCutFunction(this->zContourPlane);
   vtkNew<vtkPolyDataMapper> lowMapperZContourCutter;
   lowMapperZContourCutter->SetInputConnection(lowZContourCutter->GetOutputPort());
   lowMapperZContourCutter->ScalarVisibilityOff();
-  dataItem->lowActorZContourCutter->SetMapper(lowMapperZContourCutter.GetPointer());
+  context->lowActorZContourCutter->SetMapper(lowMapperZContourCutter.GetPointer());
 
-  dataItem->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
-  dataItem->freeSliceMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->freeSliceMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->freeSliceMapper->SetColorModeToMapScalars();
-  dataItem->lowFreeSliceCutter->SetCutFunction(this->freeSlicePlane);
-  dataItem->lowFreeSliceMapper->SetScalarRange(this->DataScalarRange);
-  dataItem->lowFreeSliceMapper->SetLookupTable(dataItem->sliceLUT);
-  dataItem->lowFreeSliceMapper->SetColorModeToMapScalars();
+  context->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
+  context->freeSliceMapper->SetScalarRange(scalarRange.data());
+  context->freeSliceMapper->SetLookupTable(context->sliceLUT);
+  context->freeSliceMapper->SetColorModeToMapScalars();
+  context->lowFreeSliceCutter->SetCutFunction(this->freeSlicePlane);
+  context->lowFreeSliceMapper->SetScalarRange(scalarRange.data());
+  context->lowFreeSliceMapper->SetLookupTable(context->sliceLUT);
+  context->lowFreeSliceMapper->SetColorModeToMapScalars();
 }
 
 //----------------------------------------------------------------------------
@@ -961,72 +867,74 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     }
 
   /* Get context data item */
-  DataItem* dataItem = contextData.retrieveDataItem<DataItem>(this);
+  volContextState *context =
+      contextData.retrieveDataItem<volContextState>(this);
 
   /* Update all lookup tables */
-  dataItem->colorFunction->RemoveAllPoints();
-  dataItem->opacityFunction->RemoveAllPoints();
-  double step = (this->DataScalarRange[1] - this->DataScalarRange[0])/255.0;
+  context->colorFunction->RemoveAllPoints();
+  context->opacityFunction->RemoveAllPoints();
+  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
+  double step = (scalarRange[1] - scalarRange[0])/255.0;
   for (int i = 0; i < 256; ++i)
     {
-    dataItem->modelLUT->SetTableValue(i,
+    context->modelLUT->SetTableValue(i,
       this->VolumeColormap[4*i + 0],
       this->VolumeColormap[4*i + 1],
       this->VolumeColormap[4*i + 2], 1.0);
 
-    dataItem->sliceLUT->SetTableValue(i,
+    context->sliceLUT->SetTableValue(i,
       this->SliceColormap[4*i + 0],
       this->SliceColormap[4*i + 1],
       this->SliceColormap[4*i + 2], 1.0);
 
-    dataItem->isosurfaceLUT->SetTableValue(i,
+    context->isosurfaceLUT->SetTableValue(i,
       this->IsosurfaceColormap[4*i + 0],
       this->IsosurfaceColormap[4*i + 1],
       this->IsosurfaceColormap[4*i + 2], 1.0);
 
-    dataItem->colorFunction->AddRGBPoint(
-      this->DataScalarRange[0] + (double)(i*step),
+    context->colorFunction->AddRGBPoint(
+      scalarRange[0] + (double)(i*step),
       this->VolumeColormap[4*i + 0],
       this->VolumeColormap[4*i + 1],
       this->VolumeColormap[4*i + 2]);
-    dataItem->opacityFunction->AddPoint(
-      this->DataScalarRange[0] + (double)(i*step),
+    context->opacityFunction->AddPoint(
+      scalarRange[0] + (double)(i*step),
       this->VolumeColormap[4*i + 3]);
     }
 
   /* Turn off visibility of all actors in the scene */
-  dataItem->actor->VisibilityOff();
-  dataItem->lowActor->VisibilityOff();
-  dataItem->actorOutline->VisibilityOff();
-  dataItem->lowActorOutline->VisibilityOff();
-  dataItem->actorVolume->VisibilityOff();
-  dataItem->lowActorVolume->VisibilityOff();
-  dataItem->actorXCutter->VisibilityOff();
-  dataItem->lowActorXCutter->VisibilityOff();
-  dataItem->actorYCutter->VisibilityOff();
-  dataItem->lowActorYCutter->VisibilityOff();
-  dataItem->actorZCutter->VisibilityOff();
-  dataItem->lowActorZCutter->VisibilityOff();
-  dataItem->actorAContour->VisibilityOff();
-  dataItem->lowActorAContour->VisibilityOff();
-  dataItem->actorBContour->VisibilityOff();
-  dataItem->lowActorBContour->VisibilityOff();
-  dataItem->actorCContour->VisibilityOff();
-  dataItem->lowActorCContour->VisibilityOff();
-  dataItem->actorXContourCutter->VisibilityOff();
-  dataItem->lowActorXContourCutter->VisibilityOff();
-  dataItem->actorYContourCutter->VisibilityOff();
-  dataItem->lowActorYContourCutter->VisibilityOff();
-  dataItem->actorZContourCutter->VisibilityOff();
-  dataItem->lowActorZContourCutter->VisibilityOff();
-  dataItem->contourActor->VisibilityOff();
-  dataItem->lowContourActor->VisibilityOff();
-  dataItem->freeSliceActor->VisibilityOff();
-  dataItem->lowFreeSliceActor->VisibilityOff();
+  context->actor->VisibilityOff();
+  context->lowActor->VisibilityOff();
+  context->actorOutline->VisibilityOff();
+  context->lowActorOutline->VisibilityOff();
+  context->actorVolume->VisibilityOff();
+  context->lowActorVolume->VisibilityOff();
+  context->actorXCutter->VisibilityOff();
+  context->lowActorXCutter->VisibilityOff();
+  context->actorYCutter->VisibilityOff();
+  context->lowActorYCutter->VisibilityOff();
+  context->actorZCutter->VisibilityOff();
+  context->lowActorZCutter->VisibilityOff();
+  context->actorAContour->VisibilityOff();
+  context->lowActorAContour->VisibilityOff();
+  context->actorBContour->VisibilityOff();
+  context->lowActorBContour->VisibilityOff();
+  context->actorCContour->VisibilityOff();
+  context->lowActorCContour->VisibilityOff();
+  context->actorXContourCutter->VisibilityOff();
+  context->lowActorXContourCutter->VisibilityOff();
+  context->actorYContourCutter->VisibilityOff();
+  context->lowActorYContourCutter->VisibilityOff();
+  context->actorZContourCutter->VisibilityOff();
+  context->lowActorZContourCutter->VisibilityOff();
+  context->contourActor->VisibilityOff();
+  context->lowContourActor->VisibilityOff();
+  context->freeSliceActor->VisibilityOff();
+  context->lowFreeSliceActor->VisibilityOff();
   if (lowResolution)
     {
-    dataItem->extract->SetSampleRate(
-      this->sampling, this->sampling, this->sampling);
+    int sampling = m_volState.reader().sampleRate();
+    context->extract->SetSampleRate(sampling, sampling, sampling);
     }
 
   if(this->FreeSliceVisibility[0])
@@ -1035,22 +943,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     this->freeSlicePlane->SetNormal(this->FreeSliceNormal);
     if (!lowResolution)
       {
-      dataItem->freeSliceActor->VisibilityOn();
+      context->freeSliceActor->VisibilityOn();
       }
     else
       {
-      dataItem->lowFreeSliceActor->VisibilityOn();
+      context->lowFreeSliceActor->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->freeSliceActor->VisibilityOff();
+      context->freeSliceActor->VisibilityOff();
       }
     else
       {
-      dataItem->lowFreeSliceActor->VisibilityOff();
+      context->lowFreeSliceActor->VisibilityOff();
       }
     }
 
@@ -1058,22 +966,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorOutline->VisibilityOn();
+      context->actorOutline->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorOutline->VisibilityOn();
+      context->lowActorOutline->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorOutline->VisibilityOff();
+      context->actorOutline->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorOutline->VisibilityOff();
+      context->lowActorOutline->VisibilityOff();
       }
     }
 
@@ -1081,69 +989,69 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorVolume->VisibilityOn();
+      context->actorVolume->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorVolume->VisibilityOn();
+      context->lowActorVolume->VisibilityOn();
       }
     if (!lowResolution)
       {
-      dataItem->actor->VisibilityOff();
+      context->actor->VisibilityOff();
       }
     else
       {
-      dataItem->lowActor->VisibilityOff();
+      context->lowActor->VisibilityOff();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorVolume->VisibilityOff();
+      context->actorVolume->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorVolume->VisibilityOff();
+      context->lowActorVolume->VisibilityOff();
       }
     if (!lowResolution)
       {
-      dataItem->actor->GetProperty()->SetOpacity(this->Opacity);
+      context->actor->GetProperty()->SetOpacity(this->Opacity);
       }
     else
       {
-      dataItem->lowActor->GetProperty()->SetOpacity(this->Opacity);
+      context->lowActor->GetProperty()->SetOpacity(this->Opacity);
       }
     if (this->RepresentationType != -1)
       {
       if (!lowResolution)
         {
-        dataItem->actor->VisibilityOn();
+        context->actor->VisibilityOn();
         }
       else
         {
-        dataItem->lowActor->VisibilityOn();
+        context->lowActor->VisibilityOn();
         }
       if (this->RepresentationType == 3)
         {
           if (!lowResolution) {
-            dataItem->actor->GetProperty()->SetRepresentationToSurface();
-            dataItem->actor->GetProperty()->EdgeVisibilityOn();
+            context->actor->GetProperty()->SetRepresentationToSurface();
+            context->actor->GetProperty()->EdgeVisibilityOn();
           }
           else {
-            dataItem->lowActor->GetProperty()->SetRepresentationToSurface();
-            dataItem->lowActor->GetProperty()->EdgeVisibilityOn();
+            context->lowActor->GetProperty()->SetRepresentationToSurface();
+            context->lowActor->GetProperty()->EdgeVisibilityOn();
           }
         }
       else
         {
           if (!lowResolution) {
-            dataItem->actor->GetProperty()->SetRepresentation(this->RepresentationType);
-            dataItem->actor->GetProperty()->EdgeVisibilityOff();
+            context->actor->GetProperty()->SetRepresentation(this->RepresentationType);
+            context->actor->GetProperty()->EdgeVisibilityOff();
           }
           else {
-            dataItem->lowActor->GetProperty()->SetRepresentation(this->RepresentationType);
-            dataItem->lowActor->GetProperty()->EdgeVisibilityOff();
+            context->lowActor->GetProperty()->SetRepresentation(this->RepresentationType);
+            context->lowActor->GetProperty()->EdgeVisibilityOff();
           }
         }
       }
@@ -1151,11 +1059,11 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       {
         if (!lowResolution)
           {
-          dataItem->actor->VisibilityOff();
+          context->actor->VisibilityOff();
           }
         else
           {
-          dataItem->lowActor->VisibilityOff();
+          context->lowActor->VisibilityOff();
           }
       }
     }
@@ -1164,22 +1072,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorXCutter->VisibilityOn();
+      context->actorXCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorXCutter->VisibilityOn();
+      context->lowActorXCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorXCutter->VisibilityOff();
+      context->actorXCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorXCutter->VisibilityOff();
+      context->lowActorXCutter->VisibilityOff();
       }
     }
 
@@ -1187,22 +1095,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorYCutter->VisibilityOn();
+      context->actorYCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorYCutter->VisibilityOn();
+      context->lowActorYCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorYCutter->VisibilityOff();
+      context->actorYCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorYCutter->VisibilityOff();
+      context->lowActorYCutter->VisibilityOff();
       }
     }
 
@@ -1210,22 +1118,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorZCutter->VisibilityOn();
+      context->actorZCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorZCutter->VisibilityOn();
+      context->lowActorZCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorZCutter->VisibilityOff();
+      context->actorZCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorZCutter->VisibilityOff();
+      context->lowActorZCutter->VisibilityOff();
       }
     }
 
@@ -1233,24 +1141,24 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
       if (!lowResolution)
         {
-        dataItem->actorAContour->VisibilityOn();
-        dataItem->aContour->SetValue(0, this->aIsosurface);
+        context->actorAContour->VisibilityOn();
+        context->aContour->SetValue(0, this->aIsosurface);
         }
       else
         {
-        dataItem->lowActorAContour->VisibilityOn();
-        dataItem->lowAContour->SetValue(0, this->aIsosurface);
+        context->lowActorAContour->VisibilityOn();
+        context->lowAContour->SetValue(0, this->aIsosurface);
         }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorAContour->VisibilityOff();
+      context->actorAContour->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorAContour->VisibilityOff();
+      context->lowActorAContour->VisibilityOff();
       }
     }
 
@@ -1258,24 +1166,24 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
       if (!lowResolution)
         {
-        dataItem->actorBContour->VisibilityOn();
-        dataItem->bContour->SetValue(0, this->bIsosurface);
+        context->actorBContour->VisibilityOn();
+        context->bContour->SetValue(0, this->bIsosurface);
         }
       else
         {
-        dataItem->lowActorBContour->VisibilityOn();
-        dataItem->lowBContour->SetValue(0, this->bIsosurface);
+        context->lowActorBContour->VisibilityOn();
+        context->lowBContour->SetValue(0, this->bIsosurface);
         }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorBContour->VisibilityOff();
+      context->actorBContour->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorBContour->VisibilityOff();
+      context->lowActorBContour->VisibilityOff();
       }
     }
 
@@ -1283,24 +1191,24 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
         {
-        dataItem->actorCContour->VisibilityOn();
-        dataItem->cContour->SetValue(0, this->cIsosurface);
+        context->actorCContour->VisibilityOn();
+        context->cContour->SetValue(0, this->cIsosurface);
         }
       else
         {
-        dataItem->lowActorCContour->VisibilityOn();
-        dataItem->lowCContour->SetValue(0, this->cIsosurface);
+        context->lowActorCContour->VisibilityOn();
+        context->lowCContour->SetValue(0, this->cIsosurface);
         }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorCContour->VisibilityOff();
+      context->actorCContour->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorCContour->VisibilityOff();
+      context->lowActorCContour->VisibilityOff();
       }
     }
 
@@ -1308,22 +1216,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorXContourCutter->VisibilityOn();
+      context->actorXContourCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorXContourCutter->VisibilityOn();
+      context->lowActorXContourCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorXContourCutter->VisibilityOff();
+      context->actorXContourCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorXContourCutter->VisibilityOff();
+      context->lowActorXContourCutter->VisibilityOff();
       }
     }
 
@@ -1331,22 +1239,22 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorYContourCutter->VisibilityOn();
+      context->actorYContourCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorYContourCutter->VisibilityOn();
+      context->lowActorYContourCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorYContourCutter->VisibilityOff();
+      context->actorYContourCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorYContourCutter->VisibilityOff();
+      context->lowActorYContourCutter->VisibilityOff();
       }
     }
 
@@ -1354,70 +1262,72 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     {
     if (!lowResolution)
       {
-      dataItem->actorZContourCutter->VisibilityOn();
+      context->actorZContourCutter->VisibilityOn();
       }
     else
       {
-      dataItem->lowActorZContourCutter->VisibilityOn();
+      context->lowActorZContourCutter->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->actorZContourCutter->VisibilityOff();
+      context->actorZContourCutter->VisibilityOff();
       }
     else
       {
-      dataItem->lowActorZContourCutter->VisibilityOff();
+      context->lowActorZContourCutter->VisibilityOff();
       }
     }
 
   if (!lowResolution)
     {
-    dataItem->contourFilter->SetNumberOfContours(this->ContourValues.size());
+    context->contourFilter->SetNumberOfContours(this->ContourValues.size());
     }
   else
     {
-    dataItem->lowContourFilter->SetNumberOfContours(
+    context->lowContourFilter->SetNumberOfContours(
       this->ContourValues.size());
     }
   for(int i = 0; i < this->ContourValues.size(); ++i)
     {
     if (!lowResolution)
       {
-      dataItem->contourFilter->SetValue(i, this->ContourValues.at(i));
+      context->contourFilter->SetValue(i, this->ContourValues.at(i));
       }
     else
       {
-      dataItem->lowContourFilter->SetValue(i, this->ContourValues.at(i));
+      context->lowContourFilter->SetValue(i, this->ContourValues.at(i));
       }
     }
   if(this->ContourVisible)
     {
     if (!lowResolution)
       {
-      dataItem->contourActor->VisibilityOn();
+      context->contourActor->VisibilityOn();
       }
     else
       {
-      dataItem->lowContourActor->VisibilityOn();
+      context->lowContourActor->VisibilityOn();
       }
     }
   else
     {
     if (!lowResolution)
       {
-      dataItem->contourActor->VisibilityOff();
+      context->contourActor->VisibilityOff();
       }
     else
       {
-      dataItem->lowContourActor->VisibilityOff();
+      context->lowContourActor->VisibilityOff();
       }
     }
 
+  this->Superclass::display(contextData);
+
   /* Render the scene */
-  dataItem->externalVTKWidget->GetRenderWindow()->Render();
+  context->render();
 
   clippingPlaneIndex = 0;
   for (int i = 0; i < NumberOfClippingPlanes &&
@@ -1436,12 +1346,16 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 //----------------------------------------------------------------------------
 void ExampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
 {
-  if(!this->DataBounds)
+  if (!m_volState.reader().bounds().IsValid())
     {
     std::cerr << "ERROR: Data bounds not set!!" << std::endl;
     return;
     }
-  Vrui::setNavigationTransformation(this->Center, this->Radius);
+
+  std::array<double, 3> center;
+  m_volState.reader().bounds().GetCenter(center.data());
+  double radius = m_volState.reader().bounds().GetDiagonalLength();
+  Vrui::setNavigationTransformation(center.data(), radius * 0.75);
 }
 
 //----------------------------------------------------------------------------
@@ -1456,8 +1370,10 @@ void ExampleVTKReader::opacitySliderCallback(
 void ExampleVTKReader::changeSamplingCallback(
   GLMotif::Slider::ValueChangedCallbackData* callBackData)
 {
-  this->sampling = static_cast<int>(callBackData->value);
+  int sampling = static_cast<int>(callBackData->value);
   resolutionValue->setValue(callBackData->value);
+
+  m_volState.reader().setSampleRate(sampling);
 }
 
 //----------------------------------------------------------------------------
@@ -1746,7 +1662,8 @@ void ExampleVTKReader::setXSlice(int xSlice)
 {
   this->xSlice = xSlice;
   this->xPlane->SetOrigin(this->xOrigin +
-    (this->xSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+    (this->xSlice * m_volState.reader().spacing()[0]),
+      this->yCenter, this->zCenter);
 
 }
 
@@ -1755,7 +1672,7 @@ void ExampleVTKReader::setYSlice(int ySlice)
 {
   this->ySlice = ySlice;
   this->yPlane->SetOrigin(this->xCenter, this->yOrigin +
-    (this->ySlice * this->DataSpacing[1]), this->zCenter);
+    (this->ySlice * m_volState.reader().spacing()[1]), this->zCenter);
 }
 
 //----------------------------------------------------------------------------
@@ -1763,7 +1680,7 @@ void ExampleVTKReader::setZSlice(int zSlice)
 {
   this->zSlice = zSlice;
   this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
-    (this->zSlice * this->DataSpacing[2]));
+    (this->zSlice * m_volState.reader().spacing()[2]));
 }
 
 //----------------------------------------------------------------------------
@@ -1789,7 +1706,8 @@ void ExampleVTKReader::setXContourSlice(int xSlice)
 {
   this->xContourSlice = xSlice;
   this->xContourPlane->SetOrigin(this->xOrigin +
-    (this->xContourSlice * this->DataSpacing[0]), this->yCenter, this->zCenter);
+    (this->xContourSlice * m_volState.reader().spacing()[0]),
+      this->yCenter, this->zCenter);
 
 }
 
@@ -1798,7 +1716,7 @@ void ExampleVTKReader::setYContourSlice(int ySlice)
 {
   this->yContourSlice = ySlice;
   this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin +
-    (this->yContourSlice * this->DataSpacing[1]), this->zCenter);
+    (this->yContourSlice * m_volState.reader().spacing()[1]), this->zCenter);
 }
 
 //----------------------------------------------------------------------------
@@ -1806,7 +1724,7 @@ void ExampleVTKReader::setZContourSlice(int zSlice)
 {
   this->zContourSlice = zSlice;
   this->zContourPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
-    (this->zContourSlice * this->DataSpacing[2]));
+    (this->zContourSlice * m_volState.reader().spacing()[2]));
 }
 
 //----------------------------------------------------------------------------
@@ -1830,19 +1748,19 @@ void ExampleVTKReader::showZContourSlice(bool ZSlice)
 //----------------------------------------------------------------------------
 int ExampleVTKReader::getWidth(void)
 {
-  return this->DataDimensions[0];
+  return m_volState.reader().dimensions()[0];
 }
 
 //----------------------------------------------------------------------------
 int ExampleVTKReader::getLength(void)
 {
-  return this->DataDimensions[1];
+  return m_volState.reader().dimensions()[1];
 }
 
 //----------------------------------------------------------------------------
 int ExampleVTKReader::getHeight(void)
 {
-  return this->DataDimensions[2];
+  return m_volState.reader().dimensions()[2];
 }
 
 //----------------------------------------------------------------------------
@@ -1939,25 +1857,27 @@ void ExampleVTKReader::changeResolutionCallback(
 //----------------------------------------------------------------------------
 float ExampleVTKReader::getDataMinimum(void)
 {
-  return float(this->DataScalarRange[0]);
+  return float(m_volState.reader().scalarRange()[0]);
 }
 
 //----------------------------------------------------------------------------
 float ExampleVTKReader::getDataMaximum(void)
 {
-  return float(this->DataScalarRange[1]);
+  return float(m_volState.reader().scalarRange()[1]);
 }
 
 //----------------------------------------------------------------------------
 float ExampleVTKReader::getDataIncrement(void)
 {
-  return float((this->DataScalarRange[1]-this->DataScalarRange[0])/20.0);
+  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
+  return static_cast<float>((scalarRange[1] - scalarRange[0]) / 20.0);
 }
 
 //----------------------------------------------------------------------------
 float ExampleVTKReader::getDataMidPoint(void)
 {
-  return float((this->DataScalarRange[1]-this->DataScalarRange[0])/2.0);
+  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
+  return static_cast<float>((scalarRange[1] - scalarRange[0]) / 2.0);
 }
 
 //----------------------------------------------------------------------------
@@ -1988,4 +1908,10 @@ void ExampleVTKReader::setRequestedRenderMode(int mode)
 int ExampleVTKReader::getRequestedRenderMode(void) const
 {
   return this->RequestedRenderMode;
+}
+
+//----------------------------------------------------------------------------
+vvContextState *ExampleVTKReader::createContextState() const
+{
+  return new volContextState;
 }

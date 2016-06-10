@@ -6,7 +6,15 @@ ENDIF()
 
 PROJECT(VolumeViewer)
 
+set(CMAKE_MODULE_PATH
+  "${VolumeViewer_SOURCE_DIR}/CMake/Modules"
+  ${CMAKE_MODULE_PATH}
+)
+
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# Use c++11:
+set(CMAKE_CXX_STANDARD 11)
 
 INCLUDE(FindPkgConfig)
 
@@ -35,6 +43,10 @@ IF (${VTK_RENDERING_BACKEND} STREQUAL "OpenGL")
   INCLUDE_DIRECTORIES (${GLEW_INCLUDE_DIR})
 ENDIF ()
 
+# Find vtkVRUI
+find_package(vtkVRUI REQUIRED)
+include_directories(${vtkVRUI_INCLUDE_DIRS})
+
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -42,61 +54,42 @@ INCLUDE(InstallRequiredSystemLibraries)
 
 SET(${PROJECT_NAME}_SRCS
   BaseLocator.cpp
-  BaseLocator.h
   ClippingPlane.cpp
-  ClippingPlane.h
   ClippingPlaneLocator.cpp
-  ClippingPlaneLocator.h
   ColorMap.cpp
-  ColorMap.h
   ColorMapCallbackData.cpp
-  ColorMapCallbackData.h
   ColorMapChangedCallbackData.cpp
-  ColorMapChangedCallbackData.h
   Contours.cpp
-  Contours.h
   ControlPoint.cpp
-  ControlPoint.h
   ControlPointChangedCallbackData.cpp
-  ControlPointChangedCallbackData.h
-  DataItem.cpp
-  DataItem.h
   ExampleVTKReader.cpp
-  ExampleVTKReader.h
   FreeSliceLocator.cpp
-  FreeSliceLocator.h
   Gaussian.cpp
-  Gaussian.h
   Isosurfaces.cpp
-  Isosurfaces.h
   main.cpp
   RGBAColor.cpp
-  RGBAColor.h
   ScalarWidget.cpp
-  ScalarWidget.h
   ScalarWidgetCallbackData.cpp
-  ScalarWidgetCallbackData.h
   ScalarWidgetChangedCallbackData.cpp
-  ScalarWidgetChangedCallbackData.h
   ScalarWidgetControlPoint.cpp
-  ScalarWidgetControlPoint.h
   ScalarWidgetControlPointChangedCallbackData.cpp
-  ScalarWidgetControlPointChangedCallbackData.h
   ScalarWidgetStorage.cpp
-  ScalarWidgetStorage.h
   Slices.cpp
-  Slices.h
   Storage.cpp
-  Storage.h
   SwatchesWidget.cpp
-  SwatchesWidget.h
   TransferFunction1D.cpp
-  TransferFunction1D.h
+  volApplicationState.cpp
+  volContextState.cpp
+  volReader.cpp
   )
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS})
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${VTK_LIBRARIES} "${VRUI_LDFLAGS}")
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}
+  ${vtkVRUI_LIBRARIES}
+  ${VTK_LIBRARIES}
+  "${VRUI_LDFLAGS}"
+)
 
 IF (${VTK_RENDERING_BACKEND} STREQUAL "OpenGL")
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${GLEW_LIBRARY})
