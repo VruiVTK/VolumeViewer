@@ -19,11 +19,6 @@ volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
 
-  this->actor = vtkSmartPointer<vtkActor>::New();
-  this->lowActor = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->actor);
-  this->renderer().AddActor(this->lowActor);
-
   this->actorOutline = vtkSmartPointer<vtkActor>::New();
   this->lowActorOutline = vtkSmartPointer<vtkActor>::New();
   this->renderer().AddActor(this->actorOutline);
@@ -137,10 +132,6 @@ volContextState::volContextState()
   this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
   this->isosurfaceLUT->SetNumberOfColors(256);
   this->isosurfaceLUT->Build();
-
-  this->modelLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->modelLUT->SetNumberOfColors(256);
-  this->modelLUT->Build();
 
   this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
   this->sliceLUT->SetNumberOfColors(256);

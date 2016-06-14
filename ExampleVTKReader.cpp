@@ -66,6 +66,7 @@
 #include "TransferFunction1D.h"
 #include "volApplicationState.h"
 #include "volContextState.h"
+#include "volGeometry.h"
 #include "volReader.h"
 
 //----------------------------------------------------------------------------
@@ -90,11 +91,9 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     lowResolution(true),
     mainMenu(NULL),
     NumberOfClippingPlanes(6),
-    Opacity(1.0),
     opacityValue(NULL),
     Outline(true),
     renderingDialog(NULL),
-    RepresentationType(2),
     RequestedRenderMode(3),
     resolutionValue(NULL),
     slicesDialog(NULL),
@@ -506,14 +505,14 @@ GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void)
   GLMotif::Slider* opacitySlider = new GLMotif::Slider(
     "OpacitySlider", dialog, GLMotif::Slider::HORIZONTAL,
     ss.fontHeight*10.0f);
-  opacitySlider->setValue(Opacity);
+  opacitySlider->setValue(m_volState.geometry().opacity());
   opacitySlider->setValueRange(0.0, 1.0, 0.1);
   opacitySlider->getValueChangedCallbacks().add(this,
     &ExampleVTKReader::opacitySliderCallback);
   opacityValue = new GLMotif::TextField("OpacityValue", dialog, 6);
   opacityValue->setFieldWidth(6);
   opacityValue->setPrecision(3);
-  opacityValue->setValue(Opacity);
+  opacityValue->setValue(m_volState.geometry().opacity());
 
   /* Create sampling slider */
   GLMotif::Label* sampling_Label = new GLMotif::Label("Sampling", dialog,"Sampling:");
@@ -607,11 +606,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
       contextData.retrieveDataItem<volContextState>(this);
   assert("volContextState initialized by vvApplication." && context);
 
-  vtkNew<vtkDataSetMapper> mapper;
-  vtkNew<vtkDataSetMapper> lowMapper;
-  context->actor->SetMapper(mapper.GetPointer());
-  context->lowActor->SetMapper(lowMapper.GetPointer());
-
   vtkNew<vtkOutlineFilter> dataOutline;
   vtkNew<vtkOutlineFilter> lowDataOutline;
 
@@ -619,9 +613,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   vtkNew<vtkSmartVolumeMapper> lowMapperVolume;
 
   // TODO refactor these to use vvGLObjects:
-  mapper->SetInputData(m_volState.reader().typedDataObject());
-  lowMapper->SetInputData(m_volState.reader().typedReducedDataObject());
-
   dataOutline->SetInputData(m_volState.reader().dataObject());
   lowDataOutline->SetInputData(m_volState.reader().reducedDataObject());
 
@@ -668,13 +659,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  mapper->SetScalarRange(scalarRange.data());
-  mapper->SetLookupTable(context->modelLUT);
-  mapper->SetColorModeToMapScalars();
-  lowMapper->SetScalarRange(scalarRange.data());
-  lowMapper->SetLookupTable(context->modelLUT);
-  lowMapper->SetColorModeToMapScalars();
 
   vtkNew<vtkPolyDataMapper> mapperOutline;
   mapperOutline->SetInputConnection(dataOutline->GetOutputPort());
@@ -877,11 +861,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   double step = (scalarRange[1] - scalarRange[0])/255.0;
   for (int i = 0; i < 256; ++i)
     {
-    context->modelLUT->SetTableValue(i,
-      this->VolumeColormap[4*i + 0],
-      this->VolumeColormap[4*i + 1],
-      this->VolumeColormap[4*i + 2], 1.0);
-
     context->sliceLUT->SetTableValue(i,
       this->SliceColormap[4*i + 0],
       this->SliceColormap[4*i + 1],
@@ -903,8 +882,7 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     }
 
   /* Turn off visibility of all actors in the scene */
-  context->actor->VisibilityOff();
-  context->lowActor->VisibilityOff();
+  // TODO is this really necessary?
   context->actorOutline->VisibilityOff();
   context->lowActorOutline->VisibilityOff();
   context->actorVolume->VisibilityOff();
@@ -995,14 +973,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       {
       context->lowActorVolume->VisibilityOn();
       }
-    if (!lowResolution)
-      {
-      context->actor->VisibilityOff();
-      }
-    else
-      {
-      context->lowActor->VisibilityOff();
-      }
     }
   else
     {
@@ -1013,58 +983,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowActorVolume->VisibilityOff();
-      }
-    if (!lowResolution)
-      {
-      context->actor->GetProperty()->SetOpacity(this->Opacity);
-      }
-    else
-      {
-      context->lowActor->GetProperty()->SetOpacity(this->Opacity);
-      }
-    if (this->RepresentationType != -1)
-      {
-      if (!lowResolution)
-        {
-        context->actor->VisibilityOn();
-        }
-      else
-        {
-        context->lowActor->VisibilityOn();
-        }
-      if (this->RepresentationType == 3)
-        {
-          if (!lowResolution) {
-            context->actor->GetProperty()->SetRepresentationToSurface();
-            context->actor->GetProperty()->EdgeVisibilityOn();
-          }
-          else {
-            context->lowActor->GetProperty()->SetRepresentationToSurface();
-            context->lowActor->GetProperty()->EdgeVisibilityOn();
-          }
-        }
-      else
-        {
-          if (!lowResolution) {
-            context->actor->GetProperty()->SetRepresentation(this->RepresentationType);
-            context->actor->GetProperty()->EdgeVisibilityOff();
-          }
-          else {
-            context->lowActor->GetProperty()->SetRepresentation(this->RepresentationType);
-            context->lowActor->GetProperty()->EdgeVisibilityOff();
-          }
-        }
-      }
-    else
-      {
-        if (!lowResolution)
-          {
-          context->actor->VisibilityOff();
-          }
-        else
-          {
-          context->lowActor->VisibilityOff();
-          }
       }
     }
 
@@ -1362,7 +1280,7 @@ void ExampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
 void ExampleVTKReader::opacitySliderCallback(
   GLMotif::Slider::ValueChangedCallbackData* callBackData)
 {
-  this->Opacity = static_cast<double>(callBackData->value);
+  m_volState.geometry().setOpacity(callBackData->value);
   opacityValue->setValue(callBackData->value);
 }
 
@@ -1380,30 +1298,35 @@ void ExampleVTKReader::changeSamplingCallback(
 void ExampleVTKReader::changeRepresentationCallback(
   GLMotif::ToggleButton::ValueChangedCallbackData* callBackData)
 {
+  using Representation = volGeometry::Representation;
   /* Adjust representation state based on which toggle button changed state: */
   if (strcmp(callBackData->toggle->getName(), "ShowSurface") == 0)
     {
-    this->RepresentationType = 2;
+    m_volState.geometry().setVisible(true);
+    m_volState.geometry().setRepresentation(Representation::Surface);
     this->Volume = false;
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowSurfaceWithEdges") == 0)
     {
-    this->RepresentationType = 3;
+    m_volState.geometry().setVisible(true);
+    m_volState.geometry().setRepresentation(Representation::SurfaceWithEdges);
     this->Volume = false;
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
     {
-    this->RepresentationType = 1;
+    m_volState.geometry().setVisible(true);
+    m_volState.geometry().setRepresentation(Representation::WireFrame);
     this->Volume = false;
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowPoints") == 0)
     {
-    this->RepresentationType = 0;
+    m_volState.geometry().setVisible(true);
+    m_volState.geometry().setRepresentation(Representation::Points);
     this->Volume = false;
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowNone") == 0)
     {
-    this->RepresentationType = -1;
+    m_volState.geometry().setVisible(false);
     this->Volume = false;
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowVolume") == 0)
@@ -1411,7 +1334,7 @@ void ExampleVTKReader::changeRepresentationCallback(
     this->Volume = callBackData->set;
     if (this->Volume)
       {
-      this->RepresentationType = -1;
+      m_volState.geometry().setVisible(false);
       }
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowOutline") == 0)

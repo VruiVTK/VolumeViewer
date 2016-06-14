@@ -80,12 +80,6 @@ private:
   /* SmartVolumeMapper Requested RenderMode */
   int RequestedRenderMode;
 
-  /* Opacity value */
-  double Opacity;
-
-  /* Representation Type */
-  int RepresentationType;
-
   double xCenter;
   double yCenter;
   double zCenter;

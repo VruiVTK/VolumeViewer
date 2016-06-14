@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+class volGeometry;
 class volReader;
 
 /**
@@ -20,6 +21,10 @@ public:
   volApplicationState();
   ~volApplicationState();
 
+  /** Geometry rendering */
+  volGeometry& geometry() { return *m_geometry; }
+  const volGeometry& geometry() const { return *m_geometry; }
+
   /** File reader. */
   volReader& reader() { return *m_reader; }
   const volReader& reader() const { return *m_reader; }
@@ -29,6 +34,7 @@ private:
   volApplicationState(const volApplicationState&);
   volApplicationState& operator=(const volApplicationState&);
 
+  volGeometry *m_geometry;
   volReader *m_reader;
 };
 

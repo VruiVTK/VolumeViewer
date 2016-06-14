@@ -30,10 +30,6 @@ public:
 
   // TODO refactor these into vvGLObjects:
 
-  // Geometry:
-  vtkSmartPointer<vtkActor> actor;
-  vtkSmartPointer<vtkActor> lowActor;
-
   // Contours
   vtkSmartPointer<vtkContourFilter> aContour;
   vtkSmartPointer<vtkContourFilter> bContour;
@@ -115,7 +111,6 @@ public:
 
   // TODO see if these are shared. If so, leave them here. If not, put in
   // vvGLObjects.
-  vtkSmartPointer<vtkLookupTable> modelLUT;
   vtkSmartPointer<vtkLookupTable> sliceLUT;
   vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
   vtkSmartPointer<vtkColorTransferFunction> colorFunction;
