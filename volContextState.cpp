@@ -19,11 +19,6 @@ volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
 
-  this->actorOutline = vtkSmartPointer<vtkActor>::New();
-  this->lowActorOutline = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->actorOutline);
-  this->renderer().AddActor(this->lowActorOutline);
-
   this->actorVolume = vtkSmartPointer<vtkVolume>::New();
   this->lowActorVolume = vtkSmartPointer<vtkVolume>::New();
   this->renderer().AddVolume(this->actorVolume);

@@ -50,10 +50,6 @@ public:
   vtkSmartPointer<vtkActor> lowActorBContour;
   vtkSmartPointer<vtkActor> lowActorCContour;
 
-  // Outline:
-  vtkSmartPointer<vtkActor> actorOutline;
-  vtkSmartPointer<vtkActor> lowActorOutline;
-
   // More contours (?)
   vtkSmartPointer<vtkCutter> xContourCutter;
   vtkSmartPointer<vtkCutter> xCutter;

@@ -67,6 +67,7 @@
 #include "volApplicationState.h"
 #include "volContextState.h"
 #include "volGeometry.h"
+#include "volOutline.h"
 #include "volReader.h"
 
 //----------------------------------------------------------------------------
@@ -92,7 +93,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     mainMenu(NULL),
     NumberOfClippingPlanes(6),
     opacityValue(NULL),
-    Outline(true),
     renderingDialog(NULL),
     RequestedRenderMode(3),
     resolutionValue(NULL),
@@ -606,16 +606,10 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
       contextData.retrieveDataItem<volContextState>(this);
   assert("volContextState initialized by vvApplication." && context);
 
-  vtkNew<vtkOutlineFilter> dataOutline;
-  vtkNew<vtkOutlineFilter> lowDataOutline;
-
   vtkNew<vtkSmartVolumeMapper> mapperVolume;
   vtkNew<vtkSmartVolumeMapper> lowMapperVolume;
 
   // TODO refactor these to use vvGLObjects:
-  dataOutline->SetInputData(m_volState.reader().dataObject());
-  lowDataOutline->SetInputData(m_volState.reader().reducedDataObject());
-
   mapperVolume->SetInputData(m_volState.reader().typedDataObject());
   lowMapperVolume->SetInputData(m_volState.reader().typedReducedDataObject());
 
@@ -659,15 +653,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  vtkNew<vtkPolyDataMapper> mapperOutline;
-  mapperOutline->SetInputConnection(dataOutline->GetOutputPort());
-  context->actorOutline->SetMapper(mapperOutline.GetPointer());
-  context->actorOutline->GetProperty()->SetColor(1,1,1);
-  vtkNew<vtkPolyDataMapper> lowMapperOutline;
-  lowMapperOutline->SetInputConnection(lowDataOutline->GetOutputPort());
-  context->lowActorOutline->SetMapper(lowMapperOutline.GetPointer());
-  context->lowActorOutline->GetProperty()->SetColor(1,1,1);
 
   mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
 
@@ -883,8 +868,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   /* Turn off visibility of all actors in the scene */
   // TODO is this really necessary?
-  context->actorOutline->VisibilityOff();
-  context->lowActorOutline->VisibilityOff();
   context->actorVolume->VisibilityOff();
   context->lowActorVolume->VisibilityOff();
   context->actorXCutter->VisibilityOff();
@@ -937,29 +920,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowFreeSliceActor->VisibilityOff();
-      }
-    }
-
-  if (this->Outline)
-    {
-    if (!lowResolution)
-      {
-      context->actorOutline->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorOutline->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorOutline->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorOutline->VisibilityOff();
       }
     }
 
@@ -1339,7 +1299,7 @@ void ExampleVTKReader::changeRepresentationCallback(
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowOutline") == 0)
     {
-    this->Outline = callBackData->set;
+    m_volState.outline().setVisible(callBackData->set);
     }
 }
 //----------------------------------------------------------------------------

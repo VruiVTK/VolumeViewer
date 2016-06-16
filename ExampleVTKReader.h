@@ -107,7 +107,6 @@ private:
   int yContourSlice;
   int zContourSlice;
 
-  bool Outline;
   bool Volume;
 
   double* VolumeColormap;

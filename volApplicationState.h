@@ -9,6 +9,7 @@
 #include <vector>
 
 class volGeometry;
+class volOutline;
 class volReader;
 
 /**
@@ -25,6 +26,10 @@ public:
   volGeometry& geometry() { return *m_geometry; }
   const volGeometry& geometry() const { return *m_geometry; }
 
+  /** Outline rendering */
+  volOutline &outline() { return *m_outline; }
+  const volOutline &outline() const { return *m_outline; }
+
   /** File reader. */
   volReader& reader() { return *m_reader; }
   const volReader& reader() const { return *m_reader; }
@@ -35,6 +40,7 @@ private:
   volApplicationState& operator=(const volApplicationState&);
 
   volGeometry *m_geometry;
+  volOutline *m_outline;
   volReader *m_reader;
 };
 
