@@ -83,6 +83,7 @@ SET(${PROJECT_NAME}_SRCS
   volGeometry.cpp
   volOutline.cpp
   volReader.cpp
+  volVolume.cpp
   )
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SRCS})

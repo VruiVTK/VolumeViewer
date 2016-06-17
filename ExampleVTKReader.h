@@ -77,9 +77,6 @@ private:
   /* Name of file to load */
   char* FileName;
 
-  /* SmartVolumeMapper Requested RenderMode */
-  int RequestedRenderMode;
-
   double xCenter;
   double yCenter;
   double zCenter;
@@ -107,9 +104,6 @@ private:
   int yContourSlice;
   int zContourSlice;
 
-  bool Volume;
-
-  double* VolumeColormap;
   TransferFunction1D* transferFunctionDialog;
 
   bool XSlice;

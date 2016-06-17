@@ -19,13 +19,6 @@ volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
 
-  this->actorVolume = vtkSmartPointer<vtkVolume>::New();
-  this->lowActorVolume = vtkSmartPointer<vtkVolume>::New();
-  this->renderer().AddVolume(this->actorVolume);
-  this->renderer().AddVolume(this->lowActorVolume);
-  this->propertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
-  this->lowPropertyVolume = vtkSmartPointer<vtkVolumeProperty>::New();
-
   this->xCutter = vtkSmartPointer<vtkCutter>::New();
   this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorXCutter = vtkSmartPointer<vtkActor>::New();
@@ -120,9 +113,6 @@ volContextState::volContextState()
   this->lowFreeSliceActor = vtkSmartPointer<vtkActor>::New();
   this->lowFreeSliceActor->SetMapper(this->lowFreeSliceMapper);
   this->renderer().AddActor(this->lowFreeSliceActor);
-
-  this->colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-  this->opacityFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();
 
   this->isosurfaceLUT = vtkSmartPointer<vtkLookupTable>::New();
   this->isosurfaceLUT->SetNumberOfColors(256);

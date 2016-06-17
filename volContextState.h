@@ -30,7 +30,7 @@ public:
 
   // TODO refactor these into vvGLObjects:
 
-  // Contours
+  // Contours (a,b,c)
   vtkSmartPointer<vtkContourFilter> aContour;
   vtkSmartPointer<vtkContourFilter> bContour;
   vtkSmartPointer<vtkContourFilter> cContour;
@@ -50,7 +50,7 @@ public:
   vtkSmartPointer<vtkActor> lowActorBContour;
   vtkSmartPointer<vtkActor> lowActorCContour;
 
-  // More contours (?)
+  // More contours (?) Slices in menu?
   vtkSmartPointer<vtkCutter> xContourCutter;
   vtkSmartPointer<vtkCutter> xCutter;
   vtkSmartPointer<vtkCutter> yContourCutter;
@@ -82,7 +82,7 @@ public:
   vtkSmartPointer<vtkActor> lowActorZContourCutter;
   vtkSmartPointer<vtkActor> lowActorZCutter;
 
-  // Yet another contour (??):
+  // Contour (free form)
   vtkSmartPointer<vtkContourFilter> contourFilter;
   vtkSmartPointer<vtkActor> contourActor;
   vtkSmartPointer<vtkContourFilter> lowContourFilter;
@@ -99,18 +99,10 @@ public:
   // Extract (probably used by one of the other filters
   vtkSmartPointer<vtkExtractVOI> extract;
 
-  // Volume:
-  vtkSmartPointer<vtkVolumeProperty> propertyVolume;
-  vtkSmartPointer<vtkVolume> actorVolume;
-  vtkSmartPointer<vtkVolumeProperty> lowPropertyVolume;
-  vtkSmartPointer<vtkVolume> lowActorVolume;
-
   // TODO see if these are shared. If so, leave them here. If not, put in
   // vvGLObjects.
   vtkSmartPointer<vtkLookupTable> sliceLUT;
   vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
-  vtkSmartPointer<vtkColorTransferFunction> colorFunction;
-  vtkSmartPointer<vtkPiecewiseFunction> opacityFunction;
 };
 
 #endif // VOLCONTEXTSTATE_H

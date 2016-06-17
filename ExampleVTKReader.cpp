@@ -69,6 +69,7 @@
 #include "volGeometry.h"
 #include "volOutline.h"
 #include "volReader.h"
+#include "volVolume.h"
 
 //----------------------------------------------------------------------------
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
@@ -94,12 +95,10 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     NumberOfClippingPlanes(6),
     opacityValue(NULL),
     renderingDialog(NULL),
-    RequestedRenderMode(3),
     resolutionValue(NULL),
     slicesDialog(NULL),
     transferFunctionDialog(NULL),
     Verbose(false),
-    Volume(false),
     xCenter(0),
     xContourSlice(0),
     XContourSlice(false),
@@ -123,8 +122,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FreeSliceVisibility[0] = 0;
   this->FreeSliceOrigin = new double[3];
   this->FreeSliceNormal = new double[3];
-
-  this->VolumeColormap = new double[4*256];
 
   this->IsosurfaceColormap = new double[4*256];
 
@@ -174,10 +171,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
 //----------------------------------------------------------------------------
 ExampleVTKReader::~ExampleVTKReader(void)
 {
-  if(this->VolumeColormap)
-    {
-    delete[] this->VolumeColormap;
-    }
   if(this->Histogram)
     {
     delete[] this->Histogram;
@@ -606,13 +599,7 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
       contextData.retrieveDataItem<volContextState>(this);
   assert("volContextState initialized by vvApplication." && context);
 
-  vtkNew<vtkSmartVolumeMapper> mapperVolume;
-  vtkNew<vtkSmartVolumeMapper> lowMapperVolume;
-
   // TODO refactor these to use vvGLObjects:
-  mapperVolume->SetInputData(m_volState.reader().typedDataObject());
-  lowMapperVolume->SetInputData(m_volState.reader().typedReducedDataObject());
-
   context->xCutter->SetInputData(m_volState.reader().dataObject());
   context->lowXCutter->SetInputData(m_volState.reader().reducedDataObject());
 
@@ -653,28 +640,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  mapperVolume->SetRequestedRenderMode(this->RequestedRenderMode);
-
-  context->colorFunction->AddRGBPoint(scalarRange[0], 1.0, 1.0, 1.0);
-  context->colorFunction->AddRGBPoint(scalarRange[1], 0.0, 0.0, 0.0);
-  context->opacityFunction->AddPoint(scalarRange[0], 0.0);
-  context->opacityFunction->AddPoint(scalarRange[1], 1.0);
-
-  context->propertyVolume->ShadeOff();
-  context->propertyVolume->SetScalarOpacityUnitDistance(1.0);
-  context->propertyVolume->SetColor(context->colorFunction);
-  context->propertyVolume->SetScalarOpacity(context->opacityFunction);
-  context->propertyVolume->SetInterpolationTypeToLinear();
-  context->actorVolume->SetProperty(context->propertyVolume);
-  context->actorVolume->SetMapper(mapperVolume.GetPointer());
-  context->lowPropertyVolume->ShadeOff();
-  context->lowPropertyVolume->SetScalarOpacityUnitDistance(1.0);
-  context->lowPropertyVolume->SetColor(context->colorFunction);
-  context->lowPropertyVolume->SetScalarOpacity(context->opacityFunction);
-  context->lowPropertyVolume->SetInterpolationTypeToLinear();
-  context->lowActorVolume->SetProperty(context->lowPropertyVolume);
-  context->lowActorVolume->SetMapper(lowMapperVolume.GetPointer());
 
   context->xCutter->SetCutFunction(this->xPlane);
   context->xCutterMapper->SetInputConnection(context->xCutter->GetOutputPort());
@@ -840,10 +805,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       contextData.retrieveDataItem<volContextState>(this);
 
   /* Update all lookup tables */
-  context->colorFunction->RemoveAllPoints();
-  context->opacityFunction->RemoveAllPoints();
-  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
-  double step = (scalarRange[1] - scalarRange[0])/255.0;
   for (int i = 0; i < 256; ++i)
     {
     context->sliceLUT->SetTableValue(i,
@@ -855,21 +816,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       this->IsosurfaceColormap[4*i + 0],
       this->IsosurfaceColormap[4*i + 1],
       this->IsosurfaceColormap[4*i + 2], 1.0);
-
-    context->colorFunction->AddRGBPoint(
-      scalarRange[0] + (double)(i*step),
-      this->VolumeColormap[4*i + 0],
-      this->VolumeColormap[4*i + 1],
-      this->VolumeColormap[4*i + 2]);
-    context->opacityFunction->AddPoint(
-      scalarRange[0] + (double)(i*step),
-      this->VolumeColormap[4*i + 3]);
     }
 
   /* Turn off visibility of all actors in the scene */
   // TODO is this really necessary?
-  context->actorVolume->VisibilityOff();
-  context->lowActorVolume->VisibilityOff();
   context->actorXCutter->VisibilityOff();
   context->lowActorXCutter->VisibilityOff();
   context->actorYCutter->VisibilityOff();
@@ -920,29 +870,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowFreeSliceActor->VisibilityOff();
-      }
-    }
-
-  if (this->Volume)
-    {
-    if (!lowResolution)
-      {
-      context->actorVolume->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorVolume->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorVolume->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorVolume->VisibilityOff();
       }
     }
 
@@ -1264,35 +1191,35 @@ void ExampleVTKReader::changeRepresentationCallback(
     {
     m_volState.geometry().setVisible(true);
     m_volState.geometry().setRepresentation(Representation::Surface);
-    this->Volume = false;
+    m_volState.volume().setVisible(false);
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowSurfaceWithEdges") == 0)
     {
     m_volState.geometry().setVisible(true);
     m_volState.geometry().setRepresentation(Representation::SurfaceWithEdges);
-    this->Volume = false;
+    m_volState.volume().setVisible(false);
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowWireframe") == 0)
     {
     m_volState.geometry().setVisible(true);
     m_volState.geometry().setRepresentation(Representation::WireFrame);
-    this->Volume = false;
+    m_volState.volume().setVisible(false);
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowPoints") == 0)
     {
     m_volState.geometry().setVisible(true);
     m_volState.geometry().setRepresentation(Representation::Points);
-    this->Volume = false;
+    m_volState.volume().setVisible(false);
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowNone") == 0)
     {
     m_volState.geometry().setVisible(false);
-    this->Volume = false;
+    m_volState.volume().setVisible(false);
     }
   else if (strcmp(callBackData->toggle->getName(), "ShowVolume") == 0)
     {
-    this->Volume = callBackData->set;
-    if (this->Volume)
+    m_volState.volume().setVisible(callBackData->set);
+    if (callBackData->set)
       {
       m_volState.geometry().setVisible(false);
       }
@@ -1661,7 +1588,7 @@ void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 {
-  transferFunctionDialog->exportAlpha(this->VolumeColormap);
+  transferFunctionDialog->exportAlpha(m_volState.colorMap().data());
   Vrui::requestUpdate();
 }
 
@@ -1676,7 +1603,7 @@ void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData* callBackD
 void ExampleVTKReader::volumeColorMapChangedCallback(
   Misc::CallbackData* callBackData)
 {
-  transferFunctionDialog->exportColorMap(this->VolumeColormap);
+  transferFunctionDialog->exportColorMap(m_volState.colorMap().data());
   this->updateAlpha();
   Vrui::requestUpdate();
 }
@@ -1684,14 +1611,14 @@ void ExampleVTKReader::volumeColorMapChangedCallback(
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateAlpha(void)
 {
-  transferFunctionDialog->exportAlpha(this->VolumeColormap);
+  transferFunctionDialog->exportAlpha(m_volState.colorMap().data());
   Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateVolumeColorMap(void)
 {
-  transferFunctionDialog->exportColorMap(this->VolumeColormap);
+  transferFunctionDialog->exportColorMap(m_volState.colorMap().data());
   Vrui::requestUpdate();
 }
 
@@ -1784,13 +1711,13 @@ float * ExampleVTKReader::getHistogram(void)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setRequestedRenderMode(int mode)
 {
-  this->RequestedRenderMode = mode;
+  m_volState.volume().setRenderMode(volVolume::RenderMode(mode));
 }
 
 //----------------------------------------------------------------------------
 int ExampleVTKReader::getRequestedRenderMode(void) const
 {
-  return this->RequestedRenderMode;
+  return static_cast<int>(m_volState.volume().renderMode());
 }
 
 //----------------------------------------------------------------------------
