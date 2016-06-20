@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+class volContours;
 class volGeometry;
 class volOutline;
 class volSlices;
@@ -30,6 +31,10 @@ public:
   /** RGBA color map for geometry/volume rendering. See usage for details. */
   ColorMapType& colorMap() { return m_colorMap; }
   const ColorMapType& colorMap() const { return m_colorMap; }
+
+  /** Contour rendering */
+  volContours& contours() { return *m_contours; }
+  const volContours& contours() const { return *m_contours; }
 
   /** Geometry rendering */
   volGeometry& geometry() { return *m_geometry; }
@@ -61,6 +66,7 @@ private:
   volApplicationState& operator=(const volApplicationState&);
 
   ColorMapType m_colorMap;
+  volContours *m_contours;
   volGeometry *m_geometry;
   volOutline *m_outline;
   volReader *m_reader;

@@ -80,6 +80,7 @@ SET(${PROJECT_NAME}_SRCS
   TransferFunction1D.cpp
   volApplicationState.cpp
   volContextState.cpp
+  volContours.cpp
   volGeometry.cpp
   volOutline.cpp
   volReader.cpp

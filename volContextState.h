@@ -30,7 +30,7 @@ public:
 
   // TODO refactor these into vvGLObjects:
 
-  // Contours (a,b,c)
+  // Isosurfaces
   vtkSmartPointer<vtkContourFilter> aContour;
   vtkSmartPointer<vtkContourFilter> bContour;
   vtkSmartPointer<vtkContourFilter> cContour;
@@ -49,12 +49,6 @@ public:
   vtkSmartPointer<vtkActor> lowActorAContour;
   vtkSmartPointer<vtkActor> lowActorBContour;
   vtkSmartPointer<vtkActor> lowActorCContour;
-
-  // Contour (free form)
-  vtkSmartPointer<vtkContourFilter> contourFilter;
-  vtkSmartPointer<vtkActor> contourActor;
-  vtkSmartPointer<vtkContourFilter> lowContourFilter;
-  vtkSmartPointer<vtkActor> lowContourActor;
 
   // Slice:
   vtkSmartPointer<vtkCutter> freeSliceCutter;

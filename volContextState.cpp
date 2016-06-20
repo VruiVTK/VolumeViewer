@@ -19,13 +19,6 @@ volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
 
-  this->contourFilter = vtkSmartPointer<vtkContourFilter>::New();
-  this->contourActor = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->contourActor);
-  this->lowContourFilter = vtkSmartPointer<vtkContourFilter>::New();
-  this->lowContourActor = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->lowContourActor);
-
   this->aContour = vtkSmartPointer<vtkContourFilter>::New();
   this->aContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->actorAContour = vtkSmartPointer<vtkActor>::New();

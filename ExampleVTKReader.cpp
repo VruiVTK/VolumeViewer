@@ -66,6 +66,7 @@
 #include "TransferFunction1D.h"
 #include "volApplicationState.h"
 #include "volContextState.h"
+#include "volContours.h"
 #include "volGeometry.h"
 #include "volOutline.h"
 #include "volReader.h"
@@ -85,7 +86,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     CIsosurface(false),
     ClippingPlanes(NULL),
     ContoursDialog(NULL),
-    ContourVisible(true),
     FileName(0),
     FirstFrame(true),
     FreeSliceNormal(0),
@@ -542,9 +542,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   context->cContour->SetInputData(m_volState.reader().dataObject());
   context->lowCContour->SetInputData(m_volState.reader().reducedDataObject());
 
-  context->contourFilter->SetInputData(m_volState.reader().dataObject());
-  context->lowContourFilter->SetInputData(m_volState.reader().reducedDataObject());
-
   context->freeSliceCutter->SetInputData(m_volState.reader().dataObject());
   context->lowFreeSliceCutter->SetInputData(m_volState.reader().reducedDataObject());
 
@@ -601,24 +598,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   context->lowCContourMapper->SetLookupTable(context->isosurfaceLUT);
   context->lowCContourMapper->SetColorModeToMapScalars();
   context->lowActorCContour->SetMapper(context->lowCContourMapper);
-
-  vtkNew<vtkPolyDataMapper> contourMapper;
-  contourMapper->SetInputConnection(context->contourFilter->GetOutputPort());
-  contourMapper->ScalarVisibilityOff();
-  context->contourActor->SetMapper(contourMapper.GetPointer());
-  vtkNew<vtkPolyDataMapper> lowContourMapper;
-  lowContourMapper->SetInputConnection(context->lowContourFilter->GetOutputPort());
-  lowContourMapper->ScalarVisibilityOff();
-  context->lowContourActor->SetMapper(lowContourMapper.GetPointer());
-
-  // TODO these need to be refactored into volSlices onces contouring is
-  // reachable via volApplicationState.
-//  xContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-//  lowXContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
-//  yContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-//  lowYContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
-//  zContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-//  lowZContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
 
   context->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   context->freeSliceMapper->SetScalarRange(scalarRange.data());
@@ -679,8 +658,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   context->lowActorBContour->VisibilityOff();
   context->actorCContour->VisibilityOff();
   context->lowActorCContour->VisibilityOff();
-  context->contourActor->VisibilityOff();
-  context->lowContourActor->VisibilityOff();
   context->freeSliceActor->VisibilityOff();
   context->lowFreeSliceActor->VisibilityOff();
   if (lowResolution)
@@ -786,49 +763,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowActorCContour->VisibilityOff();
-      }
-    }
-
-  if (!lowResolution)
-    {
-    context->contourFilter->SetNumberOfContours(this->ContourValues.size());
-    }
-  else
-    {
-    context->lowContourFilter->SetNumberOfContours(
-      this->ContourValues.size());
-    }
-  for(int i = 0; i < this->ContourValues.size(); ++i)
-    {
-    if (!lowResolution)
-      {
-      context->contourFilter->SetValue(i, this->ContourValues.at(i));
-      }
-    else
-      {
-      context->lowContourFilter->SetValue(i, this->ContourValues.at(i));
-      }
-    }
-  if(this->ContourVisible)
-    {
-    if (!lowResolution)
-      {
-      context->contourActor->VisibilityOn();
-      }
-    else
-      {
-      context->lowContourActor->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->contourActor->VisibilityOff();
-      }
-    else
-      {
-      context->lowContourActor->VisibilityOff();
       }
     }
 
@@ -1285,9 +1219,9 @@ void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData* callBackData)
+void ExampleVTKReader::contourValueChangedCallback(Misc::CallbackData*)
 {
-  this->ContourValues = ContoursDialog->getContourValues();
+  m_volState.contours().setContourValues(ContoursDialog->getContourValues());
   Vrui::requestUpdate();
 }
 
@@ -1383,15 +1317,15 @@ float ExampleVTKReader::getDataMidPoint(void)
 }
 
 //----------------------------------------------------------------------------
-std::vector<double> ExampleVTKReader::getContourValues(void)
+std::vector<double> ExampleVTKReader::getContourValues()
 {
-  return this->ContourValues;
+  return m_volState.contours().contourValues();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setContourVisible(bool visible)
 {
-  this->ContourVisible = visible;
+  m_volState.contours().setVisible(visible);
 }
 
 //----------------------------------------------------------------------------

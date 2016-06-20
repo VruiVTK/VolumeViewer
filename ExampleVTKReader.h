@@ -94,8 +94,6 @@ private:
 
   /* Contours */
   Contours* ContoursDialog;
-  bool ContourVisible;
-  std::vector<double> ContourValues;
   float* Histogram;
 
   /* First Frame */

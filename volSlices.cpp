@@ -2,6 +2,7 @@
 
 #include "volApplicationState.h"
 #include "volContextState.h"
+#include "volContours.h"
 #include "volReader.h"
 
 #include <vtkActor.h>
@@ -219,13 +220,15 @@ void volSlices::DataPipeline::configure(
       return;
     }
 
+  vtkDataObject *contours = state.contours().contourData(this->lod);
+
   for (size_t i = 0; i < 3; ++i)
     {
     this->sliceCutters[i]->SetCutFunction(objState.slicePlanes[i].Get());
     this->sliceCutters[i]->SetInputDataObject(inputDO);
 
-    // TODO expose the contour objects for the contour slices!
     this->contourCutters[i]->SetCutFunction(objState.contourPlanes[i].Get());
+    this->contourCutters[i]->SetInputDataObject(contours);
     }
 }
 
