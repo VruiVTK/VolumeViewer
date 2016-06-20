@@ -11,6 +11,7 @@
 
 class volGeometry;
 class volOutline;
+class volSlices;
 class volReader;
 class volVolume;
 
@@ -42,6 +43,14 @@ public:
   volReader& reader() { return *m_reader; }
   const volReader& reader() const { return *m_reader; }
 
+  /** Slice rendering. */
+  volSlices& slices() { return *m_slices; }
+  const volSlices& slices() const { return *m_slices; }
+
+  /** RGBA color map for geometry/volume rendering. See usage for details. */
+  ColorMapType& sliceColorMap() { return m_sliceColorMap; }
+  const ColorMapType& sliceColorMap() const { return m_sliceColorMap; }
+
   /** Volume rendering */
   volVolume& volume() { return *m_volume; }
   const volVolume& volume() const { return *m_volume; }
@@ -55,6 +64,8 @@ private:
   volGeometry *m_geometry;
   volOutline *m_outline;
   volReader *m_reader;
+  volSlices *m_slices;
+  ColorMapType m_sliceColorMap;
   volVolume *m_volume;
 };
 

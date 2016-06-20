@@ -69,6 +69,7 @@
 #include "volGeometry.h"
 #include "volOutline.h"
 #include "volReader.h"
+#include "volSlices.h"
 #include "volVolume.h"
 
 //----------------------------------------------------------------------------
@@ -98,25 +99,7 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     resolutionValue(NULL),
     slicesDialog(NULL),
     transferFunctionDialog(NULL),
-    Verbose(false),
-    xCenter(0),
-    xContourSlice(0),
-    XContourSlice(false),
-    xOrigin(0),
-    xSlice(0),
-    XSlice(false),
-    yCenter(0),
-    yContourSlice(0),
-    YContourSlice(false),
-    yOrigin(0),
-    ySlice(0),
-    YSlice(false),
-    zCenter(0),
-    zContourSlice(0),
-    ZContourSlice(false),
-    zOrigin(0),
-    zSlice(0),
-    ZSlice(false)
+    Verbose(false)
 {
   this->FreeSliceVisibility = new int[1];
   this->FreeSliceVisibility[0] = 0;
@@ -124,32 +107,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FreeSliceNormal = new double[3];
 
   this->IsosurfaceColormap = new double[4*256];
-
-  this->SliceColormap = new double[4*256];
-
-  this->xPlane = vtkSmartPointer<vtkPlane>::New();
-  this->xPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->xPlane->SetNormal(1.0, 0.0, 0.0);
-
-  this->yPlane = vtkSmartPointer<vtkPlane>::New();
-  this->yPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->yPlane->SetNormal(0.0, 1.0, 0.0);
-
-  this->zPlane = vtkSmartPointer<vtkPlane>::New();
-  this->zPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->zPlane->SetNormal(0.0, 0.0, 1.0);
-
-  this->xContourPlane = vtkSmartPointer<vtkPlane>::New();
-  this->xContourPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->xContourPlane->SetNormal(1.0, 0.0, 0.0);
-
-  this->yContourPlane = vtkSmartPointer<vtkPlane>::New();
-  this->yContourPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->yContourPlane->SetNormal(0.0, 1.0, 0.0);
-
-  this->zContourPlane = vtkSmartPointer<vtkPlane>::New();
-  this->zContourPlane->SetOrigin(0.0, 0.0, 0.0);
-  this->zContourPlane->SetNormal(0.0, 0.0, 1.0);
 
   this->Histogram = new float[256];
   for(int j = 0; j < 256; ++j)
@@ -539,10 +496,10 @@ void ExampleVTKReader::frame(void)
     updateVolumeColorMap();
     updateAlpha();
 
-    this->slicesDialog = new Slices(this->SliceColormap, this);
+    this->slicesDialog = new Slices(m_volState.sliceColorMap().data(), this);
     this->slicesDialog->setSlicesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
-    this->slicesDialog->exportSlicesColorMap(this->SliceColormap);
-    updateSliceColorMap(this->SliceColormap);
+    this->slicesDialog->exportSlicesColorMap(m_volState.sliceColorMap().data());
+    this->updateSliceColorMap(m_volState.sliceColorMap().data());
 
     this->isosurfacesDialog = new Isosurfaces(this->IsosurfaceColormap, this);
     this->isosurfacesDialog->setIsosurfacesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
@@ -553,33 +510,9 @@ void ExampleVTKReader::frame(void)
     this->ContoursDialog->getAlphaChangedCallbacks().add(this,
       &ExampleVTKReader::contourValueChangedCallback);
 
-    /* Compute the data center and Radius once */
-    std::array<double, 3> center;
-    m_volState.reader().bounds().GetCenter(center.data());
-    const double *origin = m_volState.reader().bounds().GetMinPoint();
-    this->xCenter = center[0];
-    this->yCenter = center[1];
-    this->zCenter = center[2];
-    this->xOrigin = origin[0];
-    this->yOrigin = origin[1];
-    this->zOrigin = origin[2];
-
     /* Initialize Vrui navigation transformation: */
     centerDisplayCallback(0);
 
-    std::array<double, 3> spacing = m_volState.reader().spacing();
-    this->xPlane->SetOrigin(this->xOrigin + (
-        this->xSlice * spacing[0]), this->yCenter, this->zCenter);
-    this->yPlane->SetOrigin(this->xCenter, this->yOrigin + (
-        this->ySlice * spacing[1]), this->zCenter);
-    this->zPlane->SetOrigin(this->xCenter, this->yCenter,
-      this->zOrigin + (this->zSlice * spacing[2]));
-    this->xContourPlane->SetOrigin(this->xOrigin + (
-        this->xContourSlice * spacing[0]), this->yCenter, this->zCenter);
-    this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin + (
-        this->yContourSlice * spacing[1]), this->zCenter);
-    this->zContourPlane->SetOrigin(this->xCenter, this->yCenter,
-      this->zOrigin + (this->zContourSlice * spacing[2]));
     this->aIsosurface = this->getDataMidPoint();
     this->bIsosurface = this->getDataMidPoint();
     this->cIsosurface = this->getDataMidPoint();
@@ -600,15 +533,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   assert("volContextState initialized by vvApplication." && context);
 
   // TODO refactor these to use vvGLObjects:
-  context->xCutter->SetInputData(m_volState.reader().dataObject());
-  context->lowXCutter->SetInputData(m_volState.reader().reducedDataObject());
-
-  context->yCutter->SetInputData(m_volState.reader().dataObject());
-  context->lowYCutter->SetInputData(m_volState.reader().reducedDataObject());
-
-  context->zCutter->SetInputData(m_volState.reader().dataObject());
-  context->lowZCutter->SetInputData(m_volState.reader().reducedDataObject());
-
   context->aContour->SetInputData(m_volState.reader().dataObject());
   context->lowAContour->SetInputData(m_volState.reader().reducedDataObject());
 
@@ -640,43 +564,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  context->xCutter->SetCutFunction(this->xPlane);
-  context->xCutterMapper->SetInputConnection(context->xCutter->GetOutputPort());
-  context->xCutterMapper->SetScalarRange(scalarRange.data());
-  context->xCutterMapper->SetLookupTable(context->sliceLUT);
-  context->xCutterMapper->SetColorModeToMapScalars();
-  context->actorXCutter->SetMapper(context->xCutterMapper);
-  context->lowXCutter->SetCutFunction(this->xPlane);
-  context->lowXCutterMapper->SetInputConnection(context->lowXCutter->GetOutputPort());
-  context->lowXCutterMapper->SetScalarRange(scalarRange.data());
-  context->lowXCutterMapper->SetLookupTable(context->sliceLUT);
-  context->lowXCutterMapper->SetColorModeToMapScalars();
-  context->lowActorXCutter->SetMapper(context->lowXCutterMapper);
-  context->yCutter->SetCutFunction(this->yPlane);
-  context->yCutterMapper->SetInputConnection(context->yCutter->GetOutputPort());
-  context->yCutterMapper->SetScalarRange(scalarRange.data());
-  context->yCutterMapper->SetLookupTable(context->sliceLUT);
-  context->yCutterMapper->SetColorModeToMapScalars();
-  context->actorYCutter->SetMapper(context->yCutterMapper);
-  context->lowYCutter->SetCutFunction(this->yPlane);
-  context->lowYCutterMapper->SetInputConnection(context->lowYCutter->GetOutputPort());
-  context->lowYCutterMapper->SetScalarRange(scalarRange.data());
-  context->lowYCutterMapper->SetLookupTable(context->sliceLUT);
-  context->lowYCutterMapper->SetColorModeToMapScalars();
-  context->lowActorYCutter->SetMapper(context->lowYCutterMapper);
-  context->zCutter->SetCutFunction(this->zPlane);
-  context->zCutterMapper->SetInputConnection(context->zCutter->GetOutputPort());
-  context->zCutterMapper->SetScalarRange(scalarRange.data());
-  context->zCutterMapper->SetLookupTable(context->sliceLUT);
-  context->zCutterMapper->SetColorModeToMapScalars();
-  context->actorZCutter->SetMapper(context->zCutterMapper);
-  context->lowZCutter->SetCutFunction(this->zPlane);
-  context->lowZCutterMapper->SetInputConnection(context->lowZCutter->GetOutputPort());
-  context->lowZCutterMapper->SetScalarRange(scalarRange.data());
-  context->lowZCutterMapper->SetLookupTable(context->sliceLUT);
-  context->lowZCutterMapper->SetColorModeToMapScalars();
-  context->lowActorZCutter->SetMapper(context->lowZCutterMapper);
 
   context->aContour->SetValue(0, this->aIsosurface);
   context->aContourMapper->SetInputConnection(context->aContour->GetOutputPort());
@@ -724,56 +611,22 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   lowContourMapper->ScalarVisibilityOff();
   context->lowContourActor->SetMapper(lowContourMapper.GetPointer());
 
-  vtkNew<vtkCutter> xContourCutter;
-  xContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-  xContourCutter->SetCutFunction(this->xContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperXContourCutter;
-  mapperXContourCutter->SetInputConnection(xContourCutter->GetOutputPort());
-  mapperXContourCutter->ScalarVisibilityOff();
-  context->actorXContourCutter->SetMapper(mapperXContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowXContourCutter;
-  lowXContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
-  lowXContourCutter->SetCutFunction(this->xContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperXContourCutter;
-  lowMapperXContourCutter->SetInputConnection(lowXContourCutter->GetOutputPort());
-  lowMapperXContourCutter->ScalarVisibilityOff();
-  context->lowActorXContourCutter->SetMapper(lowMapperXContourCutter.GetPointer());
-  vtkNew<vtkCutter> yContourCutter;
-  yContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-  yContourCutter->SetCutFunction(this->yContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperYContourCutter;
-  mapperYContourCutter->SetInputConnection(yContourCutter->GetOutputPort());
-  mapperYContourCutter->ScalarVisibilityOff();
-  context->actorYContourCutter->SetMapper(mapperYContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowYContourCutter;
-  lowYContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
-  lowYContourCutter->SetCutFunction(this->yContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperYContourCutter;
-  lowMapperYContourCutter->SetInputConnection(lowYContourCutter->GetOutputPort());
-  lowMapperYContourCutter->ScalarVisibilityOff();
-  context->lowActorYContourCutter->SetMapper(lowMapperYContourCutter.GetPointer());
-  vtkNew<vtkCutter> zContourCutter;
-  zContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
-  zContourCutter->SetCutFunction(this->zContourPlane);
-  vtkNew<vtkPolyDataMapper> mapperZContourCutter;
-  mapperZContourCutter->SetInputConnection(zContourCutter->GetOutputPort());
-  mapperZContourCutter->ScalarVisibilityOff();
-  context->actorZContourCutter->SetMapper(mapperZContourCutter.GetPointer());
-  vtkNew<vtkCutter> lowZContourCutter;
-  lowZContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
-  lowZContourCutter->SetCutFunction(this->zContourPlane);
-  vtkNew<vtkPolyDataMapper> lowMapperZContourCutter;
-  lowMapperZContourCutter->SetInputConnection(lowZContourCutter->GetOutputPort());
-  lowMapperZContourCutter->ScalarVisibilityOff();
-  context->lowActorZContourCutter->SetMapper(lowMapperZContourCutter.GetPointer());
+  // TODO these need to be refactored into volSlices onces contouring is
+  // reachable via volApplicationState.
+//  xContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
+//  lowXContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
+//  yContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
+//  lowYContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
+//  zContourCutter->SetInputConnection(context->contourFilter->GetOutputPort());
+//  lowZContourCutter->SetInputConnection(context->lowContourFilter->GetOutputPort());
 
   context->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   context->freeSliceMapper->SetScalarRange(scalarRange.data());
-  context->freeSliceMapper->SetLookupTable(context->sliceLUT);
+  context->freeSliceMapper->SetLookupTable(context->freesliceLUT);
   context->freeSliceMapper->SetColorModeToMapScalars();
   context->lowFreeSliceCutter->SetCutFunction(this->freeSlicePlane);
   context->lowFreeSliceMapper->SetScalarRange(scalarRange.data());
-  context->lowFreeSliceMapper->SetLookupTable(context->sliceLUT);
+  context->lowFreeSliceMapper->SetLookupTable(context->freesliceLUT);
   context->lowFreeSliceMapper->SetColorModeToMapScalars();
 }
 
@@ -807,10 +660,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   /* Update all lookup tables */
   for (int i = 0; i < 256; ++i)
     {
-    context->sliceLUT->SetTableValue(i,
-      this->SliceColormap[4*i + 0],
-      this->SliceColormap[4*i + 1],
-      this->SliceColormap[4*i + 2], 1.0);
+    context->freesliceLUT->SetTableValue(i,
+      m_volState.sliceColorMap()[4*i + 0],
+      m_volState.sliceColorMap()[4*i + 1],
+      m_volState.sliceColorMap()[4*i + 2], 1.0);
 
     context->isosurfaceLUT->SetTableValue(i,
       this->IsosurfaceColormap[4*i + 0],
@@ -820,24 +673,12 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 
   /* Turn off visibility of all actors in the scene */
   // TODO is this really necessary?
-  context->actorXCutter->VisibilityOff();
-  context->lowActorXCutter->VisibilityOff();
-  context->actorYCutter->VisibilityOff();
-  context->lowActorYCutter->VisibilityOff();
-  context->actorZCutter->VisibilityOff();
-  context->lowActorZCutter->VisibilityOff();
   context->actorAContour->VisibilityOff();
   context->lowActorAContour->VisibilityOff();
   context->actorBContour->VisibilityOff();
   context->lowActorBContour->VisibilityOff();
   context->actorCContour->VisibilityOff();
   context->lowActorCContour->VisibilityOff();
-  context->actorXContourCutter->VisibilityOff();
-  context->lowActorXContourCutter->VisibilityOff();
-  context->actorYContourCutter->VisibilityOff();
-  context->lowActorYContourCutter->VisibilityOff();
-  context->actorZContourCutter->VisibilityOff();
-  context->lowActorZContourCutter->VisibilityOff();
   context->contourActor->VisibilityOff();
   context->lowContourActor->VisibilityOff();
   context->freeSliceActor->VisibilityOff();
@@ -870,75 +711,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowFreeSliceActor->VisibilityOff();
-      }
-    }
-
-  if (this->XSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorXCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorXCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorXCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorXCutter->VisibilityOff();
-      }
-    }
-
-  if (this->YSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorYCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorYCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorYCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorYCutter->VisibilityOff();
-      }
-    }
-
-  if (this->ZSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorZCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorZCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorZCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorZCutter->VisibilityOff();
       }
     }
 
@@ -1014,75 +786,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowActorCContour->VisibilityOff();
-      }
-    }
-
-  if (this->XContourSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorXContourCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorXContourCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorXContourCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorXContourCutter->VisibilityOff();
-      }
-    }
-
-  if (this->YContourSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorYContourCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorYContourCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorYContourCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorYContourCutter->VisibilityOff();
-      }
-    }
-
-  if (this->ZContourSlice)
-    {
-    if (!lowResolution)
-      {
-      context->actorZContourCutter->VisibilityOn();
-      }
-    else
-      {
-      context->lowActorZContourCutter->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorZContourCutter->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorZContourCutter->VisibilityOff();
       }
     }
 
@@ -1470,89 +1173,73 @@ double * ExampleVTKReader::getFreeSliceNormal(void)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setXSlice(int xSlice)
 {
-  this->xSlice = xSlice;
-  this->xPlane->SetOrigin(this->xOrigin +
-    (this->xSlice * m_volState.reader().spacing()[0]),
-      this->yCenter, this->zCenter);
-
+  m_volState.slices().setSliceLocation(0, xSlice);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setYSlice(int ySlice)
 {
-  this->ySlice = ySlice;
-  this->yPlane->SetOrigin(this->xCenter, this->yOrigin +
-    (this->ySlice * m_volState.reader().spacing()[1]), this->zCenter);
+  m_volState.slices().setSliceLocation(1, ySlice);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setZSlice(int zSlice)
 {
-  this->zSlice = zSlice;
-  this->zPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
-    (this->zSlice * m_volState.reader().spacing()[2]));
+  m_volState.slices().setSliceLocation(2, zSlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showXSlice(bool XSlice)
+void ExampleVTKReader::showXSlice(bool xSlice)
 {
-  this->XSlice = XSlice;
+  m_volState.slices().setSliceVisible(0, xSlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showYSlice(bool YSlice)
+void ExampleVTKReader::showYSlice(bool ySlice)
 {
-  this->YSlice = YSlice;
+  m_volState.slices().setSliceVisible(1, ySlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showZSlice(bool ZSlice)
+void ExampleVTKReader::showZSlice(bool zSlice)
 {
-  this->ZSlice = ZSlice;
+  m_volState.slices().setSliceVisible(2, zSlice);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setXContourSlice(int xSlice)
 {
-  this->xContourSlice = xSlice;
-  this->xContourPlane->SetOrigin(this->xOrigin +
-    (this->xContourSlice * m_volState.reader().spacing()[0]),
-      this->yCenter, this->zCenter);
-
+  m_volState.slices().setContourSliceLocation(0, xSlice);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setYContourSlice(int ySlice)
 {
-  this->yContourSlice = ySlice;
-  this->yContourPlane->SetOrigin(this->xCenter, this->yOrigin +
-    (this->yContourSlice * m_volState.reader().spacing()[1]), this->zCenter);
+  m_volState.slices().setContourSliceLocation(1, ySlice);
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setZContourSlice(int zSlice)
 {
-  this->zContourSlice = zSlice;
-  this->zContourPlane->SetOrigin(this->xCenter, this->yCenter, this->zOrigin +
-    (this->zContourSlice * m_volState.reader().spacing()[2]));
+  m_volState.slices().setContourSliceLocation(2, zSlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showXContourSlice(bool XSlice)
+void ExampleVTKReader::showXContourSlice(bool xSlice)
 {
-  this->XContourSlice = XSlice;
+  m_volState.slices().setContourSliceVisible(0, xSlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showYContourSlice(bool YSlice)
+void ExampleVTKReader::showYContourSlice(bool ySlice)
 {
-  this->YContourSlice = YSlice;
+  m_volState.slices().setContourSliceVisible(1, ySlice);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showZContourSlice(bool ZSlice)
+void ExampleVTKReader::showZContourSlice(bool zSlice)
 {
-  this->ZContourSlice = ZSlice;
+  m_volState.slices().setContourSliceVisible(2, zSlice);
 }
 
 //----------------------------------------------------------------------------
@@ -1582,7 +1269,12 @@ void ExampleVTKReader::updateIsosurfaceColorMap(double* IsosurfaceColormap)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
 {
-  this->SliceColormap = SliceColormap;
+  // TODO There was a leak here before the vtkVRUI refactor:
+  //  this->SliceColormap = SliceColormap;
+  // Check that the input argument is cleaned up properly when called.
+
+  std::copy(SliceColormap, SliceColormap + 256,
+            m_volState.sliceColorMap().data());
 }
 
 //----------------------------------------------------------------------------

@@ -77,44 +77,12 @@ private:
   /* Name of file to load */
   char* FileName;
 
-  double xCenter;
-  double yCenter;
-  double zCenter;
-  double xOrigin;
-  double yOrigin;
-  double zOrigin;
-
-  vtkSmartPointer<vtkPlane> xPlane;
-  vtkSmartPointer<vtkPlane> yPlane;
-  vtkSmartPointer<vtkPlane> zPlane;
-
-  int xSlice;
-  int ySlice;
-  int zSlice;
-
   float aIsosurface;
   float bIsosurface;
   float cIsosurface;
 
-  vtkSmartPointer<vtkPlane> xContourPlane;
-  vtkSmartPointer<vtkPlane> yContourPlane;
-  vtkSmartPointer<vtkPlane> zContourPlane;
-
-  int xContourSlice;
-  int yContourSlice;
-  int zContourSlice;
-
   TransferFunction1D* transferFunctionDialog;
 
-  bool XSlice;
-  bool YSlice;
-  bool ZSlice;
-
-  bool XContourSlice;
-  bool YContourSlice;
-  bool ZContourSlice;
-
-  double* SliceColormap;
   Slices* slicesDialog;
 
   bool AIsosurface;

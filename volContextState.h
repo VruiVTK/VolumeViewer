@@ -50,38 +50,6 @@ public:
   vtkSmartPointer<vtkActor> lowActorBContour;
   vtkSmartPointer<vtkActor> lowActorCContour;
 
-  // More contours (?) Slices in menu?
-  vtkSmartPointer<vtkCutter> xContourCutter;
-  vtkSmartPointer<vtkCutter> xCutter;
-  vtkSmartPointer<vtkCutter> yContourCutter;
-  vtkSmartPointer<vtkCutter> yCutter;
-  vtkSmartPointer<vtkCutter> zContourCutter;
-  vtkSmartPointer<vtkCutter> zCutter;
-  vtkSmartPointer<vtkPolyDataMapper> xCutterMapper;
-  vtkSmartPointer<vtkPolyDataMapper> yCutterMapper;
-  vtkSmartPointer<vtkPolyDataMapper> zCutterMapper;
-  vtkSmartPointer<vtkActor> actorXContourCutter;
-  vtkSmartPointer<vtkActor> actorXCutter;
-  vtkSmartPointer<vtkActor> actorYContourCutter;
-  vtkSmartPointer<vtkActor> actorYCutter;
-  vtkSmartPointer<vtkActor> actorZContourCutter;
-  vtkSmartPointer<vtkActor> actorZCutter;
-  vtkSmartPointer<vtkCutter> lowXContourCutter;
-  vtkSmartPointer<vtkCutter> lowXCutter;
-  vtkSmartPointer<vtkCutter> lowYContourCutter;
-  vtkSmartPointer<vtkCutter> lowYCutter;
-  vtkSmartPointer<vtkCutter> lowZContourCutter;
-  vtkSmartPointer<vtkCutter> lowZCutter;
-  vtkSmartPointer<vtkPolyDataMapper> lowXCutterMapper;
-  vtkSmartPointer<vtkPolyDataMapper> lowYCutterMapper;
-  vtkSmartPointer<vtkPolyDataMapper> lowZCutterMapper;
-  vtkSmartPointer<vtkActor> lowActorXContourCutter;
-  vtkSmartPointer<vtkActor> lowActorXCutter;
-  vtkSmartPointer<vtkActor> lowActorYContourCutter;
-  vtkSmartPointer<vtkActor> lowActorYCutter;
-  vtkSmartPointer<vtkActor> lowActorZContourCutter;
-  vtkSmartPointer<vtkActor> lowActorZCutter;
-
   // Contour (free form)
   vtkSmartPointer<vtkContourFilter> contourFilter;
   vtkSmartPointer<vtkActor> contourActor;
@@ -101,7 +69,7 @@ public:
 
   // TODO see if these are shared. If so, leave them here. If not, put in
   // vvGLObjects.
-  vtkSmartPointer<vtkLookupTable> sliceLUT;
+  vtkSmartPointer<vtkLookupTable> freesliceLUT;
   vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
 };
 

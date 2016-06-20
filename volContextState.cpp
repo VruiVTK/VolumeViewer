@@ -19,62 +19,12 @@ volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
 
-  this->xCutter = vtkSmartPointer<vtkCutter>::New();
-  this->xCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->actorXCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowXCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowXCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->lowActorXCutter = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->actorXCutter);
-  this->renderer().AddActor(this->lowActorXCutter);
-  this->yCutter = vtkSmartPointer<vtkCutter>::New();
-  this->yCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->actorYCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowYCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowYCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->lowActorYCutter = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->actorYCutter);
-  this->renderer().AddActor(this->lowActorYCutter);
-  this->zCutter = vtkSmartPointer<vtkCutter>::New();
-  this->zCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->actorZCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowZCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowZCutterMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->lowActorZCutter = vtkSmartPointer<vtkActor>::New();
-  this->renderer().AddActor(this->actorZCutter);
-  this->renderer().AddActor(this->lowActorZCutter);
-
   this->contourFilter = vtkSmartPointer<vtkContourFilter>::New();
   this->contourActor = vtkSmartPointer<vtkActor>::New();
   this->renderer().AddActor(this->contourActor);
   this->lowContourFilter = vtkSmartPointer<vtkContourFilter>::New();
   this->lowContourActor = vtkSmartPointer<vtkActor>::New();
   this->renderer().AddActor(this->lowContourActor);
-
-  this->actorXContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->actorXContourCutter->GetProperty()->SetColor(1.0, 0.0, 0.0);
-  this->actorXContourCutter->GetProperty()->SetLineWidth(3);
-  this->lowActorXContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowActorXContourCutter->GetProperty()->SetColor(1.0, 0.0, 0.0);
-  this->lowActorXContourCutter->GetProperty()->SetLineWidth(3);
-  this->renderer().AddActor(this->actorXContourCutter);
-  this->renderer().AddActor(this->lowActorXContourCutter);
-  this->actorYContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->actorYContourCutter->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  this->actorYContourCutter->GetProperty()->SetLineWidth(3);
-  this->lowActorYContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowActorYContourCutter->GetProperty()->SetColor(0.0, 1.0, 0.0);
-  this->lowActorYContourCutter->GetProperty()->SetLineWidth(3);
-  this->renderer().AddActor(this->actorYContourCutter);
-  this->renderer().AddActor(this->lowActorYContourCutter);
-  this->actorZContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->actorZContourCutter->GetProperty()->SetColor(0.0, 0.0, 1.0);
-  this->actorZContourCutter->GetProperty()->SetLineWidth(3);
-  this->lowActorZContourCutter = vtkSmartPointer<vtkActor>::New();
-  this->lowActorZContourCutter->GetProperty()->SetColor(0.0, 0.0, 1.0);
-  this->lowActorZContourCutter->GetProperty()->SetLineWidth(3);
-  this->renderer().AddActor(this->actorZContourCutter);
-  this->renderer().AddActor(this->lowActorZContourCutter);
 
   this->aContour = vtkSmartPointer<vtkContourFilter>::New();
   this->aContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -118,7 +68,7 @@ volContextState::volContextState()
   this->isosurfaceLUT->SetNumberOfColors(256);
   this->isosurfaceLUT->Build();
 
-  this->sliceLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->sliceLUT->SetNumberOfColors(256);
-  this->sliceLUT->Build();
+  this->freesliceLUT = vtkSmartPointer<vtkLookupTable>::New();
+  this->freesliceLUT->SetNumberOfColors(256);
+  this->freesliceLUT->Build();
 }

@@ -83,6 +83,7 @@ SET(${PROJECT_NAME}_SRCS
   volGeometry.cpp
   volOutline.cpp
   volReader.cpp
+  volSlices.cpp
   volVolume.cpp
   )
 
