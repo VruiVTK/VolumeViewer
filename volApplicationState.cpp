@@ -2,6 +2,7 @@
 
 #include "volContours.h"
 #include "volGeometry.h"
+#include "volIsosurface.h"
 #include "volOutline.h"
 #include "volReader.h"
 #include "volSlices.h"
@@ -13,6 +14,7 @@ volApplicationState::volApplicationState()
   : Superclass(),
     m_contours(new volContours),
     m_geometry(new volGeometry),
+    m_isosurfaces({new volIsosurface, new volIsosurface, new volIsosurface}),
     m_outline(new volOutline),
     m_reader(new volReader),
     m_slices(new volSlices),
@@ -23,6 +25,9 @@ volApplicationState::volApplicationState()
 
   m_objects.push_back(m_contours);
   m_objects.push_back(m_geometry);
+  m_objects.push_back(m_isosurfaces[0]);
+  m_objects.push_back(m_isosurfaces[1]);
+  m_objects.push_back(m_isosurfaces[2]);
   m_objects.push_back(m_outline);
   m_objects.push_back(m_slices);
   m_objects.push_back(m_volume);
@@ -32,6 +37,9 @@ volApplicationState::~volApplicationState()
 {
   delete m_contours;
   delete m_geometry;
+  delete m_isosurfaces[0];
+  delete m_isosurfaces[1];
+  delete m_isosurfaces[2];
   delete m_outline;
   delete m_reader;
   delete m_slices;

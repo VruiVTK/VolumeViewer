@@ -62,7 +62,8 @@ void volVolume::syncApplicationState(const vvApplicationState &appState)
   const volApplicationState &state =
       static_cast<const volApplicationState&>(appState);
   if (state.reader().dataObject() &&
-      state.reader().dataObject()->GetMTime() > m_color->GetMTime())
+      (state.reader().dataObject()->GetMTime() > m_color->GetMTime() ||
+       state.colorMapTimeStamp() > m_color->GetMTime()))
     {
     m_color->RemoveAllPoints();
     m_opacity->RemoveAllPoints();

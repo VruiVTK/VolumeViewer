@@ -30,26 +30,6 @@ public:
 
   // TODO refactor these into vvGLObjects:
 
-  // Isosurfaces
-  vtkSmartPointer<vtkContourFilter> aContour;
-  vtkSmartPointer<vtkContourFilter> bContour;
-  vtkSmartPointer<vtkContourFilter> cContour;
-  vtkSmartPointer<vtkPolyDataMapper> aContourMapper;
-  vtkSmartPointer<vtkPolyDataMapper> bContourMapper;
-  vtkSmartPointer<vtkPolyDataMapper> cContourMapper;
-  vtkSmartPointer<vtkActor> actorAContour;
-  vtkSmartPointer<vtkActor> actorBContour;
-  vtkSmartPointer<vtkActor> actorCContour;
-  vtkSmartPointer<vtkContourFilter> lowAContour;
-  vtkSmartPointer<vtkContourFilter> lowBContour;
-  vtkSmartPointer<vtkContourFilter> lowCContour;
-  vtkSmartPointer<vtkPolyDataMapper> lowAContourMapper;
-  vtkSmartPointer<vtkPolyDataMapper> lowBContourMapper;
-  vtkSmartPointer<vtkPolyDataMapper> lowCContourMapper;
-  vtkSmartPointer<vtkActor> lowActorAContour;
-  vtkSmartPointer<vtkActor> lowActorBContour;
-  vtkSmartPointer<vtkActor> lowActorCContour;
-
   // Slice:
   vtkSmartPointer<vtkCutter> freeSliceCutter;
   vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
@@ -64,7 +44,6 @@ public:
   // TODO see if these are shared. If so, leave them here. If not, put in
   // vvGLObjects.
   vtkSmartPointer<vtkLookupTable> freesliceLUT;
-  vtkSmartPointer<vtkLookupTable> isosurfaceLUT;
 };
 
 #endif // VOLCONTEXTSTATE_H

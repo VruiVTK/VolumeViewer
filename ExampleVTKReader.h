@@ -77,19 +77,10 @@ private:
   /* Name of file to load */
   char* FileName;
 
-  float aIsosurface;
-  float bIsosurface;
-  float cIsosurface;
-
   TransferFunction1D* transferFunctionDialog;
 
   Slices* slicesDialog;
 
-  bool AIsosurface;
-  bool BIsosurface;
-  bool CIsosurface;
-
-  double* IsosurfaceColormap;
   Isosurfaces* isosurfacesDialog;
 
   /* Contours */

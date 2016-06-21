@@ -68,6 +68,7 @@
 #include "volContextState.h"
 #include "volContours.h"
 #include "volGeometry.h"
+#include "volIsosurface.h"
 #include "volOutline.h"
 #include "volReader.h"
 #include "volSlices.h"
@@ -77,13 +78,6 @@
 ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   : Superclass(argc, argv, new volApplicationState),
     m_volState(*static_cast<volApplicationState*>(m_state)),
-    aIsosurface(0),
-    AIsosurface(false),
-    analysisTool(0),
-    bIsosurface(0),
-    BIsosurface(false),
-    cIsosurface(0),
-    CIsosurface(false),
     ClippingPlanes(NULL),
     ContoursDialog(NULL),
     FileName(0),
@@ -105,8 +99,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
   this->FreeSliceVisibility[0] = 0;
   this->FreeSliceOrigin = new double[3];
   this->FreeSliceNormal = new double[3];
-
-  this->IsosurfaceColormap = new double[4*256];
 
   this->Histogram = new float[256];
   for(int j = 0; j < 256; ++j)
@@ -500,11 +492,15 @@ void ExampleVTKReader::frame(void)
     this->slicesDialog->setSlicesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
     this->slicesDialog->exportSlicesColorMap(m_volState.sliceColorMap().data());
     this->updateSliceColorMap(m_volState.sliceColorMap().data());
+    m_volState.sliceColorMapModified();
 
-    this->isosurfacesDialog = new Isosurfaces(this->IsosurfaceColormap, this);
+    this->isosurfacesDialog = new Isosurfaces(
+          m_volState.isosurfaceColorMap().data(), this);
     this->isosurfacesDialog->setIsosurfacesColorMap(CINVERSE_RAINBOW, 0.0, 1.0);
-    this->isosurfacesDialog->exportIsosurfacesColorMap(this->IsosurfaceColormap);
-    updateIsosurfaceColorMap(this->IsosurfaceColormap);
+    this->isosurfacesDialog->exportIsosurfacesColorMap(
+          m_volState.isosurfaceColorMap().data());
+    updateIsosurfaceColorMap(m_volState.isosurfaceColorMap().data());
+    m_volState.isosurfaceColorMapModified();
 
     this->ContoursDialog = new Contours(this);
     this->ContoursDialog->getAlphaChangedCallbacks().add(this,
@@ -513,9 +509,10 @@ void ExampleVTKReader::frame(void)
     /* Initialize Vrui navigation transformation: */
     centerDisplayCallback(0);
 
-    this->aIsosurface = this->getDataMidPoint();
-    this->bIsosurface = this->getDataMidPoint();
-    this->cIsosurface = this->getDataMidPoint();
+    double midPoint = static_cast<double>(this->getDataMidPoint());
+    m_volState.isosurfaceA().setContourValue(midPoint);
+    m_volState.isosurfaceB().setContourValue(midPoint);
+    m_volState.isosurfaceC().setContourValue(midPoint);
     this->FirstFrame = false;
     }
 
@@ -533,15 +530,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
   assert("volContextState initialized by vvApplication." && context);
 
   // TODO refactor these to use vvGLObjects:
-  context->aContour->SetInputData(m_volState.reader().dataObject());
-  context->lowAContour->SetInputData(m_volState.reader().reducedDataObject());
-
-  context->bContour->SetInputData(m_volState.reader().dataObject());
-  context->lowBContour->SetInputData(m_volState.reader().reducedDataObject());
-
-  context->cContour->SetInputData(m_volState.reader().dataObject());
-  context->lowCContour->SetInputData(m_volState.reader().reducedDataObject());
-
   context->freeSliceCutter->SetInputData(m_volState.reader().dataObject());
   context->lowFreeSliceCutter->SetInputData(m_volState.reader().reducedDataObject());
 
@@ -561,43 +549,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  context->aContour->SetValue(0, this->aIsosurface);
-  context->aContourMapper->SetInputConnection(context->aContour->GetOutputPort());
-  context->aContourMapper->SetScalarRange(scalarRange.data());
-  context->aContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->aContourMapper->SetColorModeToMapScalars();
-  context->actorAContour->SetMapper(context->aContourMapper);
-  context->lowAContour->SetValue(0, this->aIsosurface);
-  context->lowAContourMapper->SetInputConnection(context->lowAContour->GetOutputPort());
-  context->lowAContourMapper->SetScalarRange(scalarRange.data());
-  context->lowAContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->lowAContourMapper->SetColorModeToMapScalars();
-  context->lowActorAContour->SetMapper(context->lowAContourMapper);
-  context->bContour->SetValue(0, this->bIsosurface);
-  context->bContourMapper->SetInputConnection(context->bContour->GetOutputPort());
-  context->bContourMapper->SetScalarRange(scalarRange.data());
-  context->bContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->bContourMapper->SetColorModeToMapScalars();
-  context->actorBContour->SetMapper(context->bContourMapper);
-  context->lowBContour->SetValue(0, this->bIsosurface);
-  context->lowBContourMapper->SetInputConnection(context->lowBContour->GetOutputPort());
-  context->lowBContourMapper->SetScalarRange(scalarRange.data());
-  context->lowBContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->lowBContourMapper->SetColorModeToMapScalars();
-  context->lowActorBContour->SetMapper(context->lowBContourMapper);
-  context->cContour->SetValue(0, this->cIsosurface);
-  context->cContourMapper->SetInputConnection(context->cContour->GetOutputPort());
-  context->cContourMapper->SetScalarRange(scalarRange.data());
-  context->cContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->cContourMapper->SetColorModeToMapScalars();
-  context->actorCContour->SetMapper(context->cContourMapper);
-  context->lowCContour->SetValue(0, this->cIsosurface);
-  context->lowCContourMapper->SetInputConnection(context->lowCContour->GetOutputPort());
-  context->lowCContourMapper->SetScalarRange(scalarRange.data());
-  context->lowCContourMapper->SetLookupTable(context->isosurfaceLUT);
-  context->lowCContourMapper->SetColorModeToMapScalars();
-  context->lowActorCContour->SetMapper(context->lowCContourMapper);
 
   context->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
   context->freeSliceMapper->SetScalarRange(scalarRange.data());
@@ -643,21 +594,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       m_volState.sliceColorMap()[4*i + 0],
       m_volState.sliceColorMap()[4*i + 1],
       m_volState.sliceColorMap()[4*i + 2], 1.0);
-
-    context->isosurfaceLUT->SetTableValue(i,
-      this->IsosurfaceColormap[4*i + 0],
-      this->IsosurfaceColormap[4*i + 1],
-      this->IsosurfaceColormap[4*i + 2], 1.0);
     }
 
   /* Turn off visibility of all actors in the scene */
   // TODO is this really necessary?
-  context->actorAContour->VisibilityOff();
-  context->lowActorAContour->VisibilityOff();
-  context->actorBContour->VisibilityOff();
-  context->lowActorBContour->VisibilityOff();
-  context->actorCContour->VisibilityOff();
-  context->lowActorCContour->VisibilityOff();
   context->freeSliceActor->VisibilityOff();
   context->lowFreeSliceActor->VisibilityOff();
   if (lowResolution)
@@ -688,81 +628,6 @@ void ExampleVTKReader::display(GLContextData& contextData) const
     else
       {
       context->lowFreeSliceActor->VisibilityOff();
-      }
-    }
-
-  if (this->AIsosurface)
-    {
-      if (!lowResolution)
-        {
-        context->actorAContour->VisibilityOn();
-        context->aContour->SetValue(0, this->aIsosurface);
-        }
-      else
-        {
-        context->lowActorAContour->VisibilityOn();
-        context->lowAContour->SetValue(0, this->aIsosurface);
-        }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorAContour->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorAContour->VisibilityOff();
-      }
-    }
-
-  if (this->BIsosurface)
-    {
-      if (!lowResolution)
-        {
-        context->actorBContour->VisibilityOn();
-        context->bContour->SetValue(0, this->bIsosurface);
-        }
-      else
-        {
-        context->lowActorBContour->VisibilityOn();
-        context->lowBContour->SetValue(0, this->bIsosurface);
-        }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorBContour->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorBContour->VisibilityOff();
-      }
-    }
-
-  if (this->CIsosurface)
-    {
-    if (!lowResolution)
-        {
-        context->actorCContour->VisibilityOn();
-        context->cContour->SetValue(0, this->cIsosurface);
-        }
-      else
-        {
-        context->lowActorCContour->VisibilityOn();
-        context->lowCContour->SetValue(0, this->cIsosurface);
-        }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->actorCContour->VisibilityOff();
-      }
-    else
-      {
-      context->lowActorCContour->VisibilityOff();
       }
     }
 
@@ -1053,37 +918,37 @@ void ExampleVTKReader::toolDestructionCallback(
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setAIsosurface(float aIsosurface)
 {
-  this->aIsosurface = aIsosurface;
+  m_volState.isosurfaceA().setContourValue(static_cast<double>(aIsosurface));
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setBIsosurface(float bIsosurface)
 {
-  this->bIsosurface = bIsosurface;
+  m_volState.isosurfaceB().setContourValue(static_cast<double>(bIsosurface));
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setCIsosurface(float cIsosurface)
 {
-  this->cIsosurface = cIsosurface;
+  m_volState.isosurfaceC().setContourValue(static_cast<double>(cIsosurface));
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showAIsosurface(bool AIsosurface)
+void ExampleVTKReader::showAIsosurface(bool visible)
 {
-  this->AIsosurface = AIsosurface;
+  m_volState.isosurfaceA().setVisible(visible);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showBIsosurface(bool BIsosurface)
+void ExampleVTKReader::showBIsosurface(bool visible)
 {
-  this->BIsosurface = BIsosurface;
+  m_volState.isosurfaceB().setVisible(visible);
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::showCIsosurface(bool CIsosurface)
+void ExampleVTKReader::showCIsosurface(bool visible)
 {
-  this->CIsosurface = CIsosurface;
+  m_volState.isosurfaceC().setVisible(visible);
 }
 
 //----------------------------------------------------------------------------
@@ -1197,7 +1062,13 @@ int ExampleVTKReader::getHeight(void)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::updateIsosurfaceColorMap(double* IsosurfaceColormap)
 {
-  this->IsosurfaceColormap = IsosurfaceColormap;
+  // TODO There was a leak here before the vtkVRUI refactor:
+//  this->IsosurfaceColormap = IsosurfaceColormap;
+  // Check that the input argument is cleaned up properly when called.
+
+  std::copy(IsosurfaceColormap, IsosurfaceColormap + 256,
+            m_volState.isosurfaceColorMap().data());
+  m_volState.isosurfaceColorMapModified();
 }
 
 //----------------------------------------------------------------------------
@@ -1209,12 +1080,14 @@ void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
 
   std::copy(SliceColormap, SliceColormap + 256,
             m_volState.sliceColorMap().data());
+  m_volState.sliceColorMapModified();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::alphaChangedCallback(Misc::CallbackData* callBackData)
 {
   transferFunctionDialog->exportAlpha(m_volState.colorMap().data());
+  m_volState.colorMapModified();
   Vrui::requestUpdate();
 }
 
@@ -1230,6 +1103,7 @@ void ExampleVTKReader::volumeColorMapChangedCallback(
   Misc::CallbackData* callBackData)
 {
   transferFunctionDialog->exportColorMap(m_volState.colorMap().data());
+  m_volState.colorMapModified();
   this->updateAlpha();
   Vrui::requestUpdate();
 }
@@ -1238,6 +1112,7 @@ void ExampleVTKReader::volumeColorMapChangedCallback(
 void ExampleVTKReader::updateAlpha(void)
 {
   transferFunctionDialog->exportAlpha(m_volState.colorMap().data());
+  m_volState.colorMapModified();
   Vrui::requestUpdate();
 }
 
@@ -1245,6 +1120,7 @@ void ExampleVTKReader::updateAlpha(void)
 void ExampleVTKReader::updateVolumeColorMap(void)
 {
   transferFunctionDialog->exportColorMap(m_volState.colorMap().data());
+  m_volState.colorMapModified();
   Vrui::requestUpdate();
 }
 

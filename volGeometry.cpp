@@ -58,7 +58,8 @@ void volGeometry::syncApplicationState(const vvApplicationState &appState)
   const volApplicationState &state =
       static_cast<const volApplicationState&>(appState);
   if (state.reader().dataObject() &&
-      state.reader().dataObject()->GetMTime() > m_color->GetMTime())
+      (state.reader().dataObject()->GetMTime() > m_color->GetMTime() ||
+       state.colorMapTimeStamp() > m_color->GetMTime()))
     {
     const double *data = state.colorMap().data();
     for (vtkIdType i = 0; i < 256; ++i)

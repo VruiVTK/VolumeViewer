@@ -82,6 +82,7 @@ SET(${PROJECT_NAME}_SRCS
   volContextState.cpp
   volContours.cpp
   volGeometry.cpp
+  volIsosurface.cpp
   volOutline.cpp
   volReader.cpp
   volSlices.cpp
