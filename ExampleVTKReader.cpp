@@ -1,34 +1,14 @@
 // STD includes
+#include <cassert>
+#include <cmath>
 #include <iostream>
 #include <string>
-#include <math.h>
 
 // Must come before any gl.h include
 #include <GL/glew.h>
 
 // VTK includes
-#include <ExternalVTKWidget.h>
-#include <vtkActor.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkContourFilter.h>
-#include <vtkCutter.h>
-#include <vtkDataSetMapper.h>
-#include <vtkDataSetSurfaceFilter.h>
-#include <vtkExtractVOI.h>
-#include <vtkImageDataGeometryFilter.h>
 #include <vtkImageData.h>
-#include <vtkLookupTable.h>
-#include <vtkNew.h>
-#include <vtkOutlineFilter.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkPlane.h>
-#include <vtkPointData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkXMLImageDataReader.h>
 
 // OpenGL/Motif includes
 #include <GL/GLContextData.h>
@@ -83,7 +63,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     ContoursDialog(NULL),
     FileName(0),
     FirstFrame(true),
-    lowResolution(true),
     mainMenu(NULL),
     NumberOfClippingPlanes(6),
     opacityValue(NULL),
@@ -196,7 +175,7 @@ GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
   GLMotif::ToggleButton * showLowResolution =
   new GLMotif::ToggleButton("ShowLowResolution", mainMenu,
     "Low Resolution");
-  showLowResolution->setToggle(lowResolution);
+  showLowResolution->setToggle(m_volState.forceLowResolution());
   showLowResolution->getValueChangedCallbacks().add(this, &ExampleVTKReader::changeResolutionCallback);
 
   GLMotif::CascadeButton* representationCascade =
@@ -455,6 +434,8 @@ GLMotif::PopupWindow* ExampleVTKReader::createRenderingDialog(void)
 //----------------------------------------------------------------------------
 void ExampleVTKReader::frame(void)
 {
+  m_volState.reader().update(m_volState);
+
   if(this->FirstFrame)
     {
     transferFunctionDialog = new TransferFunction1D(this);
@@ -548,20 +529,7 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       }
     }
 
-  /* Get context data item */
-  volContextState *context =
-      contextData.retrieveDataItem<volContextState>(this);
-
-  if (lowResolution)
-    {
-    int sampling = m_volState.reader().sampleRate();
-    context->extract->SetSampleRate(sampling, sampling, sampling);
-    }
-
   this->Superclass::display(contextData);
-
-  /* Render the scene */
-  context->render();
 
   clippingPlaneIndex = 0;
   for (int i = 0; i < NumberOfClippingPlanes &&
@@ -578,7 +546,7 @@ void ExampleVTKReader::display(GLContextData& contextData) const
 }
 
 //----------------------------------------------------------------------------
-void ExampleVTKReader::centerDisplayCallback(Misc::CallbackData* callBackData)
+void ExampleVTKReader::centerDisplayCallback(Misc::CallbackData*)
 {
   if (!m_volState.reader().bounds().IsValid())
     {
@@ -846,42 +814,49 @@ void ExampleVTKReader::toolDestructionCallback(
 void ExampleVTKReader::setAIsosurface(float aIsosurface)
 {
   m_volState.isosurfaceA().setContourValue(static_cast<double>(aIsosurface));
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setBIsosurface(float bIsosurface)
 {
   m_volState.isosurfaceB().setContourValue(static_cast<double>(bIsosurface));
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setCIsosurface(float cIsosurface)
 {
   m_volState.isosurfaceC().setContourValue(static_cast<double>(cIsosurface));
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showAIsosurface(bool visible)
 {
   m_volState.isosurfaceA().setVisible(visible);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showBIsosurface(bool visible)
 {
   m_volState.isosurfaceB().setVisible(visible);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showCIsosurface(bool visible)
 {
   m_volState.isosurfaceC().setVisible(visible);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setFreeSliceVisibility(bool vis)
 {
   m_volState.freeSlice().setVisible(vis);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -895,6 +870,7 @@ void ExampleVTKReader::setFreeSliceOrigin(const double *origin)
 {
   std::array<double, 3> o{origin[0], origin[1], origin[2]};
   m_volState.freeSlice().setOrigin(o);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -908,6 +884,7 @@ void ExampleVTKReader::setFreeSliceNormal(const double *normal)
 {
   std::array<double, 3> n{normal[0], normal[1], normal[2]};
   m_volState.freeSlice().setNormal(n);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -920,72 +897,84 @@ const double *ExampleVTKReader::getFreeSliceNormal()
 void ExampleVTKReader::setXSlice(int xSlice)
 {
   m_volState.slices().setSliceLocation(0, xSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setYSlice(int ySlice)
 {
   m_volState.slices().setSliceLocation(1, ySlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setZSlice(int zSlice)
 {
   m_volState.slices().setSliceLocation(2, zSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showXSlice(bool xSlice)
 {
   m_volState.slices().setSliceVisible(0, xSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showYSlice(bool ySlice)
 {
   m_volState.slices().setSliceVisible(1, ySlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showZSlice(bool zSlice)
 {
   m_volState.slices().setSliceVisible(2, zSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setXContourSlice(int xSlice)
 {
   m_volState.slices().setContourSliceLocation(0, xSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setYContourSlice(int ySlice)
 {
   m_volState.slices().setContourSliceLocation(1, ySlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::setZContourSlice(int zSlice)
 {
   m_volState.slices().setContourSliceLocation(2, zSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showXContourSlice(bool xSlice)
 {
   m_volState.slices().setContourSliceVisible(0, xSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showYContourSlice(bool ySlice)
 {
   m_volState.slices().setContourSliceVisible(1, ySlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
 void ExampleVTKReader::showZContourSlice(bool zSlice)
 {
   m_volState.slices().setContourSliceVisible(2, zSlice);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -1016,6 +1005,7 @@ void ExampleVTKReader::updateIsosurfaceColorMap(double* IsosurfaceColormap)
   std::copy(IsosurfaceColormap, IsosurfaceColormap + 256,
             m_volState.isosurfaceColorMap().data());
   m_volState.isosurfaceColorMapModified();
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -1028,6 +1018,7 @@ void ExampleVTKReader::updateSliceColorMap(double* SliceColormap)
   std::copy(SliceColormap, SliceColormap + 256,
             m_volState.sliceColorMap().data());
   m_volState.sliceColorMapModified();
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -1101,14 +1092,7 @@ void ExampleVTKReader::changeResolutionCallback(
   /* open/close rendering dialog based on which toggle button changed state: */
   if (strcmp(callBackData->toggle->getName(), "ShowLowResolution") == 0)
     {
-    if (callBackData->set)
-      {
-        lowResolution = true;
-      }
-    else
-      {
-        lowResolution = false;
-      }
+    m_volState.setForceLowResolution(callBackData->set);
     }
   Vrui::requestUpdate();
 }
@@ -1149,6 +1133,7 @@ std::vector<double> ExampleVTKReader::getContourValues()
 void ExampleVTKReader::setContourVisible(bool visible)
 {
   m_volState.contours().setVisible(visible);
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -1161,6 +1146,7 @@ float * ExampleVTKReader::getHistogram(void)
 void ExampleVTKReader::setRequestedRenderMode(int mode)
 {
   m_volState.volume().setRenderMode(volVolume::RenderMode(mode));
+  Vrui::requestUpdate();
 }
 
 //----------------------------------------------------------------------------

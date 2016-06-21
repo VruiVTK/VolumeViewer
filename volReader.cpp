@@ -11,6 +11,7 @@
 volReader::volReader()
   : m_sampleRate(4)
 {
+  m_reducer->IncludeBoundaryOn();
 }
 
 //------------------------------------------------------------------------------
@@ -170,7 +171,9 @@ bool volReader::reducerNeedsUpdate()
     return true;
     }
 
-  return m_reducedData->GetMTime() < m_dataObject->GetMTime();
+  return
+      m_reducedData->GetMTime() < m_dataObject->GetMTime() ||
+      m_reducedData->GetMTime() < m_reducer->GetMTime();
 }
 
 //------------------------------------------------------------------------------

@@ -13,6 +13,7 @@
 
 volApplicationState::volApplicationState()
   : Superclass(),
+    m_forceLowResolution(true),
     m_contours(new volContours),
     m_freeSlice(new volFreeSlice),
     m_geometry(new volGeometry),

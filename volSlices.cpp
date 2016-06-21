@@ -204,15 +204,26 @@ void volSlices::DataPipeline::configure(
   const ObjectState &objState =
       static_cast<const ObjectState&>(objStateIn);
 
-  vtkDataObject *inputDO = nullptr;
-
+  vtkDataObject *input = nullptr;
   switch (this->lod)
     {
-    case LevelOfDetail::HiRes:
-      inputDO = state.reader().dataObject();
-      break;
     case LevelOfDetail::LoRes:
-      inputDO = state.reader().reducedDataObject();
+      // Disable this LOD when forcing low res:
+      if (!state.forceLowResolution())
+        {
+        input = state.reader().reducedDataObject();
+        }
+      break;
+
+    case LevelOfDetail::HiRes:
+      if (state.forceLowResolution())
+        {
+        input = state.reader().reducedDataObject();
+        }
+      else
+        {
+        input = state.reader().dataObject();
+        }
       break;
 
     default:
@@ -225,7 +236,7 @@ void volSlices::DataPipeline::configure(
   for (size_t i = 0; i < 3; ++i)
     {
     this->sliceCutters[i]->SetCutFunction(objState.slicePlanes[i].Get());
-    this->sliceCutters[i]->SetInputDataObject(inputDO);
+    this->sliceCutters[i]->SetInputDataObject(input);
 
     this->contourCutters[i]->SetCutFunction(objState.contourPlanes[i].Get());
     this->contourCutters[i]->SetInputDataObject(contours);

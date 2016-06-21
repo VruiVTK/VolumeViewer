@@ -57,9 +57,8 @@ void volGeometry::syncApplicationState(const vvApplicationState &appState)
 
   const volApplicationState &state =
       static_cast<const volApplicationState&>(appState);
-  if (state.reader().dataObject() &&
-      (state.reader().dataObject()->GetMTime() > m_color->GetMTime() ||
-       state.colorMapTimeStamp() > m_color->GetMTime()))
+  if (m_color->GetNumberOfTableValues() == 0 ||
+      state.colorMapTimeStamp() > m_color->GetMTime())
     {
     const double *data = state.colorMap().data();
     for (vtkIdType i = 0; i < 256; ++i)
@@ -88,7 +87,14 @@ void volGeometry::syncContextState(const vvApplicationState &appState,
     {
     const volApplicationState &state =
         static_cast<const volApplicationState&>(appState);
-    dataItem->mapper->SetInputData(state.reader().typedDataObject());
+    if (state.forceLowResolution())
+      {
+      dataItem->mapper->SetInputData(state.reader().typedReducedDataObject());
+      }
+    else
+      {
+      dataItem->mapper->SetInputData(state.reader().typedDataObject());
+      }
 
     std::array<double, 2> scalarRange = state.reader().scalarRange();
     dataItem->mapper->SetScalarRange(scalarRange.data());

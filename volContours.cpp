@@ -131,14 +131,26 @@ void volContours::ContourDataPipeline::configure(
   const volApplicationState &appState =
       static_cast<const volApplicationState&>(appStateIn);
 
+  vtkDataObject *input = nullptr;
   switch (this->lod)
     {
     case LevelOfDetail::LoRes:
-      this->contour->SetInputDataObject(appState.reader().reducedDataObject());
+      // Disable this LOD when forcing low res:
+      if (!appState.forceLowResolution())
+        {
+        input = appState.reader().reducedDataObject();
+        }
       break;
 
     case LevelOfDetail::HiRes:
-      this->contour->SetInputDataObject(appState.reader().dataObject());
+      if (appState.forceLowResolution())
+        {
+        input = appState.reader().reducedDataObject();
+        }
+      else
+        {
+        input = appState.reader().dataObject();
+        }
       break;
 
     default:
@@ -146,6 +158,7 @@ void volContours::ContourDataPipeline::configure(
       return;
     }
 
+  this->contour->SetInputDataObject(input);
   this->contour->SetNumberOfContours(state.contourValues.size());
   for (size_t i = 0; i < state.contourValues.size(); ++i)
     {

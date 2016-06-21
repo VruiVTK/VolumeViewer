@@ -143,22 +143,33 @@ void volIsosurface::IsosurfaceDataPipeline::configure(
   const volApplicationState &appState =
       static_cast<const volApplicationState&>(appStateIn);
 
-  vtkDataObject *dataObject = nullptr;
+  vtkDataObject *input = nullptr;
   switch (this->lod)
     {
     case LevelOfDetail::LoRes:
-      dataObject = appState.reader().reducedDataObject();
+      // Disable this LOD when forcing low res:
+      if (!appState.forceLowResolution())
+        {
+        input = appState.reader().reducedDataObject();
+        }
       break;
 
     case LevelOfDetail::HiRes:
-      dataObject = appState.reader().dataObject();
+      if (appState.forceLowResolution())
+        {
+        input = appState.reader().reducedDataObject();
+        }
+      else
+        {
+        input = appState.reader().dataObject();
+        }
       break;
 
     default:
       std::cerr << "Invalid level of detail for IsosurfaceDataPipeline.\n";
     }
 
-  this->contour->SetInputDataObject(dataObject);
+  this->contour->SetInputDataObject(input);
   this->contour->SetValue(0, state.contourValue);
 }
 

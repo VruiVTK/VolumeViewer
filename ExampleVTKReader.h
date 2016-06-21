@@ -36,20 +36,6 @@ class Isosurfaces;
 class Slices;
 class TransferFunction1D;
 class volApplicationState;
-class vtkActor;
-class vtkColorTransferFunction;
-class vtkContourFilter;
-class vtkContourFilter;
-class vtkCutter;
-class vtkExtractVOI;
-class vtkLight;
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-class vtkPlane;
-class vtkPolyDataMapper;
-class vtkProperty;
-class vtkVolume;
-class vtkVolumeProperty;
 
 class ExampleVTKReader : public vvApplication
 {
@@ -73,7 +59,6 @@ private:
   GLMotif::TextField* opacityValue;
   GLMotif::TextField* resolutionValue;
 
-  bool lowResolution;
   /* Name of file to load */
   char* FileName;
 

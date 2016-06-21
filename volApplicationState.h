@@ -30,6 +30,10 @@ public:
   volApplicationState();
   ~volApplicationState();
 
+  /** If true, the reader's reducedDataObject() should be used for rendering. */
+  bool forceLowResolution() const { return m_forceLowResolution; }
+  void setForceLowResolution(bool force) { m_forceLowResolution = force; }
+
   /** RGBA color map for geometry/volume rendering. See usage for details. */
   ColorMap& colorMap() { return m_colorMap; }
   const ColorMap& colorMap() const { return m_colorMap; }
@@ -88,6 +92,8 @@ private:
   // Not implemented:
   volApplicationState(const volApplicationState&);
   volApplicationState& operator=(const volApplicationState&);
+
+  bool m_forceLowResolution;
 
   ColorMap m_colorMap;
   vtkTimeStamp m_colorMapTimeStamp;

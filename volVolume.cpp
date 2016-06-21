@@ -94,7 +94,14 @@ void volVolume::syncContextState(const vvApplicationState &appState,
   const volApplicationState &state =
       static_cast<const volApplicationState&>(appState);
 
-  dataItem->mapper->SetInputDataObject(state.reader().dataObject());
+  if (state.forceLowResolution())
+    {
+    dataItem->mapper->SetInputDataObject(state.reader().reducedDataObject());
+    }
+  else
+    {
+    dataItem->mapper->SetInputDataObject(state.reader().dataObject());
+    }
   dataItem->actor->SetVisibility(m_visible ? 1 : 0);
 
   if (m_visible)
