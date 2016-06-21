@@ -102,12 +102,6 @@ private:
   /* Verbose */
   bool Verbose;
 
-  /* Free Slice visibility, origin and normal */
-  int * FreeSliceVisibility;
-  double * FreeSliceOrigin;
-  double * FreeSliceNormal;
-  vtkSmartPointer<vtkPlane> freeSlicePlane;
-
 public:
   using Superclass = vvApplication;
 
@@ -141,9 +135,12 @@ public:
   float * getHistogram();
 
   /* Get Free Slice visibility, origin and normal*/
-  int * getFreeSliceVisibility(void);
-  double * getFreeSliceOrigin(void);
-  double * getFreeSliceNormal(void);
+  void setFreeSliceVisibility(bool vis);
+  bool getFreeSliceVisibility();
+  void setFreeSliceOrigin(const double *normal);
+  const double* getFreeSliceOrigin();
+  void setFreeSliceNormal(const double *normal);
+  const double* getFreeSliceNormal();
 
   void initialize() override;
 

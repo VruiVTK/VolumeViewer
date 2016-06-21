@@ -18,7 +18,7 @@ public:
 	virtual void glRenderAction(GLContextData& contextData) const;
 	virtual void glRenderActionTransparent(GLContextData& contextData) const;
         virtual void getName(std::string& name) const; // Returns a descriptive name for the tool adapter
-private:
+protected:
 	ExampleVTKReader* application;
 };
 

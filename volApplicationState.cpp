@@ -1,6 +1,7 @@
 #include "volApplicationState.h"
 
 #include "volContours.h"
+#include "volFreeSlice.h"
 #include "volGeometry.h"
 #include "volIsosurface.h"
 #include "volOutline.h"
@@ -13,6 +14,7 @@
 volApplicationState::volApplicationState()
   : Superclass(),
     m_contours(new volContours),
+    m_freeSlice(new volFreeSlice),
     m_geometry(new volGeometry),
     m_isosurfaces({new volIsosurface, new volIsosurface, new volIsosurface}),
     m_outline(new volOutline),
@@ -24,6 +26,7 @@ volApplicationState::volApplicationState()
   std::fill(m_sliceColorMap.begin(), m_sliceColorMap.end(), 0.);
 
   m_objects.push_back(m_contours);
+  m_objects.push_back(m_freeSlice);
   m_objects.push_back(m_geometry);
   m_objects.push_back(m_isosurfaces[0]);
   m_objects.push_back(m_isosurfaces[1]);
@@ -36,6 +39,7 @@ volApplicationState::volApplicationState()
 volApplicationState::~volApplicationState()
 {
   delete m_contours;
+  delete m_freeSlice;
   delete m_geometry;
   delete m_isosurfaces[0];
   delete m_isosurfaces[1];

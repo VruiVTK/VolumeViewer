@@ -67,6 +67,7 @@
 #include "volApplicationState.h"
 #include "volContextState.h"
 #include "volContours.h"
+#include "volFreeSlice.h"
 #include "volGeometry.h"
 #include "volIsosurface.h"
 #include "volOutline.h"
@@ -82,9 +83,6 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     ContoursDialog(NULL),
     FileName(0),
     FirstFrame(true),
-    FreeSliceNormal(0),
-    FreeSliceOrigin(0),
-    FreeSliceVisibility(0),
     lowResolution(true),
     mainMenu(NULL),
     NumberOfClippingPlanes(6),
@@ -95,18 +93,11 @@ ExampleVTKReader::ExampleVTKReader(int& argc,char**& argv)
     transferFunctionDialog(NULL),
     Verbose(false)
 {
-  this->FreeSliceVisibility = new int[1];
-  this->FreeSliceVisibility[0] = 0;
-  this->FreeSliceOrigin = new double[3];
-  this->FreeSliceNormal = new double[3];
-
   this->Histogram = new float[256];
   for(int j = 0; j < 256; ++j)
     {
     this->Histogram[j] = 0.0;
     }
-
-  this->freeSlicePlane = vtkSmartPointer<vtkPlane>::New();
 
   /* Initialize the clipping planes */
   ClippingPlanes = new ClippingPlane[NumberOfClippingPlanes];
@@ -123,18 +114,6 @@ ExampleVTKReader::~ExampleVTKReader(void)
   if(this->Histogram)
     {
     delete[] this->Histogram;
-    }
-  if(this->FreeSliceVisibility)
-    {
-    delete[] this->FreeSliceVisibility;
-    }
-  if(this->FreeSliceOrigin)
-    {
-    delete[] this->FreeSliceOrigin;
-    }
-  if(this->FreeSliceNormal)
-    {
-    delete[] this->FreeSliceNormal;
     }
 }
 
@@ -529,11 +508,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
       contextData.retrieveDataItem<volContextState>(this);
   assert("volContextState initialized by vvApplication." && context);
 
-  // TODO refactor these to use vvGLObjects:
-  context->freeSliceCutter->SetInputData(m_volState.reader().dataObject());
-  context->lowFreeSliceCutter->SetInputData(m_volState.reader().reducedDataObject());
-
-  std::array<double, 2> scalarRange = m_volState.reader().scalarRange();
   std::array<int, 3> dims = m_volState.reader().dimensions();
 
   vtkImageData *imageData = m_volState.reader().typedDataObject();
@@ -549,15 +523,6 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
         }
       }
     }
-
-  context->freeSliceCutter->SetCutFunction(this->freeSlicePlane);
-  context->freeSliceMapper->SetScalarRange(scalarRange.data());
-  context->freeSliceMapper->SetLookupTable(context->freesliceLUT);
-  context->freeSliceMapper->SetColorModeToMapScalars();
-  context->lowFreeSliceCutter->SetCutFunction(this->freeSlicePlane);
-  context->lowFreeSliceMapper->SetScalarRange(scalarRange.data());
-  context->lowFreeSliceMapper->SetLookupTable(context->freesliceLUT);
-  context->lowFreeSliceMapper->SetColorModeToMapScalars();
 }
 
 //----------------------------------------------------------------------------
@@ -587,48 +552,10 @@ void ExampleVTKReader::display(GLContextData& contextData) const
   volContextState *context =
       contextData.retrieveDataItem<volContextState>(this);
 
-  /* Update all lookup tables */
-  for (int i = 0; i < 256; ++i)
-    {
-    context->freesliceLUT->SetTableValue(i,
-      m_volState.sliceColorMap()[4*i + 0],
-      m_volState.sliceColorMap()[4*i + 1],
-      m_volState.sliceColorMap()[4*i + 2], 1.0);
-    }
-
-  /* Turn off visibility of all actors in the scene */
-  // TODO is this really necessary?
-  context->freeSliceActor->VisibilityOff();
-  context->lowFreeSliceActor->VisibilityOff();
   if (lowResolution)
     {
     int sampling = m_volState.reader().sampleRate();
     context->extract->SetSampleRate(sampling, sampling, sampling);
-    }
-
-  if(this->FreeSliceVisibility[0])
-    {
-    this->freeSlicePlane->SetOrigin(this->FreeSliceOrigin);
-    this->freeSlicePlane->SetNormal(this->FreeSliceNormal);
-    if (!lowResolution)
-      {
-      context->freeSliceActor->VisibilityOn();
-      }
-    else
-      {
-      context->lowFreeSliceActor->VisibilityOn();
-      }
-    }
-  else
-    {
-    if (!lowResolution)
-      {
-      context->freeSliceActor->VisibilityOff();
-      }
-    else
-      {
-      context->lowFreeSliceActor->VisibilityOff();
-      }
     }
 
   this->Superclass::display(contextData);
@@ -952,21 +879,41 @@ void ExampleVTKReader::showCIsosurface(bool visible)
 }
 
 //----------------------------------------------------------------------------
-int * ExampleVTKReader::getFreeSliceVisibility(void)
+void ExampleVTKReader::setFreeSliceVisibility(bool vis)
 {
-  return this->FreeSliceVisibility;
+  m_volState.freeSlice().setVisible(vis);
 }
 
 //----------------------------------------------------------------------------
-double * ExampleVTKReader::getFreeSliceOrigin(void)
+bool ExampleVTKReader::getFreeSliceVisibility()
 {
-  return this->FreeSliceOrigin;
+  return m_volState.freeSlice().visible();
 }
 
 //----------------------------------------------------------------------------
-double * ExampleVTKReader::getFreeSliceNormal(void)
+void ExampleVTKReader::setFreeSliceOrigin(const double *origin)
 {
-  return this->FreeSliceNormal;
+  std::array<double, 3> o{origin[0], origin[1], origin[2]};
+  m_volState.freeSlice().setOrigin(o);
+}
+
+//----------------------------------------------------------------------------
+const double *ExampleVTKReader::getFreeSliceOrigin()
+{
+  return m_volState.freeSlice().origin().data();
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setFreeSliceNormal(const double *normal)
+{
+  std::array<double, 3> n{normal[0], normal[1], normal[2]};
+  m_volState.freeSlice().setNormal(n);
+}
+
+//----------------------------------------------------------------------------
+const double *ExampleVTKReader::getFreeSliceNormal()
+{
+  return m_volState.freeSlice().normal().data();
 }
 
 //----------------------------------------------------------------------------

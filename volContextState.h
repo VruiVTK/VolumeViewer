@@ -28,22 +28,8 @@ class volContextState : public vvContextState
 public:
   volContextState();
 
-  // TODO refactor these into vvGLObjects:
-
-  // Slice:
-  vtkSmartPointer<vtkCutter> freeSliceCutter;
-  vtkSmartPointer<vtkPolyDataMapper> freeSliceMapper;
-  vtkSmartPointer<vtkActor> freeSliceActor;
-  vtkSmartPointer<vtkCutter> lowFreeSliceCutter;
-  vtkSmartPointer<vtkPolyDataMapper> lowFreeSliceMapper;
-  vtkSmartPointer<vtkActor> lowFreeSliceActor;
-
   // Extract (probably used by one of the other filters
   vtkSmartPointer<vtkExtractVOI> extract;
-
-  // TODO see if these are shared. If so, leave them here. If not, put in
-  // vvGLObjects.
-  vtkSmartPointer<vtkLookupTable> freesliceLUT;
 };
 
 #endif // VOLCONTEXTSTATE_H

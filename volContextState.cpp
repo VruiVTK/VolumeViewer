@@ -18,21 +18,4 @@
 volContextState::volContextState()
 {
   this->extract = vtkSmartPointer<vtkExtractVOI>::New();
-
-  this->freeSliceCutter = vtkSmartPointer<vtkCutter>::New();
-  this->freeSliceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->freeSliceMapper->SetInputConnection(this->freeSliceCutter->GetOutputPort());
-  this->freeSliceActor = vtkSmartPointer<vtkActor>::New();
-  this->freeSliceActor->SetMapper(this->freeSliceMapper);
-  this->renderer().AddActor(this->freeSliceActor);
-  this->lowFreeSliceCutter = vtkSmartPointer<vtkCutter>::New();
-  this->lowFreeSliceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->lowFreeSliceMapper->SetInputConnection(this->lowFreeSliceCutter->GetOutputPort());
-  this->lowFreeSliceActor = vtkSmartPointer<vtkActor>::New();
-  this->lowFreeSliceActor->SetMapper(this->lowFreeSliceMapper);
-  this->renderer().AddActor(this->lowFreeSliceActor);
-
-  this->freesliceLUT = vtkSmartPointer<vtkLookupTable>::New();
-  this->freesliceLUT->SetNumberOfColors(256);
-  this->freesliceLUT->Build();
 }

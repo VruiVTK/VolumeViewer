@@ -24,9 +24,5 @@ public:
     Vrui::LocatorTool::ButtonReleaseCallbackData* callbackData);
   virtual void motionCallback(
     Vrui::LocatorTool::MotionCallbackData* callbackData);
-private:
-  int * FreeSliceVisibility;
-  double * FreeSliceOrigin;
-  double * FreeSliceNormal;
 };
 #endif //__FREESLICELOCATOR_H_

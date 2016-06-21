@@ -1,4 +1,4 @@
-#include "volIsosurface.h"
+#include "volFreeSlice.h"
 
 #include "volApplicationState.h"
 #include "volContextState.h"
@@ -6,66 +6,55 @@
 
 #include <vtkActor.h>
 #include <vtkDataObject.h>
-#include <vtkContourFilter.h>
+#include <vtkCutter.h>
 #include <vtkExternalOpenGLRenderer.h>
 #include <vtkLookupTable.h>
+#include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
 
 //------------------------------------------------------------------------------
-volIsosurface::volIsosurface()
+volFreeSlice::volFreeSlice()
 {
 }
 
 //------------------------------------------------------------------------------
-volIsosurface::~volIsosurface()
+volFreeSlice::~volFreeSlice()
 {
 }
 
 //------------------------------------------------------------------------------
-bool volIsosurface::visible() const
+bool volFreeSlice::visible() const
 {
-  return this->objectState<IsosurfaceState>().visible;
+  return this->objectState<FreeSliceState>().visible;
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::setVisible(bool vis)
+void volFreeSlice::setVisible(bool vis)
 {
-  this->objectState<IsosurfaceState>().visible = vis;
+  this->objectState<FreeSliceState>().visible = vis;
 }
 
 //------------------------------------------------------------------------------
-double volIsosurface::contourValue() const
+std::string volFreeSlice::progressLabel() const
 {
-  return this->objectState<IsosurfaceState>().contourValue;
+  return "Free Slice";
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::setContourValue(double val)
+vvLODAsyncGLObject::ObjectState *volFreeSlice::createObjectState() const
 {
-  this->objectState<IsosurfaceState>().contourValue = val;
-}
-
-//------------------------------------------------------------------------------
-std::string volIsosurface::progressLabel() const
-{
-  return "Isosurface";
-}
-
-//------------------------------------------------------------------------------
-vvLODAsyncGLObject::ObjectState *volIsosurface::createObjectState() const
-{
-  return new IsosurfaceState;
+  return new FreeSliceState;
 }
 
 //------------------------------------------------------------------------------
 vvLODAsyncGLObject::DataPipeline *
-volIsosurface::createDataPipeline(LevelOfDetail lod) const
+volFreeSlice::createDataPipeline(LevelOfDetail lod) const
 {
   switch (lod)
     {
     case LevelOfDetail::LoRes:
     case LevelOfDetail::HiRes:
-      return new IsosurfaceDataPipeline(lod);
+      return new FreeSliceDataPipeline(lod);
 
     default:
       return nullptr;
@@ -74,13 +63,13 @@ volIsosurface::createDataPipeline(LevelOfDetail lod) const
 
 //------------------------------------------------------------------------------
 vvLODAsyncGLObject::RenderPipeline *
-volIsosurface::createRenderPipeline(LevelOfDetail lod) const
+volFreeSlice::createRenderPipeline(LevelOfDetail lod) const
 {
   switch (lod)
     {
     case LevelOfDetail::LoRes:
     case LevelOfDetail::HiRes:
-      return new IsosurfaceRenderPipeline;
+      return new FreeSliceRenderPipeline;
 
     default:
       return nullptr;
@@ -89,13 +78,13 @@ volIsosurface::createRenderPipeline(LevelOfDetail lod) const
 
 //------------------------------------------------------------------------------
 vvLODAsyncGLObject::LODData *
-volIsosurface::createLODData(LevelOfDetail lod) const
+volFreeSlice::createLODData(LevelOfDetail lod) const
 {
   switch (lod)
     {
     case LevelOfDetail::LoRes:
     case LevelOfDetail::HiRes:
-      return new IsosurfaceLODData;
+      return new FreeSliceLODData;
 
     default:
       return nullptr;
@@ -103,43 +92,68 @@ volIsosurface::createLODData(LevelOfDetail lod) const
 }
 
 //------------------------------------------------------------------------------
-volIsosurface::IsosurfaceState::IsosurfaceState()
+void volFreeSlice::setNormal(const std::array<double, 3> &o)
+{
+  this->objectState<FreeSliceState>().normal = o;
+}
+
+//------------------------------------------------------------------------------
+const std::array<double, 3> &volFreeSlice::normal() const
+{
+  return this->objectState<FreeSliceState>().normal;
+}
+
+//------------------------------------------------------------------------------
+void volFreeSlice::setOrigin(const std::array<double, 3> &o)
+{
+  this->objectState<FreeSliceState>().origin = o;
+}
+
+//------------------------------------------------------------------------------
+const std::array<double, 3> &volFreeSlice::origin() const
+{
+  return this->objectState<FreeSliceState>().origin;
+}
+
+//------------------------------------------------------------------------------
+volFreeSlice::FreeSliceState::FreeSliceState()
 {
   this->color->SetNumberOfColors(256);
   this->color->Build();
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceState::update(const vvApplicationState &appState)
+void volFreeSlice::FreeSliceState::update(const vvApplicationState &appState)
 {
   const volApplicationState &state =
       static_cast<const volApplicationState&>(appState);
 
   if (this->color->GetNumberOfTableValues() == 0 ||
-      this->color->GetMTime() < state.isosurfaceColorMapTimeStamp())
+      this->color->GetMTime() < state.sliceColorMapTimeStamp())
     {
     for (vtkIdType i = 0; i < 256; ++i)
       {
       this->color->SetTableValue(i,
-                                 state.isosurfaceColorMap()[4*i + 0],
-                                 state.isosurfaceColorMap()[4*i + 1],
-                                 state.isosurfaceColorMap()[4*i + 2],
+                                 state.sliceColorMap()[4*i + 0],
+                                 state.sliceColorMap()[4*i + 1],
+                                 state.sliceColorMap()[4*i + 2],
                                  1.);
       }
     }
 }
 
 //------------------------------------------------------------------------------
-volIsosurface::IsosurfaceDataPipeline::IsosurfaceDataPipeline(LevelOfDetail l)
+volFreeSlice::FreeSliceDataPipeline::FreeSliceDataPipeline(LevelOfDetail l)
   : lod(l)
 {
+  this->cutter->SetCutFunction(this->plane.Get());
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceDataPipeline::configure(
+void volFreeSlice::FreeSliceDataPipeline::configure(
     const ObjectState &objState, const vvApplicationState &appStateIn)
 {
-  const IsosurfaceState &state = static_cast<const IsosurfaceState&>(objState);
+  const FreeSliceState &state = static_cast<const FreeSliceState&>(objState);
   const volApplicationState &appState =
       static_cast<const volApplicationState&>(appStateIn);
 
@@ -158,45 +172,48 @@ void volIsosurface::IsosurfaceDataPipeline::configure(
       std::cerr << "Invalid level of detail for IsosurfaceDataPipeline.\n";
     }
 
-  this->contour->SetInputDataObject(dataObject);
-  this->contour->SetValue(0, state.contourValue);
+  // const casts bc VTK is not const-correct
+  this->plane->SetOrigin(const_cast<double*>(state.origin.data()));
+  this->plane->SetNormal(const_cast<double*>(state.normal.data()));
+  this->cutter->SetInputDataObject(dataObject);
 }
 
 //------------------------------------------------------------------------------
-bool volIsosurface::IsosurfaceDataPipeline::needsUpdate(
+bool volFreeSlice::FreeSliceDataPipeline::needsUpdate(
     const ObjectState &objState, const LODData &result) const
 {
-  const IsosurfaceState &state = static_cast<const IsosurfaceState&>(objState);
-  const IsosurfaceLODData &data = static_cast<const IsosurfaceLODData&>(result);
+  const FreeSliceState &state = static_cast<const FreeSliceState&>(objState);
+  const FreeSliceLODData &data = static_cast<const FreeSliceLODData&>(result);
 
   return
       state.visible &&
-      this->contour->GetInputDataObject(0, 0) != nullptr &&
-      (!data.contour ||
-       this->contour->GetMTime() > data.contour->GetMTime());
+      this->cutter->GetInputDataObject(0, 0) != nullptr &&
+      (!data.slice ||
+       this->cutter->GetMTime() > data.slice->GetMTime());
+
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceDataPipeline::execute()
+void volFreeSlice::FreeSliceDataPipeline::execute()
 {
-  this->contour->Update();
+  this->cutter->Update();
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceDataPipeline::exportResult(LODData &result) const
+void volFreeSlice::FreeSliceDataPipeline::exportResult(LODData &result) const
 {
-  IsosurfaceLODData &data = static_cast<IsosurfaceLODData&>(result);
+  FreeSliceLODData &data = static_cast<FreeSliceLODData&>(result);
 
-  vtkDataObject *dataObject = this->contour->GetOutputDataObject(0);
-  data.contour.TakeReference(dataObject->NewInstance());
-  data.contour->ShallowCopy(dataObject);
+  vtkDataObject *dataObject = this->cutter->GetOutputDataObject(0);
+  data.slice.TakeReference(dataObject->NewInstance());
+  data.slice->ShallowCopy(dataObject);
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceRenderPipeline::init(
-    const ObjectState &objState, vvContextState &contextState)
+void volFreeSlice::FreeSliceRenderPipeline::init(const ObjectState &objState,
+                                                 vvContextState &contextState)
 {
-  const IsosurfaceState &state = static_cast<const IsosurfaceState&>(objState);
+  const FreeSliceState &state = static_cast<const FreeSliceState&>(objState);
   this->mapper->SetLookupTable(state.color.Get());
   this->mapper->SetColorModeToMapScalars();
   this->actor->SetMapper(this->mapper.Get());
@@ -204,24 +221,24 @@ void volIsosurface::IsosurfaceRenderPipeline::init(
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceRenderPipeline::update(
+void volFreeSlice::FreeSliceRenderPipeline::update(
     const ObjectState &objState, const vvApplicationState &appStateIn,
     const vvContextState &, const LODData &result)
 {
-  const IsosurfaceState &state = static_cast<const IsosurfaceState&>(objState);
-  const IsosurfaceLODData &data = static_cast<const IsosurfaceLODData&>(result);
+  const FreeSliceState &state = static_cast<const FreeSliceState&>(objState);
+  const FreeSliceLODData &data = static_cast<const FreeSliceLODData&>(result);
   const volApplicationState &appState =
       static_cast<const volApplicationState&>(appStateIn);
 
   std::array<double, 2> scalarRange = appState.reader().scalarRange();
 
   this->mapper->SetScalarRange(scalarRange.data());
-  this->mapper->SetInputDataObject(data.contour);
+  this->mapper->SetInputDataObject(data.slice);
   this->actor->SetVisibility(state.visible ? 1 : 0);
 }
 
 //------------------------------------------------------------------------------
-void volIsosurface::IsosurfaceRenderPipeline::disable()
+void volFreeSlice::FreeSliceRenderPipeline::disable()
 {
   this->actor->SetVisibility(0);
 }

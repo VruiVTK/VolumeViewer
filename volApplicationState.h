@@ -10,6 +10,7 @@
 #include <vector>
 
 class volContours;
+class volFreeSlice;
 class volGeometry;
 class volIsosurface;
 class volOutline;
@@ -38,6 +39,10 @@ public:
   /** Contour rendering */
   volContours& contours() { return *m_contours; }
   const volContours& contours() const { return *m_contours; }
+
+  /** Free slice rendering */
+  volFreeSlice& freeSlice() { return *m_freeSlice; }
+  const volFreeSlice& freeSlice() const { return *m_freeSlice; }
 
   /** Geometry rendering */
   volGeometry& geometry() { return *m_geometry; }
@@ -87,6 +92,7 @@ private:
   ColorMap m_colorMap;
   vtkTimeStamp m_colorMapTimeStamp;
   volContours *m_contours;
+  volFreeSlice *m_freeSlice;
   volGeometry *m_geometry;
   std::array<volIsosurface*, 3> m_isosurfaces;
   ColorMap m_isosurfaceColorMap;

@@ -22,14 +22,8 @@
  */
 FreeSliceLocator::FreeSliceLocator(Vrui::LocatorTool * locatorTool,
   ExampleVTKReader* ExampleVTKReader) :
-  BaseLocator(locatorTool, ExampleVTKReader),
-  FreeSliceVisibility(0),
-  FreeSliceOrigin(0),
-  FreeSliceNormal(0)
+  BaseLocator(locatorTool, ExampleVTKReader)
 {
-  this->FreeSliceVisibility = ExampleVTKReader->getFreeSliceVisibility();
-  this->FreeSliceOrigin = ExampleVTKReader->getFreeSliceOrigin();
-  this->FreeSliceNormal = ExampleVTKReader->getFreeSliceNormal();
 } // end FreeSliceLocator()
 
 /*
@@ -48,12 +42,8 @@ void FreeSliceLocator::motionCallback(
           Vrui::Point position = callbackData->currentTransformation.getOrigin();
           Vrui::Vector planeNormal =
             callbackData->currentTransformation.transform(Vrui::Vector(0,1,0));
-          this->FreeSliceOrigin[0] = position[0];
-          this->FreeSliceOrigin[1] = position[1];
-          this->FreeSliceOrigin[2] = position[2];
-          this->FreeSliceNormal[0] = planeNormal[0];
-          this->FreeSliceNormal[1] = planeNormal[1];
-          this->FreeSliceNormal[2] = planeNormal[2];
+          this->application->setFreeSliceOrigin(position.getComponents());
+          this->application->setFreeSliceNormal(planeNormal.getComponents());
 } // end motionCallback()
 
 /*
@@ -64,7 +54,7 @@ void FreeSliceLocator::motionCallback(
 void FreeSliceLocator::buttonPressCallback(
 		Vrui::LocatorTool::ButtonPressCallbackData* callbackData)
 {
-  this->FreeSliceVisibility[0] = 1;
+  this->application->setFreeSliceVisibility(true);
 } // end buttonPressCallback()
 
 /*
@@ -75,5 +65,5 @@ void FreeSliceLocator::buttonPressCallback(
 void FreeSliceLocator::buttonReleaseCallback(
 		Vrui::LocatorTool::ButtonReleaseCallbackData* callbackData)
 {
-  this->FreeSliceVisibility[0] = 0;
+  this->application->setFreeSliceVisibility(false);
 } // end buttonReleaseCallback()
