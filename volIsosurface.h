@@ -8,7 +8,7 @@
 
 class vtkActor;
 class vtkDataObject;
-class vtkContourFilter;
+class vtkFlyingEdges3D;
 class vtkLookupTable;
 class vtkPolyDataMapper;
 
@@ -54,7 +54,7 @@ public:
     void exportResult(LODData &result) const override;
 
     LevelOfDetail lod;
-    vtkNew<vtkContourFilter> contour;
+    vtkNew<vtkFlyingEdges3D> contour;
   };
 
   struct IsosurfaceRenderPipeline : public RenderPipeline

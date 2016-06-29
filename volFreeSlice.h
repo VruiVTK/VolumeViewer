@@ -8,7 +8,7 @@
 
 class vtkActor;
 class vtkDataObject;
-class vtkCutter;
+class vtkFlyingEdgesPlaneCutter;
 class vtkLookupTable;
 class vtkPlane;
 class vtkPolyDataMapper;
@@ -60,7 +60,7 @@ public:
 
     LevelOfDetail lod;
     vtkNew<vtkPlane> plane;
-    vtkNew<vtkCutter> cutter;
+    vtkNew<vtkFlyingEdgesPlaneCutter> cutter;
   };
 
   struct FreeSliceRenderPipeline : public RenderPipeline

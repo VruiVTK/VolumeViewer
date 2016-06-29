@@ -7,11 +7,13 @@
 #include <vtkSmartPointer.h>
 
 class vtkActor;
-class vtkCutter;
+class vtkContourFilter;
+class vtkFlyingEdgesPlaneCutter;
 class vtkDataObject;
 class vtkLookupTable;
 class vtkPlane;
 class vtkPolyDataMapper;
+class vtkSampleImplicitFunctionFilter;
 
 class volSlices : public vvLODAsyncGLObject
 {
@@ -70,8 +72,9 @@ public:
     void exportResult(Superclass::LODData &result) const override;
 
     LevelOfDetail lod;
-    std::array<vtkNew<vtkCutter>, 3> sliceCutters;
-    std::array<vtkNew<vtkCutter>, 3> contourCutters;
+    std::array<vtkNew<vtkFlyingEdgesPlaneCutter>, 3> sliceCutters;
+    std::array<vtkNew<vtkSampleImplicitFunctionFilter>, 3> contourAddPlane;
+    std::array<vtkNew<vtkContourFilter>, 3> contourCutters;
   };
 
   struct RenderPipeline : public Superclass::RenderPipeline

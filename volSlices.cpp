@@ -6,13 +6,15 @@
 #include "volReader.h"
 
 #include <vtkActor.h>
-#include <vtkCutter.h>
+#include <vtkContourFilter.h>
 #include <vtkDataObject.h>
 #include <vtkExternalOpenGLRenderer.h>
+#include <vtkFlyingEdgesPlaneCutter.h>
 #include <vtkLookupTable.h>
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkSampleImplicitFunctionFilter.h>
 
 //------------------------------------------------------------------------------
 volSlices::volSlices()
@@ -192,6 +194,21 @@ void volSlices::ObjectState::update(const vvApplicationState &appState)
 volSlices::DataPipeline::DataPipeline(vvLODAsyncGLObject::LevelOfDetail l)
   : lod(l)
 {
+  for (size_t i = 0; i < 3; ++i)
+    {
+    this->sliceCutters[i]->ComputeNormalsOff();
+    this->sliceCutters[i]->InterpolateAttributesOn();
+
+    this->contourAddPlane[i]->ComputeGradientsOff();
+    this->contourAddPlane[i]->SetScalarArrayName("volSlices Plane");
+
+    this->contourCutters[i]->SetInputConnection(
+          this->contourAddPlane[i]->GetOutputPort(0));
+    this->contourCutters[i]->GenerateTrianglesOn();
+    this->contourCutters[i]->ComputeScalarsOn();
+    this->contourCutters[i]->SetNumberOfContours(1);
+    this->contourCutters[i]->SetValue(0, 0.);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -235,11 +252,15 @@ void volSlices::DataPipeline::configure(
 
   for (size_t i = 0; i < 3; ++i)
     {
-    this->sliceCutters[i]->SetCutFunction(objState.slicePlanes[i].Get());
+    this->sliceCutters[i]->SetPlane(objState.slicePlanes[i].Get());
     this->sliceCutters[i]->SetInputDataObject(input);
 
-    this->contourCutters[i]->SetCutFunction(objState.contourPlanes[i].Get());
-    this->contourCutters[i]->SetInputDataObject(contours);
+    this->contourAddPlane[i]->SetInputDataObject(contours);
+    this->contourAddPlane[i]->SetImplicitFunction(
+          objState.contourPlanes[i].Get());
+
+    this->contourCutters[i]->SetInputArrayToProcess(
+          0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "volSlices Plane");
     }
 }
 
@@ -284,8 +305,14 @@ void volSlices::DataPipeline::execute()
 {
   for (size_t i = 0; i < 3; ++i)
     {
-    this->sliceCutters[i]->Update();
-    this->contourCutters[i]->Update();
+    if (this->sliceCutters[i]->GetInputDataObject(0, 0) != nullptr)
+      {
+      this->sliceCutters[i]->Update();
+      }
+    if (this->contourAddPlane[i]->GetInputDataObject(0, 0) != nullptr)
+      {
+      this->contourCutters[i]->Update();
+      }
     }
 }
 

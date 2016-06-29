@@ -6,8 +6,8 @@
 
 #include <vtkActor.h>
 #include <vtkDataObject.h>
-#include <vtkContourFilter.h>
 #include <vtkExternalOpenGLRenderer.h>
+#include <vtkFlyingEdges3D.h>
 #include <vtkLookupTable.h>
 #include <vtkPolyDataMapper.h>
 
@@ -133,6 +133,8 @@ void volIsosurface::IsosurfaceState::update(const vvApplicationState &appState)
 volIsosurface::IsosurfaceDataPipeline::IsosurfaceDataPipeline(LevelOfDetail l)
   : lod(l)
 {
+  this->contour->ComputeNormalsOn();
+  this->contour->ComputeGradientsOff();
 }
 
 //------------------------------------------------------------------------------

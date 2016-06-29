@@ -6,8 +6,8 @@
 
 #include <vtkActor.h>
 #include <vtkDataObject.h>
-#include <vtkCutter.h>
 #include <vtkExternalOpenGLRenderer.h>
+#include <vtkFlyingEdgesPlaneCutter.h>
 #include <vtkLookupTable.h>
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
@@ -146,7 +146,9 @@ void volFreeSlice::FreeSliceState::update(const vvApplicationState &appState)
 volFreeSlice::FreeSliceDataPipeline::FreeSliceDataPipeline(LevelOfDetail l)
   : lod(l)
 {
-  this->cutter->SetCutFunction(this->plane.Get());
+  this->cutter->SetPlane(this->plane.Get());
+  this->cutter->ComputeNormalsOff();
+  this->cutter->InterpolateAttributesOn();
 }
 
 //------------------------------------------------------------------------------

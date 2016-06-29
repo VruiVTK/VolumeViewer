@@ -10,7 +10,7 @@
 
 class vtkActor;
 class vtkDataObject;
-class vtkContourFilter;
+class vtkFlyingEdges3D;
 class vtkPolyDataMapper;
 
 class volContours : public vvLODAsyncGLObject
@@ -58,7 +58,7 @@ public:
     void exportResult(Superclass::LODData &result) const override;
 
     LevelOfDetail lod;
-    vtkNew<vtkContourFilter> contour;
+    vtkNew<vtkFlyingEdges3D> contour;
   };
 
   struct ContourRenderPipeline : public Superclass::RenderPipeline

@@ -6,7 +6,7 @@
 
 #include <vtkActor.h>
 #include <vtkDataObject.h>
-#include <vtkContourFilter.h>
+#include <vtkFlyingEdges3D.h>
 #include <vtkExternalOpenGLRenderer.h>
 #include <vtkPolyDataMapper.h>
 
@@ -121,6 +121,8 @@ void volContours::ContourState::update(const vvApplicationState &)
 volContours::ContourDataPipeline::ContourDataPipeline(LevelOfDetail l)
   : lod(l)
 {
+  this->contour->ComputeNormalsOn();
+  this->contour->ComputeGradientsOff();
 }
 
 //------------------------------------------------------------------------------
