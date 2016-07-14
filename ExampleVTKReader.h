@@ -110,6 +110,10 @@ public:
   void setVerbose(bool);
   bool getVerbose(void);
 
+  // Set to false to hide the progress notifications when data is asynchronously
+  // updated.
+  void setProgressVisibility(bool vis);
+
   /* Get Flashlight position and direction */
   int * getFlashlightSwitch(void);
   double * getFlashlightPosition(void);

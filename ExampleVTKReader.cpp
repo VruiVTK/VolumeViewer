@@ -32,6 +32,9 @@
 #include <Vrui/VRWindow.h>
 #include <Vrui/WindowProperties.h>
 
+// vtkVRUI includes
+#include "vvProgress.h"
+
 // ExampleVTKReader includes
 #include "BaseLocator.h"
 #include "ClippingPlane.h"
@@ -159,6 +162,12 @@ void ExampleVTKReader::setVerbose(bool verbose)
 bool ExampleVTKReader::getVerbose(void)
 {
   return this->Verbose;
+}
+
+//----------------------------------------------------------------------------
+void ExampleVTKReader::setProgressVisibility(bool vis)
+{
+  m_volState.progress().setVisible(vis);
 }
 
 //----------------------------------------------------------------------------

@@ -16,6 +16,8 @@ void printUsage(void)
   std::cout << "\tRender mode to request for vtkSmartVolumeMapper.\n" << std::endl;
   std::cout << "\t-showfps" << std::endl;
   std::cout << "\tShow the FPS display by default.\n" << std::endl;
+  std::cout << "\t-hidebgnotifs" << std::endl;
+  std::cout << "\tHide notifications for background updates.\n" << std::endl;
   std::cout << "\t-h, -help" << std::endl;
   std::cout << "\tDisplay this usage information and exit." << std::endl;
   std::cout << "\nAdditionally, all the commandline switches the VRUI " <<
@@ -39,6 +41,7 @@ int main(int argc, char* argv[])
     bool showFPS = false;
     int renderMode = -1;
     bool verbose = false;
+    bool hidebgnotifs = false;
     if(argc > 1)
       {
       /* Parse the command-line arguments */
@@ -57,6 +60,10 @@ int main(int argc, char* argv[])
         if(strcmp(argv[i], "-showfps")==0)
           {
           showFPS = true;
+          }
+        if(strcmp(argv[i], "-hidebgnotifs")==0)
+          {
+          hidebgnotifs = true;
           }
         if(strcmp(argv[i],"-h")==0 || strcmp(argv[i], "-help")==0)
           {
@@ -81,6 +88,7 @@ int main(int argc, char* argv[])
       application.setRequestedRenderMode(renderMode);
       }
     application.setShowFPS(showFPS);
+    application.setProgressVisibility(!hidebgnotifs);
     application.initialize();
     application.run();
     return 0;
