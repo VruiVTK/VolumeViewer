@@ -38,8 +38,8 @@ public:
 
     vtkNew<vtkLookupTable> color;
     bool visible{false};
-    std::array<double, 3> origin{0., 0., 0.};
-    std::array<double, 3> normal{1., 0., 0.};
+    std::array<double, 3> origin{{0., 0., 0.}};
+    std::array<double, 3> normal{{1., 0., 0.}};
   };
 
   struct FreeSliceLODData : public LODData
