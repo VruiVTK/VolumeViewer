@@ -508,6 +508,9 @@ void ExampleVTKReader::initContext(GLContextData& contextData) const
 //----------------------------------------------------------------------------
 void ExampleVTKReader::display(GLContextData& contextData) const
 {
+  // Save OpenGL state
+  glPushAttrib(GL_ENABLE_BIT|GL_POLYGON_BIT);
+
   int numberOfSupportedClippingPlanes;
   glGetIntegerv(GL_MAX_CLIP_PLANES, &numberOfSupportedClippingPlanes);
   int clippingPlaneIndex = 0;
@@ -542,6 +545,9 @@ void ExampleVTKReader::display(GLContextData& contextData) const
       ++clippingPlaneIndex;
       }
     }
+
+    // Restore OpenGL state
+    glPopAttrib();
 }
 
 //----------------------------------------------------------------------------
