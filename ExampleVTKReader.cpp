@@ -15,7 +15,6 @@
 #include <GL/gl.h>
 #include <GLMotif/CascadeButton.h>
 #include <GLMotif/Label.h>
-#include <GLMotif/Popup.h>
 #include <GLMotif/PopupMenu.h>
 #include <GLMotif/RadioBox.h>
 #include <GLMotif/ToggleButton.h>
@@ -283,14 +282,12 @@ GLMotif::PopupMenu* ExampleVTKReader::createRepresentationMenu(void)
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
+GLMotif::PopupMenu * ExampleVTKReader::createAnalysisToolsMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
-  GLMotif::Popup * analysisToolsMenuPopup = new GLMotif::Popup(
+  GLMotif::PopupMenu * analysisToolsMenu = new GLMotif::PopupMenu(
     "analysisToolsMenuPopup", Vrui::getWidgetManager());
-  GLMotif::SubMenu* analysisToolsMenu = new GLMotif::SubMenu(
-    "representationMenu", analysisToolsMenuPopup, false);
 
   GLMotif::RadioBox * analysisTools_RadioBox = new GLMotif::RadioBox(
     "analysisTools", analysisToolsMenu, true);
@@ -307,19 +304,17 @@ GLMotif::Popup * ExampleVTKReader::createAnalysisToolsMenu(void)
   analysisTools_RadioBox->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   analysisTools_RadioBox->setSelectedToggle(showClippingPlane);
 
-  analysisToolsMenu->manageChild();
-  return analysisToolsMenuPopup;
+  analysisToolsMenu->manageMenu();
+  return analysisToolsMenu;
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup * ExampleVTKReader::createWidgetsMenu(void)
+GLMotif::PopupMenu * ExampleVTKReader::createWidgetsMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
-  GLMotif::Popup * widgetsMenuPopup = new GLMotif::Popup(
+  GLMotif::PopupMenu * widgetsMenu = new GLMotif::PopupMenu(
     "widgetsMenuPopup", Vrui::getWidgetManager());
-  GLMotif::SubMenu* widgetsMenu = new GLMotif::SubMenu(
-    "widgetsMenu", widgetsMenuPopup, false);
 
   GLMotif::ToggleButton * showSlicesDialog = new GLMotif::ToggleButton(
     "ShowSlicesDialog", widgetsMenu, "Slices");
@@ -340,17 +335,17 @@ GLMotif::Popup * ExampleVTKReader::createWidgetsMenu(void)
   showContoursDialog->getValueChangedCallbacks().add(this,
     &ExampleVTKReader::showContoursDialogCallback);
 
-  widgetsMenu->manageChild();
-  return widgetsMenuPopup;
+  widgetsMenu->manageMenu();
+  return widgetsMenu;
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup* ExampleVTKReader::createColorMapSubMenu(void)
+GLMotif::PopupMenu* ExampleVTKReader::createColorMapSubMenu(void)
 {
-  GLMotif::Popup * colorMapSubMenuPopup = new GLMotif::Popup(
+  GLMotif::PopupMenu * colorMapSubMenu = new GLMotif::PopupMenu(
     "ColorMapSubMenuPopup", Vrui::getWidgetManager());
   GLMotif::RadioBox* colorMaps = new GLMotif::RadioBox(
-    "ColorMaps", colorMapSubMenuPopup, false);
+    "ColorMaps", colorMapSubMenu, false);
   colorMaps->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   colorMaps->addToggle("Full Rainbow");
   colorMaps->addToggle("Inverse Full Rainbow");
@@ -370,16 +365,16 @@ GLMotif::Popup* ExampleVTKReader::createColorMapSubMenu(void)
   colorMaps->getValueChangedCallbacks().add(this,
     &ExampleVTKReader::changeColorMapCallback);
   colorMaps->manageChild();
-  return colorMapSubMenuPopup;
+  return colorMapSubMenu;
 } // end createColorMapSubMenu()
 
 //----------------------------------------------------------------------------
-GLMotif::Popup*  ExampleVTKReader::createAlphaSubMenu(void)
+GLMotif::PopupMenu*  ExampleVTKReader::createAlphaSubMenu(void)
 {
-  GLMotif::Popup * alphaSubMenuPopup = new GLMotif::Popup(
+  GLMotif::PopupMenu * alphaSubMenu = new GLMotif::PopupMenu(
     "AlphaSubMenuPopup", Vrui::getWidgetManager());
   GLMotif::RadioBox* alphas = new GLMotif::RadioBox(
-    "Alphas", alphaSubMenuPopup, false);
+    "Alphas", alphaSubMenu, false);
   alphas->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
   alphas->addToggle("Up");
   alphas->addToggle("Down");
@@ -388,7 +383,7 @@ GLMotif::Popup*  ExampleVTKReader::createAlphaSubMenu(void)
   alphas->setSelectedToggle(0);
   alphas->getValueChangedCallbacks().add(this, &ExampleVTKReader::changeAlphaCallback);
   alphas->manageChild();
-  return alphaSubMenuPopup;
+  return alphaSubMenu;
 } // end createAlphaSubMenu()
 
 //----------------------------------------------------------------------------
