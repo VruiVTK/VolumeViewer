@@ -49,7 +49,7 @@ private:
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
   GLMotif::PopupMenu* createMainMenu(void);
-  GLMotif::Popup* createRepresentationMenu(void);
+  GLMotif::PopupMenu* createRepresentationMenu(void);
   GLMotif::Popup* createAnalysisToolsMenu(void);
   GLMotif::Popup* createWidgetsMenu(void);
   GLMotif::Popup*  createColorMapSubMenu(void);

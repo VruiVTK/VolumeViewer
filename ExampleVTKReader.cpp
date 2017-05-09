@@ -15,7 +15,6 @@
 #include <GL/gl.h>
 #include <GLMotif/CascadeButton.h>
 #include <GLMotif/Label.h>
-#include <GLMotif/Menu.h>
 #include <GLMotif/Popup.h>
 #include <GLMotif/PopupMenu.h>
 #include <GLMotif/RadioBox.h>
@@ -173,11 +172,9 @@ void ExampleVTKReader::setProgressVisibility(bool vis)
 //----------------------------------------------------------------------------
 GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
 {
-  GLMotif::PopupMenu* mainMenuPopup = new GLMotif::PopupMenu(
+  GLMotif::PopupMenu* mainMenu = new GLMotif::PopupMenu(
     "MainMenuPopup",Vrui::getWidgetManager());
-  mainMenuPopup->setTitle("Main Menu");
-  GLMotif::Menu* mainMenu = new GLMotif::Menu(
-    "MainMenu",mainMenuPopup,false);
+  mainMenu->setTitle("Main Menu");
 
   const GLMotif::StyleSheet& styleSheet = *Vrui::getWidgetManager()->getStyleSheet();
 
@@ -229,19 +226,17 @@ GLMotif::PopupMenu* ExampleVTKReader::createMainMenu(void)
   showRenderingDialog->getValueChangedCallbacks().add(
     this, &ExampleVTKReader::showRenderingDialogCallback);
 
-  mainMenu->manageChild();
-  return mainMenuPopup;
+  mainMenu->manageMenu();
+  return mainMenu;
 }
 
 //----------------------------------------------------------------------------
-GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
+GLMotif::PopupMenu* ExampleVTKReader::createRepresentationMenu(void)
 {
   const GLMotif::StyleSheet* ss = Vrui::getWidgetManager()->getStyleSheet();
 
-  GLMotif::Popup* representationMenuPopup = new GLMotif::Popup(
+  GLMotif::PopupMenu* representationMenu = new GLMotif::PopupMenu(
     "representationMenuPopup", Vrui::getWidgetManager());
-  GLMotif::SubMenu* representationMenu = new GLMotif::SubMenu(
-    "representationMenu", representationMenuPopup, false);
 
   GLMotif::ToggleButton* showOutline=new GLMotif::ToggleButton(
     "ShowOutline",representationMenu,"Outline");
@@ -283,8 +278,8 @@ GLMotif::Popup* ExampleVTKReader::createRepresentationMenu(void)
   representation_RadioBox->setSelectionMode(GLMotif::RadioBox::ATMOST_ONE);
   representation_RadioBox->setSelectedToggle(showSurface);
 
-  representationMenu->manageChild();
-  return representationMenuPopup;
+  representationMenu->manageMenu();
+  return representationMenu;
 }
 
 //----------------------------------------------------------------------------
