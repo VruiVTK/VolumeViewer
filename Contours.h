@@ -15,7 +15,6 @@
 /* Vrui includes */
 #include <GL/GLColorMap.h>
 #include <GLMotif/Blind.h>
-#include <GLMotif/Popup.h>
 #include <GLMotif/PopupWindow.h>
 #include <GLMotif/RadioBox.h>
 #include <GLMotif/RowColumn.h>

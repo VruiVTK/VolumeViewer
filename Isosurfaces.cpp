@@ -263,10 +263,10 @@ void Isosurfaces::createColorSliders(const GLMotif::StyleSheet& styleSheet, GLMo
 /*
  * createIsosurfaceColorMapSubMenu - Creates a submenu of the available isosurface color maps.
  *
- * return - GLMotif::Popup *
+ * return - GLMotif::PopupMenu *
  */
-GLMotif::Popup * Isosurfaces::createIsosurfaceColorMapSubMenu(void) {
-    GLMotif::Popup * isosurfaceColorMapSubMenuPopup = new GLMotif::Popup("IsosurfaceColorMapSubMenuPopup", Vrui::getWidgetManager());
+GLMotif::PopupMenu * Isosurfaces::createIsosurfaceColorMapSubMenu(void) {
+    GLMotif::PopupMenu * isosurfaceColorMapSubMenuPopup = new GLMotif::PopupMenu("IsosurfaceColorMapSubMenuPopup", Vrui::getWidgetManager());
     GLMotif::RadioBox * isosurfaceColorMaps = new GLMotif::RadioBox("IsosurfaceColorMaps", isosurfaceColorMapSubMenuPopup, false);
     isosurfaceColorMaps->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
     isosurfaceColorMaps->addToggle("Full Rainbow");

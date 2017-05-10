@@ -263,10 +263,10 @@ void Slices::createColorSliders(const GLMotif::StyleSheet& styleSheet, GLMotif::
 /*
  * createSliceColorMapSubMenu - Creates a submenu of the available slice color maps.
  *
- * return - GLMotif::Popup *
+ * return - GLMotif::PopupMenu *
  */
-GLMotif::Popup * Slices::createSliceColorMapSubMenu(void) {
-    GLMotif::Popup * sliceColorMapSubMenuPopup = new GLMotif::Popup("SliceColorMapSubMenuPopup", Vrui::getWidgetManager());
+GLMotif::PopupMenu * Slices::createSliceColorMapSubMenu(void) {
+    GLMotif::PopupMenu * sliceColorMapSubMenuPopup = new GLMotif::PopupMenu("SliceColorMapSubMenuPopup", Vrui::getWidgetManager());
     GLMotif::RadioBox * sliceColorMaps = new GLMotif::RadioBox("SliceColorMaps", sliceColorMapSubMenuPopup, false);
     sliceColorMaps->setSelectionMode(GLMotif::RadioBox::ALWAYS_ONE);
     sliceColorMaps->addToggle("Full Rainbow");
