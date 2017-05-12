@@ -4,7 +4,7 @@
 /* Vrui includes */
 #include <GL/GLColorMap.h>
 #include <GLMotif/Blind.h>
-#include <GLMotif/Popup.h>
+#include <GLMotif/PopupMenu.h>
 #include <GLMotif/PopupWindow.h>
 #include <GLMotif/RadioBox.h>
 #include <GLMotif/RowColumn.h>
@@ -63,7 +63,7 @@ private:
     GLMotif::RowColumn * createColorSliderBox(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * colorEditor);
     void createColorSliders(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * colorEditor);
     void createColorSwatchesWidget(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * & colorEditor);
-    GLMotif::Popup * createSliceColorMapSubMenu(void);
+    GLMotif::PopupMenu * createSliceColorMapSubMenu(void);
     void createXSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMotif::StyleSheet & styleSheet);
     void createXYZSlices(const GLMotif::StyleSheet & styleSheet, GLMotif::RowColumn * & colorMapDialog);
     void createYSlices(GLMotif::RowColumn * & xyzSlicesRowColumn, const GLMotif::StyleSheet & styleSheet);

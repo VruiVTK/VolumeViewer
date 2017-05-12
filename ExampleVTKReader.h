@@ -24,7 +24,6 @@
 /* Forward Declarations */
 namespace GLMotif
 {
-  class Popup;
   class PopupMenu;
 }
 
@@ -49,11 +48,11 @@ private:
   /* Elements: */
   GLMotif::PopupMenu* mainMenu; // The program's main menu
   GLMotif::PopupMenu* createMainMenu(void);
-  GLMotif::Popup* createRepresentationMenu(void);
-  GLMotif::Popup* createAnalysisToolsMenu(void);
-  GLMotif::Popup* createWidgetsMenu(void);
-  GLMotif::Popup*  createColorMapSubMenu(void);
-  GLMotif::Popup*  createAlphaSubMenu(void);
+  GLMotif::PopupMenu* createRepresentationMenu(void);
+  GLMotif::PopupMenu* createAnalysisToolsMenu(void);
+  GLMotif::PopupMenu* createWidgetsMenu(void);
+  GLMotif::PopupMenu*  createColorMapSubMenu(void);
+  GLMotif::PopupMenu*  createAlphaSubMenu(void);
   GLMotif::PopupWindow* renderingDialog;
   GLMotif::PopupWindow* createRenderingDialog(void);
   GLMotif::TextField* opacityValue;
